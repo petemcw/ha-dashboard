@@ -1,0 +1,44 @@
+/* Neutral greys and one blue accent; the palette is still undecided. */
+:root {
+  --stale-opacity: 0.5;
+  --accent: #5b9dff;
+  --warn: #e0a030;
+  --danger: #ef5b5b;
+  --surface: #111418;
+  --surface-raised: #1c2128;
+  --text: #e6e8eb;
+  --text-muted: #9aa3ad;
+  color-scheme: dark;
+}
+
+:root[data-theme='dark'] {
+  --surface: #111418;
+  --surface-raised: #1c2128;
+  --text: #e6e8eb;
+  --text-muted: #9aa3ad;
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --accent: #1f6feb;
+  --warn: #9a6700;
+  --danger: #cf222e;
+  --surface: #f5f6f8;
+  --surface-raised: #ffffff;
+  --text: #1c2128;
+  --text-muted: #5b6570;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --accent: #1f6feb;
+    --warn: #9a6700;
+    --danger: #cf222e;
+    --surface: #f5f6f8;
+    --surface-raised: #ffffff;
+    --text: #1c2128;
+    --text-muted: #5b6570;
+    color-scheme: light;
+  }
+}

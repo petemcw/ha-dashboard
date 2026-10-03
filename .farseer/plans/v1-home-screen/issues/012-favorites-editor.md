@@ -1,6 +1,6 @@
 # Task 012: Favorites editor in the settings sheet
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 002, 003, 005, 006, 011
 **Retry count**: 0
 
@@ -25,16 +25,16 @@ Add an "Edit favorites" section to the settings sheet: search controllable entit
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it finds entities by friendly name or entity ID`
-- [ ] `it only offers entities from controllable domains`
-- [ ] `it does not offer an entity that is already a favorite`
-- [ ] `it saves an added favorite to the user's data`
-- [ ] `it moves a favorite up in the saved order`
-- [ ] `it removes a favorite, including one missing from Home Assistant`
-- [ ] `it keeps the previous list and shows an error when saving fails`
-- [ ] `it does not allow edits until the user's favorites have loaded`
-- [ ] `it disables editing while a save is in progress`
-- [ ] `it does not overwrite a stored value with an unknown version`
+- [x] `it finds entities by friendly name or entity ID`
+- [x] `it only offers entities from controllable domains`
+- [x] `it does not offer an entity that is already a favorite`
+- [x] `it saves an added favorite to the user's data`
+- [x] `it moves a favorite up in the saved order`
+- [x] `it removes a favorite, including one missing from Home Assistant`
+- [x] `it keeps the previous list and shows an error when saving fails`
+- [x] `it does not allow edits until the user's favorites have loaded`
+- [x] `it disables editing while a save is in progress`
+- [x] `it does not overwrite a stored value with an unknown version`
 
 ## Acceptance Criteria
 
@@ -44,4 +44,8 @@ Add an "Edit favorites" section to the settings sheet: search controllable entit
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `src/features/favorites-editor/`: `searchEntities.ts` (`matchesSearch(entity, query, favorites)`, `MAX_RESULTS` 20, used as the `useEntityIds` predicate, memoized on query and list), `useFavoritesEditor.ts` (read-modify-write action: `canEdit = loaded && writable && !saving`, next list computed from a ref of the latest subscribed value, no optimistic update so a failed save keeps the list, error shown as `role=alert`), `FavoritesEditor.tsx` (Move up/Move down/Remove/Add buttons with entity names in accessible names; unknown-version value shows a message and no controls).
+- `src/app/settings/FavoritesSettingsSection.tsx` wired into `AppShell` before the kiosk section. It is a `<section>` with an `<h3>`, not a fieldset: a legend overlapped the controls on phone when the sheet scrolled and swallowed taps.
+- `src/index.css` (append only): editor styles, plus `html, body { overflow-x: hidden }`. The unstyled attention rows (long entity IDs when entities are missing) widened the phone page, and the fixed sheet then ran off the right edge. Worth a real fix in the attention rows later.
+- e2e: `e2e/favorites-editor.spec.ts` (mock only; adds, reorders, removes, asserts `mockHa.userData`, no call_service). No `@live` spec opens the editor.
+- Full vitest run had 4 failures in `src/infrastructure/ha/connection.test.ts` and `startupRetry.test.ts` (task 015's in-progress files); not touched. Format, lint, tsc, my vitest files and favorites e2e pass. No read-only files edited.

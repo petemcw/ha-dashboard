@@ -1,24 +1,291 @@
+@import './app/theme/tokens.css';
+
+/* Base */
+
 :root {
-  color-scheme: dark;
   font-family:
     system-ui,
     -apple-system,
     sans-serif;
-  background: #111418;
-  color: #e6e8eb;
+  background: var(--surface);
+  color: var(--text);
 }
 
 body {
   margin: 0;
 }
 
-.status {
-  min-height: 100dvh;
+button,
+input {
+  font: inherit;
+}
+
+/* Every button is a 44 px touch target; components don't need to repeat it. */
+button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--text-muted);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* App shell */
+
+.app-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 16px 0;
+}
+
+.banner {
+  margin: 0;
+  padding: 12px 16px;
+  color: #111418;
+}
+
+.banner--warn {
+  background: var(--warn);
+}
+
+.banner--danger {
+  background: var(--danger);
+}
+
+.content[data-stale] {
+  opacity: var(--stale-opacity);
+}
+
+/* Settings sheet */
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
   display: grid;
-  place-items: center;
+  place-items: end center;
+  background: rgb(0 0 0 / 0.5);
+}
+
+.sheet {
+  box-sizing: border-box;
+  width: min(100%, 480px);
+  max-height: 90dvh;
+  overflow-y: auto;
+  padding: 16px;
+  border-radius: 16px 16px 0 0;
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sheet__section {
+  margin: 16px 0;
+  padding: 0;
+  border: 0;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+
+.choice input {
+  width: 24px;
+  height: 24px;
+}
+
+/* Home layout */
+
+/* Long entity IDs and names have no break points; let them wrap instead of widening the
+   page (the fixed settings sheet sizes against the viewport). */
+.home {
+  min-height: 100dvh;
   padding: 16px;
   box-sizing: border-box;
-  text-align: center;
-  font-size: 1.25rem;
-  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* One column on phones; two from tablet width. Areas keep the DOM order (and so the
+   reading order) as attention, suggestions, presence, favorites, crypto. */
+.home__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.home__grid > * {
+  min-width: 0;
+}
+
+.home__grid > :empty {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .home__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-areas:
+      'attention attention'
+      'suggestions suggestions'
+      'presence favorites'
+      'crypto favorites';
+    grid-template-rows: auto auto auto 1fr;
+    align-items: start;
+  }
+
+  .home__attention {
+    grid-area: attention;
+  }
+  .home__suggestions {
+    grid-area: suggestions;
+  }
+  .home__presence {
+    grid-area: presence;
+  }
+  .home__favorites {
+    grid-area: favorites;
+  }
+  .home__crypto {
+    grid-area: crypto;
+  }
+}
+
+/* Attention */
+
+.chore-row {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.chore-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  min-height: 44px;
+}
+
+.snooze-choices {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.snoozed summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.snoozed li {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Presence */
+
+.presence-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 64px;
+  min-height: 44px;
+}
+
+.person__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 2px solid currentColor;
+}
+
+/* Favorites */
+
+.favorites {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.favorite-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-height: 44px;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid currentColor;
+}
+
+.favorite-tile[data-status='missing'],
+.favorite-tile[data-status='unavailable'],
+.favorite-tile[data-status='unknown'] {
+  opacity: 0.6;
+}
+
+/* Favorites editor (in the settings sheet) */
+
+.favorites-editor__list,
+.favorites-editor__results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.favorites-editor__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.favorites-editor__item > span {
+  flex: 1 1 100%;
+  overflow-wrap: anywhere;
+}
+
+.favorites-editor label {
+  display: block;
+}
+
+.favorites-editor input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+}
+
+.favorites-editor__results button {
+  max-width: 100%;
+  text-align: left;
+  overflow-wrap: anywhere;
 }

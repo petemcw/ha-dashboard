@@ -4,7 +4,7 @@ A custom web dashboard for my Home Assistant. It's a standalone React app, not a
 
 ## Status
 
-Scaffolded: a Vite + React + TS app that only connects to HA and shows the entity count, plus the deploy pipeline (`Dockerfile`, `deploy/`, `.github/workflows/image.yml`). No real UI yet.
+v1 home screen built: a read-mostly Home view (needs-attention with snoozes, suggestions, presence, favorites with an editor, crypto) over `subscribeEntities`, with an app shell, connection banner, settings sheet, and kiosk token entry. Controls are disabled (no `call_service` in `src/`); a service gateway comes later. Plus the deploy pipeline (`Dockerfile`, `deploy/`, `.github/workflows/image.yml`). Mocked e2e specs use the HA WebSocket mock; `@live` specs are read-only.
 
 ## Environment
 
@@ -37,8 +37,8 @@ The HA config lives in a Docker volume on the HA host, so the add-on approaches 
 
 - Full strategy, mock boundaries, and naming: `.farseer/testing.md`. Before committing: `npm run format:check && npm run lint && npm test && npm run build`.
 - `npm test` runs Vitest (unit and component tests, jsdom). `npm run test:coverage` enforces 80% on `src/domains/` and `src/infrastructure/`.
-- `npm run test:e2e` runs Playwright (headless Chromium) against the Vite dev server and the **live** HA instance, at `phone` (393×852) and `tablet` (1180×820) viewports. It starts the dev server itself, or reuses one already on :5173.
-- Auth: `e2e/fixtures.ts` puts `HA_TOKEN` (from `.env.local` via direnv) into the browser's localStorage, so the app uses its long-lived token path (`LONG_LIVED_TOKEN_KEY` in `src/storageKeys.ts`) instead of the OAuth redirect. The token never goes into the bundle or into source.
+- `npm run test:e2e` runs Playwright (headless Chromium) against the Vite dev server and the **live** HA instance, at `phone` (393×852) and `tablet` (1180×820) viewports. It starts its own dev server on :5174 with `VITE_HA_URL` blanked, so mock specs never reach the real HA; each fixture serves `/config.json` (the mock URL, or `HA_URL` for `@live`).
+- Auth: `e2e/fixtures.ts` puts `HA_TOKEN` (from `.env.local` via direnv) into the browser's localStorage, so the app uses its long-lived token path (`LONG_LIVED_TOKEN_KEY` in `src/infrastructure/storageKeys.ts`) instead of the OAuth redirect. The token never goes into the bundle or into source.
 - Screenshots go to `e2e/screenshots/` (gitignored). Use them to check layouts visually after UI changes.
 - Tests run against the real house: reading state is fine, but tests must not call services that change devices. Use a demo/fixture mode for exercising controls (not built yet).
 - Simulate network drops with `page.routeWebSocket` (see the reconnect test in `e2e/smoke.spec.ts`).

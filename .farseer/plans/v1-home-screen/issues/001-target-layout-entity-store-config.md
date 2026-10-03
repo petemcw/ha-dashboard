@@ -1,6 +1,6 @@
 # Task 001: Move scaffold into target layout with entity store and config
 
-**Status**: pending
+**Status**: done
 **Depends on**: none
 **Retry count**: 0
 
@@ -39,17 +39,17 @@ Pre-factoring for every other task. Move the scaffold into the layout from `.far
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it gives a selector subscriber the current state of its entity`
-- [ ] `it re-renders a component only when the entity it reads changes`
-- [ ] `it reports an entity that is not in the map as missing`
-- [ ] `it does not report entities as missing before the first entity snapshot arrives`
-- [ ] `it reports reconnecting when the connection emits disconnected`
-- [ ] `it reports connected again when entities are re-emitted after a reconnect`
-- [ ] `it reports an error with a readable message when the first connection fails`
-- [ ] `it renders the home screen with a labelled region for each section`
-- [ ] `it connects with a stored long-lived token instead of the Home Assistant login`
-- [ ] `it clears stored credentials when Home Assistant rejects them`
-- [ ] `it reads the Home Assistant URL from config.json when VITE_HA_URL is not set`
+- [x] `it gives a selector subscriber the current state of its entity`
+- [x] `it re-renders a component only when the entity it reads changes`
+- [x] `it reports an entity that is not in the map as missing`
+- [x] `it does not report entities as missing before the first entity snapshot arrives`
+- [x] `it reports reconnecting when the connection emits disconnected`
+- [x] `it reports connected again when entities are re-emitted after a reconnect`
+- [x] `it reports an error with a readable message when the first connection fails`
+- [x] `it renders the home screen with a labelled region for each section`
+- [x] `it connects with a stored long-lived token instead of the Home Assistant login`
+- [x] `it clears stored credentials when Home Assistant rejects them`
+- [x] `it reads the Home Assistant URL from config.json when VITE_HA_URL is not set`
 
 ## Acceptance Criteria
 
@@ -63,4 +63,11 @@ Pre-factoring for every other task. Move the scaffold into the layout from `.far
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- Moved scaffold to `src/infrastructure/ha/{connection,runtimeConfig}.ts`, `src/infrastructure/storageKeys.ts`, `src/app/App.tsx`; updated `e2e/fixtures.ts`, `main.tsx`, CLAUDE.md path.
+- New: `infrastructure/store.ts` (generic external store), `entities/entityStore.ts` + `useEntity.ts` (`useEntity`, `useEntitiesLoaded`), `ha/connectionStatus.ts` + `useConnectionStatus.ts`, `ha/session.ts` (`startSession(connect?)`: called from App's effect; wires entity store, status, reconnect-error). `src/test/fakeConnection.ts` fakes the Connection so the real `subscribeEntities` runs.
+- `HomeScreen` shows h1 "Home" always, "Connecting…" until loaded, then five stub regions (aria-labels: Needs attention, Suggestions, People, Favorites, Crypto); `onOpenSettings` goes to FavoritesSection.
+- `src/config/home.ts` holds all rules/IDs with types.
+- Smoke e2e now asserts the Favorites region with `toBeAttached` (empty sections have zero size, so Playwright treats them as hidden) and the Home heading. Live e2e passes.
+- Tests were written together with the code per slice, so the entity store tests passed on first run.
+- Node 24 is not installed here; tests ran with Homebrew node 26 (nvm node 20 breaks jsdom).
+- Coverage 81% overall with VITE_HA_URL set and unset; session.ts is 70% (App-level cleanup branches), infra total above 80%.

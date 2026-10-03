@@ -1,6 +1,6 @@
 # Task 015: Connection resilience: startup retry and heartbeat
 
-**Status**: pending
+**Status**: complete
 **Depends on**: 001, 002, 003
 **Retry count**: 0
 
@@ -21,11 +21,11 @@ Make the connection recover on its own in the two cases the library doesn't hand
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it keeps retrying when Home Assistant is unreachable at startup and connects once it is back`
-- [ ] `it still reports an error at once when Home Assistant rejects the credentials at startup`
-- [ ] `it forces a reconnect when a ping gets no pong within 10 seconds`
-- [ ] `it pings as soon as the page becomes visible again`
-- [ ] `it stops pinging after the connection is closed`
+- [x] `it keeps retrying when Home Assistant is unreachable at startup and connects once it is back`
+- [x] `it still reports an error at once when Home Assistant rejects the credentials at startup`
+- [x] `it forces a reconnect when a ping gets no pong within 10 seconds`
+- [x] `it pings as soon as the page becomes visible again`
+- [x] `it stops pinging after the connection is closed`
 
 ## Acceptance Criteria
 
@@ -36,4 +36,9 @@ Make the connection recover on its own in the two cases the library doesn't hand
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- Startup retry lives in `connection.ts` as a custom `createSocket` (`createSocketWithRetry`) that calls the library's `createSocket` with `setupRetry: 0` and loops every 1 s on `ERR_CANNOT_CONNECT` only. Reason: with `setupRetry: -1` the library hides failed attempts, so the UI could not say it is retrying. Invalid auth still rejects at once, so the kiosk `needs-token` path and `ERR_KIOSK_TOKEN_REQUIRED` (thrown before any socket) are unchanged.
+- `ConnectionStatus` `connecting` gained `retrying?: boolean`; `ConnectionBanner` shows "Can't reach Home Assistant. Retrying…" as `role="status"` for it.
+- Heartbeat: new `src/infrastructure/ha/heartbeat.ts` (`startHeartbeat(conn)`, 30 s ping, 10 s pong timeout, `reconnect(true)`, pings on visible/`online`, stops on `closeRequested` or the returned stop). Started and stopped in `session.ts`. Vitest fake timers, no clock injection needed.
+- Tests: `startupRetry.test.ts` (real library over a scripted fake WebSocket), `heartbeat.test.ts`, one session test; `connection.test.ts` assertion loosened to `objectContaining`. `src/test/fakeConnection.ts` got additive `ping/reconnect/close/closeRequested` and a `heartbeat` probe.
+- E2E: `e2e/resilience.spec.ts` (named so instead of connection.spec.ts per orchestrator) uses `page.clock`. `e2e/haMock.ts`: new `setReachable(bool)`; `stall()` now applies only to sockets open at that moment, so the reconnect gets a working socket.
+- All checks green: format, lint, vitest, tsc, kiosk/home/resilience e2e, @live smoke (intentional test.fail case fails as expected).

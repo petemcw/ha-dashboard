@@ -12,5 +12,5 @@ e2e/screenshots/
 .DS_Store
 !.envrc
 
-# Local copy of the HA config (contains secrets)
-config/
+# Local copy of the HA config (contains secrets). Anchored, so src/config/ stays tracked.
+/config/

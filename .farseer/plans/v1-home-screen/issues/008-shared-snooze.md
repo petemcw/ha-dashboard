@@ -1,6 +1,6 @@
 # Task 008: Shared snooze for attention items
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 002, 003, 005, 006, 007, 011
 **Retry count**: 0
 
@@ -28,16 +28,16 @@ Let an admin snooze any attention item for 1 day or 1 week. Snoozes are stored i
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it hides an item snoozed until a time in the future`
-- [ ] `it shows an item again once its snooze has expired`
-- [ ] `it stores a one-week snooze in shared system data when an admin chooses 1 week`
-- [ ] `it removes a stored snooze when its item has resolved`
-- [ ] `it keeps a snooze while its entity is unavailable`
-- [ ] `it does not remove snoozes before the first entity snapshot arrives`
-- [ ] `it does not offer a snooze action until the stored snoozes have loaded`
-- [ ] `it does not offer a snooze action to a non-admin user`
-- [ ] `it shows a snooze made on another device without a reload`
-- [ ] `it ignores a stored value with an unknown version`
+- [x] `it hides an item snoozed until a time in the future`
+- [x] `it shows an item again once its snooze has expired`
+- [x] `it stores a one-week snooze in shared system data when an admin chooses 1 week`
+- [x] `it removes a stored snooze when its item has resolved`
+- [x] `it keeps a snooze while its entity is unavailable`
+- [x] `it does not remove snoozes before the first entity snapshot arrives`
+- [x] `it does not offer a snooze action until the stored snoozes have loaded`
+- [x] `it does not offer a snooze action to a non-admin user`
+- [x] `it shows a snooze made on another device without a reload`
+- [x] `it ignores a stored value with an unknown version`
 
 ## Acceptance Criteria
 
@@ -47,4 +47,9 @@ Let an admin snooze any attention item for 1 day or 1 week. Snoozes are stored i
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- New: `src/infrastructure/appData/systemData.ts` (`subscribeSystemData`, `setSystemData(key, value, connect?)`) + `useSystemData(key, connect?)` returning `{ value, loaded }` (copy of the userData pattern); `src/infrastructure/ha/currentUser.ts` (`fetchCurrentUser` -> `{ id, isAdmin }`) + `useCurrentUser(connect?)` (undefined until known, so admin controls stay hidden).
+- `src/features/home/attention/`: `snoozes.ts` (pure: `parseSnoozes` -> `{ snoozes, writable }`, `isSnoozed`, `addSnooze`, `removeSnooze`, `cleanup` returning null when nothing changed), `useSnoozes(resolvedIds, connect?)` (admin/loaded/writable gating, one write in flight via ref + state, writes computed from latest stored value, 5 s debounced cleanup gated on admin, connected, entity store loaded, system data loaded, and only scheduled when `cleanup` would change something; the timer recomputes from refs when it fires), `SnoozeMenu` (visible "Snooze" button -> "1 day"/"1 week"/"Cancel"), `SnoozedList` ("N snoozed" disclosure with "until Fri 9:00 AM", Unsnooze for admins). `UrgentItem`/`ChoreRow` take an optional `snooze` prop; `AttentionSection` takes an optional `connect` prop (tests inject a fake connection, as with `useUserData`).
+- Failed write shows `role="alert"` text and leaves the item; unknown version or junk shows "Snoozes are unavailable." and offers no snooze.
+- Snoozed list only shows snoozed items that are currently active (they have a title); a snooze for an inactive-but-unresolved item stays stored but invisible.
+- Tests: `snoozes.test.ts`, `AttentionSnooze.test.tsx` (fake connection; uses `fireEvent` because `userEvent` hangs under vitest fake timers), `systemData.test.ts`, `useSystemData.test.tsx`, `useCurrentUser.test.tsx`; `e2e/snooze.spec.ts` (mock: admin snooze stores a ~7-day value, non-admin has no Snooze button, another-device snooze appears without reload). Per instruction the mock spec is in `snooze.spec.ts`, not `attention.spec.ts`.
+- `src/index.css`: appended snooze styles only. No read-only files edited. Coverage for appData 100% lines. `@live` smoke run read-only: passes (the `fails a live test that sends call_service` case is the intentional test.fail). Full vitest (212), lint, tsc, prettier pass.

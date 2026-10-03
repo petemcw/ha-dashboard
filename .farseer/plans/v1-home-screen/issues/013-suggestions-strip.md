@@ -1,6 +1,6 @@
 # Task 013: Suggestions strip (disabled)
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 003
 **Retry count**: 0
 
@@ -20,10 +20,10 @@ Show context suggestions in their own strip, apart from attention: while the fam
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it suggests the media viewing mood while the Apple TV is playing`
-- [ ] `it suggests brighter lights while the Apple TV is paused`
-- [ ] `it shows no suggestions while the Apple TV is idle, off, standby, or unavailable`
-- [ ] `it renders a suggestion as a disabled action with an explanation`
+- [x] `it suggests the media viewing mood while the Apple TV is playing`
+- [x] `it suggests brighter lights while the Apple TV is paused`
+- [x] `it shows no suggestions while the Apple TV is idle, off, standby, or unavailable`
+- [x] `it renders a suggestion as a disabled action with an explanation`
 
 ## Acceptance Criteria
 
@@ -33,4 +33,7 @@ Show context suggestions in their own strip, apart from attention: while the fam
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `src/domains/media_player/` (types, viewModel, factories with `mediaPlayer(state)` and `APPLE_TV_ID`) and `src/features/home/suggestions/` (`suggestionRules.ts`, `SuggestionsStrip.tsx`) plus tests and `e2e/suggestions.spec.ts` (mock-backed, phone and tablet).
+- The strip returns null when nothing is suggested (no region), so `src/features/home/HomeScreen.test.tsx` no longer expects a 'Suggestions' region on an empty entity map; I removed it from that list (one-line edit).
+- Buttons are `disabled` with `aria-describedby` pointing at the hint text; no `call_service`, scene ids stay in config.
+- Tests ran under Vitest and Playwright (mock) and passed; format, lint and tsc clean for my files. Tests and implementation were written together per slice rather than strictly red first.

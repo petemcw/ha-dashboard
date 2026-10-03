@@ -1,6 +1,6 @@
 # Task 003: Playwright HA WebSocket mock and live read-only guard
 
-**Status**: pending
+**Status**: complete
 **Depends on**: 001
 **Retry count**: 0
 
@@ -39,14 +39,14 @@ Also add the read-only guard to the `@live` fixture now, before any task adds wr
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it renders the home screen against the mocked HA without a real token`
-- [ ] `it shows an entity change pushed by the mock without a reload`
-- [ ] `it shows the reconnecting state after the mock drops the socket, then recovers`
-- [ ] `it records every message type the page sends`
-- [ ] `it rejects set_system_data from a non-admin mock user`
-- [ ] `it answers ping with pong`
-- [ ] `it never forwards call_service or a frontend set message to the real Home Assistant`
-- [ ] `it fails a live test that sends call_service`
+- [x] `it renders the home screen against the mocked HA without a real token`
+- [x] `it shows an entity change pushed by the mock without a reload`
+- [x] `it shows the reconnecting state after the mock drops the socket, then recovers`
+- [x] `it records every message type the page sends`
+- [x] `it rejects set_system_data from a non-admin mock user`
+- [x] `it answers ping with pong`
+- [x] `it never forwards call_service or a frontend set message to the real Home Assistant`
+- [x] `it fails a live test that sends call_service`
 
 ## Acceptance Criteria
 
@@ -59,4 +59,9 @@ Also add the read-only guard to the `@live` fixture now, before any task adds wr
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `e2e/haMock.ts`: `HaMock` class (state on the mock, per-socket handshake/subs), installed by the `mockHa` fixture which also serves `/config.json`, 404s everything on `http://ha.mock.test`, and seeds the dummy token (`seedToken` option; `false` seeds nothing). `haOptions` option seeds user/entities/statistics.
+- `e2e/fixtures.ts`: `test` (mock) and `liveTest` (HA_TOKEN + auto `liveSocket` guard with `drop()`, `takeBlocked()`). Blocked `set_system_data` becomes an annotation; `call_service`/`set_user_data` fail the test in teardown.
+- `src/domains/factories.ts`: base `entityState` (type-only lib import, no browser globals).
+- Page-side checks that have no UI yet (change push, ping, non-admin set) use a raw WebSocket from `page.evaluate` against the mock; swap for UI assertions once later tasks render entities.
+- Guard self-tests live in `e2e/smoke.spec.ts` (raw WS needs `HA_URL` from direnv).
+- Verified: mock specs pass without HA_TOKEN/VITE_HA_URL; @live passes; tsc node config and build pass.

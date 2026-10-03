@@ -1,0 +1,34 @@
+import { useId } from 'react'
+import { suggestions } from '../../../config/home'
+import { mediaPlayerViewModel } from '../../../domains/media_player/viewModel'
+import { useEntity } from '../../../infrastructure/entities/useEntity'
+import { suggestionsFor } from './suggestionRules'
+
+// Hidden entirely when nothing is suggested. In v1 the buttons stay disabled:
+// running a scene changes devices. The scene id and transition stay in config
+// for the controls phase.
+export function SuggestionsStrip() {
+  const entity = useEntity(suggestions.player)
+  const hintId = useId()
+  const { playback } = mediaPlayerViewModel(entity, suggestions.player)
+  const items = suggestionsFor(playback, suggestions)
+  if (items.length === 0) return null
+
+  return (
+    <section aria-labelledby={`${hintId}-heading`} className="suggestions">
+      <h2 id={`${hintId}-heading`}>Suggestions</h2>
+      <ul>
+        {items.map((s) => (
+          <li key={s.id}>
+            <button type="button" disabled aria-describedby={hintId} className="suggestion">
+              {s.label}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <p id={hintId} className="suggestions-hint">
+        Available when controls are enabled
+      </p>
+    </section>
+  )
+}

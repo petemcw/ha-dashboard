@@ -4,7 +4,7 @@ What carries over from the Lovelace dashboard (`dashboard-home`), and how. Decid
 
 ## Release order
 
-1. **v1: read-only home.** Attention, suggestions (shown, not tappable), presence, favorites (state only), crypto. No HA actions.
+1. **v1: read-only home.** Attention, suggestions (shown, not tappable), presence, favorites (state only), crypto. No HA actions. **Shipped (v1):** all five regions, snoozes shared via HA system data, per-user favorites with an editor, kiosk token entry, and reconnect handling.
 2. **Demo mode** (`?demo`, fake service gateway) so controls can be tested without touching the house.
 3. **Controls**: tap actions on home, then rooms.
 

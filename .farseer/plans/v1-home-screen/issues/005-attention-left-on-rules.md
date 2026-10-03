@@ -1,6 +1,6 @@
 # Task 005: Attention: left-on rules and urgent tier
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 003
 **Retry count**: 0
 
@@ -27,16 +27,16 @@ The first attention slice, end to end: domain view models for the entities invol
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it does not flag the garage door before it has been open for 10 minutes`
-- [ ] `it flags the garage door once it has been open for 10 minutes`
-- [ ] `it flags the space heater after an hour on but not after 59 minutes`
-- [ ] `it does not flag an entity that is unavailable or unknown`
-- [ ] `it reports a configured entity missing from Home Assistant as a missing-entity item`
-- [ ] `it shows a left-on item when the clock passes the threshold without a reload`
-- [ ] `it renders the item's action as disabled with an explanation`
-- [ ] `it reports a closed garage door as resolved but not one still open under 10 minutes`
-- [ ] `it does not report an unavailable entity as resolved`
-- [ ] `it shows that nothing needs attention when no rule is active`
+- [x] `it does not flag the garage door before it has been open for 10 minutes`
+- [x] `it flags the garage door once it has been open for 10 minutes`
+- [x] `it flags the space heater after an hour on but not after 59 minutes`
+- [x] `it does not flag an entity that is unavailable or unknown`
+- [x] `it reports a configured entity missing from Home Assistant as a missing-entity item`
+- [x] `it shows a left-on item when the clock passes the threshold without a reload`
+- [x] `it renders the item's action as disabled with an explanation`
+- [x] `it reports a closed garage door as resolved but not one still open under 10 minutes`
+- [x] `it does not report an unavailable entity as resolved`
+- [x] `it shows that nothing needs attention when no rule is active`
 
 ## Acceptance Criteria
 
@@ -46,4 +46,8 @@ The first attention slice, end to end: domain view models for the entities invol
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- Domain: `src/domains/onOff.ts` holds the shared on/off view model (`status`, `isOn`, `onSince`); `binary_sensor`, `switch`, `light` each have thin `viewModel.ts`, `types.ts`, `factories.ts` (`binarySensorState`, `switchState`, `lightState`, default state `off`).
+- Clock: `src/infrastructure/clock/clock.ts` (`createClock({intervalMs, now})`, singleton `clock`, `useNow()`); ticks every 30 s only while subscribed. Tests inject a time source or use fake timers.
+- Attention: `types.ts` (`AttentionItem`, `RuleResult`), `leftOnRule.ts` (pure; also exports `missingEntityResult` and `formatDuration` for 006/007 to reuse), `useAttentionItems.ts` (returns merged `{items, resolvedIds}`; add rules there), `AttentionSection.tsx`, `UrgentItem.tsx`. Missing-entity chores render as a plain list for now.
+- Rule ids are the config ids (`garage-door`, `space-heater`, ...). Detail is "Open for N min" (door) / "On for N min", "1 h 5 min" past an hour.
+- Tests: `leftOnRule.test.ts`, `AttentionSection.test.tsx`, `clock.test.ts`, `e2e/attention.spec.ts` (phone + tablet). No shared files modified. No `call_service`.

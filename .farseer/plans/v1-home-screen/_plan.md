@@ -6,7 +6,7 @@
 
 ## Status
 
-ready
+completed
 
 ## Objective
 
@@ -90,7 +90,7 @@ GitHub issues created from this plan (issue numbers differ from task numbers):
 - Only one real HA user exists today (owner/admin). The other five `person` entities have no linked user. Favorites are keyed to the HA user, so family members get theirs once they have accounts; no app change needed.
 - `update.update_firmware` isn't in the entity registry and has no device; included as decided.
 - Kiosk (owner decisions after review): the kiosk's token belongs to a dedicated non-admin HA user, and kiosk mode is remembered per device so a revoked token returns to the token form, never the OAuth login.
-- Work is committed directly on `master` (owner's preference), so no feature branch.
+- Work happens on the `feature/v1-home-screen` branch.
 
 ## Scope
 
@@ -138,21 +138,21 @@ GitHub issues created from this plan (issue numbers differ from task numbers):
 
 | Task | Description                                                   | Depends On                                   | Status  |
 | ---- | ------------------------------------------------------------- | -------------------------------------------- | ------- |
-| 001  | Move scaffold into target layout with entity store and config | -                                            | pending |
-| 002  | App shell: tokens, connection banner, settings sheet          | 001                                          | pending |
-| 003  | Playwright HA WebSocket mock and live read-only guard         | 001                                          | pending |
-| 004  | Kiosk token entry                                             | 001, 002, 003                                | pending |
-| 005  | Attention: left-on rules and urgent tier                      | 001, 003                                     | pending |
-| 006  | Attention chores: low batteries and pending updates           | 001, 003, 005                                | pending |
-| 007  | Attention chores: printer toner and filters due               | 001, 003, 005, 006                           | pending |
-| 008  | Shared snooze for attention items                             | 001, 002, 003, 005, 006, 007, 011               | pending |
-| 009  | Presence row                                                  | 001, 003                                     | pending |
-| 010  | Crypto row with 24-hour sparkline                             | 001, 003                                     | pending |
-| 011  | Per-user favorites display                                    | 001, 002, 003, 005                           | pending |
-| 012  | Favorites editor in the settings sheet                        | 001, 002, 003, 005, 006, 011                 | pending |
-| 013  | Suggestions strip (disabled)                                  | 001, 003                                     | pending |
-| 014  | Home screen composition, layouts, and live smoke              | 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 012, 013, 015 | pending |
-| 015  | Connection resilience: startup retry and heartbeat            | 001, 002, 003                                | pending |
+| 001  | Move scaffold into target layout with entity store and config | -                                            | completed |
+| 002  | App shell: tokens, connection banner, settings sheet          | 001                                          | completed |
+| 003  | Playwright HA WebSocket mock and live read-only guard         | 001                                          | completed |
+| 004  | Kiosk token entry                                             | 001, 002, 003                                | completed |
+| 005  | Attention: left-on rules and urgent tier                      | 001, 003                                     | completed |
+| 006  | Attention chores: low batteries and pending updates           | 001, 003, 005                                | completed |
+| 007  | Attention chores: printer toner and filters due               | 001, 003, 005, 006                           | completed |
+| 008  | Shared snooze for attention items                             | 001, 002, 003, 005, 006, 007, 011               | completed |
+| 009  | Presence row                                                  | 001, 003                                     | completed |
+| 010  | Crypto row with 24-hour sparkline                             | 001, 003                                     | completed |
+| 011  | Per-user favorites display                                    | 001, 002, 003, 005                           | completed |
+| 012  | Favorites editor in the settings sheet                        | 001, 002, 003, 005, 006, 011                 | completed |
+| 013  | Suggestions strip (disabled)                                  | 001, 003                                     | completed |
+| 014  | Home screen composition, layouts, and live smoke              | 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 012, 013, 015 | completed |
+| 015  | Connection resilience: startup retry and heartbeat            | 001, 002, 003                                | completed |
 
 ## Architecture Notes
 

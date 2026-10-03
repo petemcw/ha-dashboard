@@ -1,6 +1,6 @@
 # Task 002: App shell: tokens, connection banner, settings sheet
 
-**Status**: pending
+**Status**: complete
 **Depends on**: 001
 **Retry count**: 0
 
@@ -22,13 +22,13 @@ Build the shell around `HomeScreen`: a header with a Settings button, a connecti
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it shows the reconnecting banner when the connection drops`
-- [ ] `it marks the home content stale while disconnected`
-- [ ] `it hides the banner and clears stale marking after reconnecting`
-- [ ] `it opens the settings sheet from the Settings button and closes it with Escape`
-- [ ] `it follows the system color scheme when the theme is set to System`
-- [ ] `it keeps a Dark theme override after a reload`
-- [ ] `it clears stored credentials when the user signs out`
+- [x] `it shows the reconnecting banner when the connection drops`
+- [x] `it marks the home content stale while disconnected`
+- [x] `it hides the banner and clears stale marking after reconnecting`
+- [x] `it opens the settings sheet from the Settings button and closes it with Escape`
+- [x] `it follows the system color scheme when the theme is set to System`
+- [x] `it keeps a Dark theme override after a reload`
+- [x] `it clears stored credentials when the user signs out`
 
 ## Acceptance Criteria
 
@@ -39,4 +39,8 @@ Build the shell around `HomeScreen`: a header with a Settings button, a connecti
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- New: `src/app/AppShell.tsx` (header, banner, stale wrapper `.content[data-stale]` + `aria-busy`, sheet), `ConnectionBanner.tsx` (also shows the error alert), `settings/{SettingsSheet,ThemeSection,SignOutSection}.tsx`, `theme/{tokens.css,useThemePreference.ts}`. `App.tsx` now only starts the session and renders `AppShell`.
+- Sheet is a `role="dialog"` with focus trap, Escape, focus restore; sections are children so tasks 004/012 add theirs.
+- Theme preference lives in `AppShell` (not the sheet): the first version held it in the sheet and a stored Dark override was not applied after reload while the sheet was closed. The test caught it.
+- `THEME_KEY` added to `storageKeys.ts`. Banner text unchanged, so smoke e2e needs no edit.
+- Tests written with code per slice. Sign-out test asserts stored keys are cleared (jsdom ignores `location.replace`).

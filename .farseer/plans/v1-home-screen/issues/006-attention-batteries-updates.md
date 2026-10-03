@@ -1,6 +1,6 @@
 # Task 006: Attention chores: low batteries and pending updates
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 003, 005
 **Retry count**: 0
 
@@ -25,14 +25,14 @@ Add the chore tier: a compact row under the urgent items. Fill it with a general
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it lists a battery sensor below 20 percent as a chore`
-- [ ] `it does not list a battery sensor at 20 percent or above`
-- [ ] `it ignores battery sensors on the ignore list`
-- [ ] `it ignores a battery sensor with a non-numeric state`
-- [ ] `it lists a pending update with its installed and latest versions`
-- [ ] `it lists the Home Assistant Docker image when its update sensor is on`
-- [ ] `it renders chores in a compact row after urgent items`
-- [ ] `it does not re-render a predicate subscriber when an unrelated entity changes`
+- [x] `it lists a battery sensor below 20 percent as a chore`
+- [x] `it does not list a battery sensor at 20 percent or above`
+- [x] `it ignores battery sensors on the ignore list`
+- [x] `it ignores a battery sensor with a non-numeric state`
+- [x] `it lists a pending update with its installed and latest versions`
+- [x] `it lists the Home Assistant Docker image when its update sensor is on`
+- [x] `it renders chores in a compact row after urgent items`
+- [x] `it does not re-render a predicate subscriber when an unrelated entity changes`
 
 ## Acceptance Criteria
 
@@ -42,4 +42,8 @@ Add the chore tier: a compact row under the urgent items. Fill it with a general
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- Domains: `src/domains/sensor/` (`sensorViewModel`: `status`, `friendlyName`, `deviceClass`, `numericValue`; `batterySensorState` factory) and `src/domains/update/` (`updateViewModel`: `isPending`, versions, `friendlyName`; also reads the Docker `binary_sensor`).
+- Infrastructure (additive): `useEntityIds(predicate)` (cached snapshot, same array while the ID set is unchanged) and `useEntitiesById(ids)` (stable while entity objects are unchanged), both in `src/infrastructure/entities/`.
+- Attention: `batteryRule.ts`, `updateRule.ts`, `ChoreRow.tsx` (`<ul aria-label="Chores">`, 44 px min-height rows); `useAttentionItems` merges them; `AttentionSection` moves missing-entity chores into the row. Battery items skip ignore-listed sensors; update item ids `update:<entity_id>`.
+- Side effect: configured update entities now count as configured, so the existing section test and e2e seeds also seed calm update entities (otherwise they show as missing chores). `src/index.css` got `.chore-row`/`.chore-item` styles.
+- Not mine: `npx tsc -b` reports an error in `src/infrastructure/appData/useUserData.test.tsx` (task 011, in progress); lint warns on `favorites/Tile.tsx`.

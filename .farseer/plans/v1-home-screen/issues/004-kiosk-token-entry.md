@@ -1,6 +1,6 @@
 # Task 004: Kiosk token entry
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 002, 003
 **Retry count**: 0
 
@@ -28,15 +28,15 @@ Let a fresh wall tablet be set up without anyone logging in on it. Opening `/?ki
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it shows the token form for ?kiosk when no credentials are stored`
-- [ ] `it does not redirect to the Home Assistant login when ?kiosk is set`
-- [ ] `it stores the pasted token and connects with it`
-- [ ] `it removes the kiosk parameter from the URL after saving`
-- [ ] `it clears a rejected token and shows the form again with an error`
-- [ ] `it connects with a second token after the first was rejected, without a reload`
-- [ ] `it never includes the token in error text`
-- [ ] `it replaces the stored token from the settings sheet`
-- [ ] `it returns a kiosk device to the token form, not the Home Assistant login, when its token is rejected later`
+- [x] `it shows the token form for ?kiosk when no credentials are stored`
+- [x] `it does not redirect to the Home Assistant login when ?kiosk is set`
+- [x] `it stores the pasted token and connects with it`
+- [x] `it removes the kiosk parameter from the URL after saving`
+- [x] `it clears a rejected token and shows the form again with an error`
+- [x] `it connects with a second token after the first was rejected, without a reload`
+- [x] `it never includes the token in error text`
+- [x] `it replaces the stored token from the settings sheet`
+- [x] `it returns a kiosk device to the token form, not the Home Assistant login, when its token is rejected later`
 
 ## Acceptance Criteria
 
@@ -47,4 +47,11 @@ Let a fresh wall tablet be set up without anyone logging in on it. Opening `/?ki
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `connection.ts`: `?kiosk` with no stored credentials throws `ERR_KIOSK_TOKEN_REQUIRED` instead of starting OAuth; on a kiosk device a rejected token clears credentials without `resetAuth()`. New exports: `saveKioskToken`, `resetConnection`, `isKioskDevice`, `isKioskMode`, `forgetCredentials`. `resetAuth()` also clears the kiosk flag.
+- `session.ts` sets `connecting` at start and `needs-token` (new `connectionStatus` kind) for a missing or rejected token, or `reconnect-error` on a kiosk. Rejection text is fixed: "Home Assistant rejected that token."
+- `storageKeys.ts`: `KIOSK_MODE_KEY` (`ha-dashboard:kiosk-mode`), so a kiosk device stays on the token form after a later rejection.
+- UI: `src/app/kiosk/KioskTokenForm.tsx` (password input, cleared after submit), `src/app/settings/KioskTokenSection.tsx` (only on kiosk devices). `App.tsx` shows the form on `needs-token`; submit saves the token and restarts the session without a reload.
+- `e2e/haMock.ts` (additive): `authTokens` and a `rejectTokens` option answering `auth_invalid`.
+- Tests: `src/app/App.kiosk.test.tsx` (all requirements), `connection.test.ts`, `session.test.tsx`, `e2e/kiosk.spec.ts`.
+- Known limit: after a token change, the previous token's entities stay in the store until the new connection's first snapshot.
+- Requirement boxes and these notes were filled in by the orchestrator from the worker's report after confirming the tests exist and pass.

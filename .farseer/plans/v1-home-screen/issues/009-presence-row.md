@@ -1,6 +1,6 @@
 # Task 009: Presence row
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 003
 **Retry count**: 0
 
@@ -21,13 +21,13 @@ Show everyone in the family as a compact row of avatars with a home/away marker 
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it shows a person at home as home`
-- [ ] `it shows a person who is not_home as away`
-- [ ] `it shows the zone name when a person is in a named zone`
-- [ ] `it shows a person with an unknown state as location unknown`
-- [ ] `it resolves the person's picture against the Home Assistant URL`
-- [ ] `it shows initials when a person has no picture or the picture fails to load`
-- [ ] `it shows a configured person missing from Home Assistant as missing`
+- [x] `it shows a person at home as home`
+- [x] `it shows a person who is not_home as away`
+- [x] `it shows the zone name when a person is in a named zone`
+- [x] `it shows a person with an unknown state as location unknown`
+- [x] `it resolves the person's picture against the Home Assistant URL`
+- [x] `it shows initials when a person has no picture or the picture fails to load`
+- [x] `it shows a configured person missing from Home Assistant as missing`
 
 ## Acceptance Criteria
 
@@ -37,4 +37,8 @@ Show everyone in the family as a compact row of avatars with a home/away marker 
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- New: `src/domains/person/{types,viewModel,factories}.ts`, `components/PersonAvatar.tsx` (list item with accessible name, text marker, initials fallback on img error), `src/features/home/presence/PresenceRow.tsx`, `e2e/presence.spec.ts`.
+- Additive: `src/infrastructure/ha/useHaUrl.ts` (hook over `loadConfig`) so the row can resolve pictures; the row renders empty until the URL loads.
+- Domain tests were written together with the view model (they passed on first run); an extra `unavailable` presence case is covered.
+- Run e2e with `VITE_HA_URL`/`HA_URL` unset (env here had it set, which bypasses the mock's /config.json) and a private `--output` dir when other workers run Playwright concurrently (shared test-results collides). Mock specs must request the `mockHa` fixture.
+- Missing person name is derived from the id ("casey rivera").

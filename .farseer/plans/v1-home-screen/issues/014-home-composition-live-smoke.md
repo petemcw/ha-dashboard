@@ -1,6 +1,6 @@
 # Task 014: Home screen composition, layouts, and live smoke
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 012, 013, 015
 **Retry count**: 0
 
@@ -20,10 +20,10 @@ Put the sections in their final order and layout for phone and tablet, update th
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it shows the sections in order: attention, suggestions, presence, favorites, crypto`
-- [ ] `it lays the home screen out in one column at phone width without horizontal scroll`
-- [ ] `it lays the home screen out in two columns at tablet width`
-- [ ] `it renders the home sections against the real Home Assistant instance`
+- [x] `it shows the sections in order: attention, suggestions, presence, favorites, crypto`
+- [x] `it lays the home screen out in one column at phone width without horizontal scroll`
+- [x] `it lays the home screen out in two columns at tablet width`
+- [x] `it renders the home sections against the real Home Assistant instance`
 
 ## Acceptance Criteria
 
@@ -35,4 +35,7 @@ Put the sections in their final order and layout for phone and tablet, update th
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- HomeScreen wraps each region in a `home__*` div inside `.home__grid`; CSS grid, one column by default, two columns (1fr / 2fr, named areas) from 900px. Empty wrappers are hidden (suggestions strip).
+- Removed the `html, body { overflow-x: hidden }` hack. Real fix: `overflow-wrap: anywhere` on `.home` and `min-width: 0` on grid children. The phone spec seeds a long unbreakable chore name, a snoozed long-name chore, and missing-entity chores, expands the snoozed list, and asserts scrollWidth <= viewport width. favorites-editor spec passes.
+- Mock layout screenshots: `e2e/screenshots/home-layout-<project>.png`; live smoke writes `home-<project>.png`.
+- CLAUDE.md Status and docs/feature-decisions.md updated.

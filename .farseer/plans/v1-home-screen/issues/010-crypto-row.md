@@ -1,6 +1,6 @@
 # Task 010: Crypto row with 24-hour sparkline
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 003
 **Retry count**: 0
 
@@ -19,12 +19,12 @@ One compact row with BTC, ETH, and SOL: current price, 24-hour change, and a sma
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it shows each coin's current price in US dollars`
-- [ ] `it computes the 24-hour change from the oldest hourly mean`
-- [ ] `it appends the live price as the last sparkline point`
-- [ ] `it shows a dash and no change while the price is unavailable`
-- [ ] `it shows the price without a sparkline when there are no statistics`
-- [ ] `it updates the price when the entity changes without refetching statistics`
+- [x] `it shows each coin's current price in US dollars`
+- [x] `it computes the 24-hour change from the oldest hourly mean`
+- [x] `it appends the live price as the last sparkline point`
+- [x] `it shows a dash and no change while the price is unavailable`
+- [x] `it shows the price without a sparkline when there are no statistics`
+- [x] `it updates the price when the entity changes without refetching statistics`
 
 ## Acceptance Criteria
 
@@ -34,4 +34,7 @@ One compact row with BTC, ETH, and SOL: current price, 24-hour change, and a sma
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `src/infrastructure/ha/statistics.ts` (`fetchHourlyMeans`, skips null means and empty series) and `useHourlyMeans.ts` (refetch every 15 min and on the connection `ready` event; keeps last series on failure; `connect` param defaults to `getConnection` for tests).
+- `src/features/home/crypto/`: `cryptoViewModel.ts` (price, signed change with U+2212 minus, points, missing), `Sparkline.tsx` (aria-hidden SVG), `CryptoRow.tsx`. Statistic ids are the entity ids from `config/home.ts`.
+- Tests: view model, row component (connection module mocked at the edge), statistics/hook, and `e2e/crypto.spec.ts` (phone and tablet, mocked). No edits to read-only files; `src/domains/sensor/` not created.
+- Price parsing is local to the view model, per task note.

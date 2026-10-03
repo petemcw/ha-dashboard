@@ -1,0 +1,9 @@
+dist
+coverage
+test-results
+playwright-report
+e2e/screenshots
+package-lock.json
+# Hand-written docs: don't let the formatter reflow tables and prose.
+*.md
+.claude

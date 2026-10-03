@@ -15,12 +15,22 @@ export default defineConfig({
   projects: [
     {
       name: 'phone',
-      use: { viewport: { width: 393, height: 852 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true },
+      use: {
+        viewport: { width: 393, height: 852 },
+        deviceScaleFactor: 3,
+        isMobile: true,
+        hasTouch: true,
+      },
     },
     {
       // Placeholder until the wall tablet hardware is chosen.
       name: 'tablet',
-      use: { viewport: { width: 1180, height: 820 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+      use: {
+        viewport: { width: 1180, height: 820 },
+        deviceScaleFactor: 2,
+        isMobile: true,
+        hasTouch: true,
+      },
     },
   ],
   webServer: {

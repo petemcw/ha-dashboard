@@ -8,7 +8,10 @@ export const test = base.extend<{ pageErrors: Error[] }>({
   page: async ({ page }, use) => {
     const token = process.env.HA_TOKEN
     if (!token) throw new Error('HA_TOKEN is not set. Run from a direnv shell in this repo.')
-    await page.addInitScript(([key, value]) => localStorage.setItem(key, value), [LONG_LIVED_TOKEN_KEY, token])
+    await page.addInitScript(
+      ([key, value]) => localStorage.setItem(key, value),
+      [LONG_LIVED_TOKEN_KEY, token],
+    )
     await use(page)
   },
   pageErrors: async ({ page }, use) => {

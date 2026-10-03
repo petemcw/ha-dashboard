@@ -8,10 +8,10 @@ Scaffolded: a Vite + React + TS app that only connects to HA and shows the entit
 
 ## Environment
 
-| Thing           | Where                                                                   | Notes                                                                     |
-| --------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Home Assistant  | `https://homeassistant.alpine-ling.ts.net` (Tailscale; LAN 10.10.20.98:8123) | 2026.9.4. Container install (Docker). No Supervisor, no add-ons. HACS is installed. |
-| UniFi console   | `https://10.10.20.1`                                                    | Runs UniFi Network (no Protect or Access). Self-signed cert.              |
+| Thing           | Where                                                                             | Notes                                                                     |
+| --------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Home Assistant  | `https://homeassistant.alpine-ling.ts.net` (Tailscale; LAN 10.10.20.98:8123)      | 2026.9.4. Container install (Docker). No Supervisor, no add-ons. HACS is installed. |
+| UniFi console   | `https://10.10.20.1`                                                              | Runs UniFi Network (no Protect or Access). Self-signed cert.              |
 | Compose host    | `10.10.20.98` (x86_64), SSH as `prm`. Stack at `/home/prm/iot/docker-compose.yml` | Local git repo, no remote. All services pull registry images. `tailscaled` runs on the host (`tailscale serve` needs sudo). No reverse proxy. |
 | Dev machine     | macOS, Node 24 (nvm, `.nvmrc`), `uv`/`uvx`, Docker, direnv, 1Password CLI (`op`)  |                                                                           |
 
@@ -35,11 +35,14 @@ The HA config lives in a Docker volume on the HA host, so the add-on approaches 
 
 ## Testing
 
+- Full strategy, mock boundaries, and naming: `.farseer/testing.md`. Before committing: `npm run format:check && npm run lint && npm test && npm run build`.
+- `npm test` runs Vitest (unit and component tests, jsdom). `npm run test:coverage` enforces 80% on `src/domains/` and `src/infrastructure/`.
 - `npm run test:e2e` runs Playwright (headless Chromium) against the Vite dev server and the **live** HA instance, at `phone` (393×852) and `tablet` (1180×820) viewports. It starts the dev server itself, or reuses one already on :5173.
 - Auth: `e2e/fixtures.ts` puts `HA_TOKEN` (from `.env.local` via direnv) into the browser's localStorage, so the app uses its long-lived token path (`LONG_LIVED_TOKEN_KEY` in `src/storageKeys.ts`) instead of the OAuth redirect. The token never goes into the bundle or into source.
 - Screenshots go to `e2e/screenshots/` (gitignored). Use them to check layouts visually after UI changes.
 - Tests run against the real house: reading state is fine, but tests must not call services that change devices. Use a demo/fixture mode for exercising controls (not built yet).
 - Simulate network drops with `page.routeWebSocket` (see the reconnect test in `e2e/smoke.spec.ts`).
+- Tests against the real instance are tagged `@live`; filter with `--grep @live` / `--grep-invert @live`.
 
 ## Auth and secrets
 
@@ -69,3 +72,23 @@ Skills:
 ## Open questions
 
 - Which wall tablet/screen hardware, and in which browser/kiosk app. (It will need Tailscale to reach the dashboard.)
+
+## Agent Skills
+
+Project configuration files are in `.farseer/`:
+
+- `architecture.md` - Technical patterns and structure
+- `code-standards.md` - Coding conventions
+- `testing.md` - Test configuration and commands
+
+### Domain Context
+
+Home Assistant vocabulary (entity, HA domain, HA action vs. domain action, view model, service gateway, unavailable vs. missing) and the business-critical paths: anything that sends HA actions, auth/tokens, reconnect, entity config, deployment. See `.farseer/domain.md`.
+
+### Issue Tracker
+
+GitHub Issues on the public `petemcw/ha-dashboard` repo via `gh`; keep secrets and house-revealing details out of issues. See `.farseer/issue-tracker.md`.
+
+### Triage Labels
+
+Default Farseer roles, label string equal to the role name (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`, plus `bug` and `enhancement`). See `.farseer/issue-labels.md`.

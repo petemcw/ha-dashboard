@@ -1,14 +1,20 @@
 import { defineConfig } from '@playwright/test'
 
-// Runs against the Vite dev server and the live HA instance, authenticated with
-// HA_TOKEN from .env.local (see e2e/fixtures.ts). Screenshots land in e2e/screenshots/.
+// Runs against its own Vite dev server. Mock specs talk to an in-test HA; @live specs
+// talk to the real instance with HA_TOKEN from .env.local (see e2e/fixtures.ts).
+// Screenshots land in e2e/screenshots/.
+//
+// The server runs on its own port with VITE_HA_URL blanked: direnv exports it, and the
+// app prefers it over /config.json, which would send mock specs to the real house.
+// Each fixture serves /config.json instead (the mock URL, or HA_URL for @live).
+const PORT = 5174
 export default defineConfig({
   testDir: './e2e',
   outputDir: './test-results',
   fullyParallel: true,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: `http://localhost:${PORT}`,
     browserName: 'chromium',
     trace: 'retain-on-failure',
   },
@@ -34,8 +40,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev -- --port 5173 --strictPort',
-    url: 'http://localhost:5173',
+    command: `npm run dev -- --port ${PORT} --strictPort`,
+    url: `http://localhost:${PORT}`,
+    env: { VITE_HA_URL: '' },
     reuseExistingServer: true,
   },
 })

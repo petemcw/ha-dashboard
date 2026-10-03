@@ -15,7 +15,7 @@ Target layout. Only `src/ha.ts`, `src/config.ts`, `src/storageKeys.ts`, `src/App
   - `factories.ts` - test factories for representative entity states.
   - `components/` - presentational components that take view models (e.g. `LightTile.tsx`).
 - `src/infrastructure/` - Everything that touches HA or the browser platform: connection and auth (`ha/`), the entity store and selector hooks, the service gateway, runtime config (`config.json`), localStorage keys.
-- `src/config/home.ts` - Typed, committed entity configuration: which `entity_id`s each feature uses. Not secret.
+- `src/config/` - Types and `parseHomeConfig` for the runtime `/home.json` (which `entity_id`s each feature uses; template in `home.example.json`, the real file is the owner's and not in the repo), the `HomeConfigProvider`/`useHomeConfig()` context, `loadHomeConfig`, and `testHomeConfig.ts` (placeholder house for tests).
 - `src/test/` - Vitest setup and shared test helpers.
 - `e2e/` - Playwright tests, fixtures, and the HA WebSocket mock.
 - `deploy/`, `Dockerfile`, `.github/workflows/` - Image build and Compose deployment.
@@ -37,7 +37,7 @@ Target layout. Only `src/ha.ts`, `src/config.ts`, `src/storageKeys.ts`, `src/App
 8. Do not duplicate HA entity state in React local state. Infrastructure holds the `subscribeEntities` map in one external store; components read it through per-entity selector hooks (`useSyncExternalStore` with a selector), so an update to one entity re-renders only the components that read it. Never pass the whole entity map down the tree.
 9. HA service calls go through domain actions, which call a service gateway. The gateway is the only code that calls `callService`. It has a real implementation (WebSocket) and a fake one (tests, demo mode).
 10. Pending feedback after a tap (spinner, disabled control) lives in the domain action's state, never as an optimistic copy of the entity. The entity changes when HA says it changed.
-11. Entity IDs come from `src/config/home.ts` rather than being scattered through components.
+11. Entity IDs come from the runtime `home.json` (via `useHomeConfig()`) rather than being scattered through components.
 12. `unavailable` and `unknown` are first-class states in every view model. A configured entity that doesn't exist in HA renders a visible "missing" state; never crash, never guess.
 
 ### Testing

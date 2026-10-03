@@ -13,3 +13,5 @@ e2e
 playwright.config.ts
 test-results
 playwright-report
+home.json
+public/home.json

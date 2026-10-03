@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "ha-mcp": {
+      "type": "http",
+      "url": "${HA_MCP_URL}"
+    },
+    "ha-assist": {
+      "type": "http",
+      "url": "${HA_URL}/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${HA_TOKEN}"
+      }
+    }
+  }
+}

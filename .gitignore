@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.vite/
+coverage/
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+.DS_Store
+!.envrc
+
+# Local copy of the HA config (contains secrets)
+config/

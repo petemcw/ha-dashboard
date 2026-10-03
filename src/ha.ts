@@ -70,9 +70,5 @@ export function describeError(err: unknown): string {
     case ERR_INVALID_HTTPS_TO_HTTP:
       return 'This page is HTTPS but the Home Assistant URL is HTTP.'
   }
-  if (err instanceof TypeError) {
-    // A failed cross-origin fetch to /auth/token is usually CORS.
-    return `${err.message}. If this happened right after logging in, check that ${location.origin} is in HA's CORS allowed origins (Settings → System → Network → HTTP server).`
-  }
   return err instanceof Error ? err.message : String(err)
 }

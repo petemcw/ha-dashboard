@@ -28,15 +28,15 @@ The HA config lives in a Docker volume on the HA host, so the add-on approaches 
 
 - Image: multi-stage Dockerfile (Node build, then `nginx:alpine`). The HA URL comes from a `config.json` written at container start from env, not baked into the bundle. `index.html` is `no-cache`; hashed assets are `immutable`.
 - CI: GitHub Actions builds `linux/amd64` on push to `master` and pushes `ghcr.io/petemcw/ha-dashboard`. The repo is public, so the host pulls without credentials.
-- Exposure: a Tailscale sidecar container gives the dashboard its own tailnet name (`https://maplefrontier.alpine-ling.ts.net`). The nginx container shares its network namespace, so nothing is published on the host. It's a different origin from HA, so HA must list it under CORS allowed origins (ask first).
+- Exposure: a Tailscale sidecar container gives the dashboard its own tailnet name (`https://maplefrontier.alpine-ling.ts.net`). The nginx container shares its network namespace, so nothing is published on the host. It's a different origin from HA and is listed in HA's CORS allowed origins.
 - Deploy: `docker compose pull dashboard && docker compose up -d dashboard` in `/home/prm/iot`. `deploy/compose.yml` has the services and one-time setup; `deploy/serve.json` is the sidecar's serve config.
-- Dev: `npm run dev` reads `VITE_HA_URL` from `.envrc` instead of `config.json`. The dev origin (`http://localhost:5173`) also needs to be in CORS allowed origins to log in.
+- Dev: `npm run dev` reads `VITE_HA_URL` from `.envrc` instead of `config.json`. The dev origin (`http://localhost:5173`) is also in CORS allowed origins.
 - Goal: eventually Funnel only the dashboard and make HA tailnet-only.
 
 ## Auth and secrets
 
 - **Never** commit tokens or put a long-lived token in the client bundle. Phones should use HA's OAuth login flow (`getAuth({ hassUrl })` in home-assistant-js-websocket). A kiosk tablet can use a token entered at runtime and stored on the device.
-- If the app is served from a different origin than HA, HA must list the app's origin under **CORS allowed origins**, or the token exchange fails. Since HA 2026.8 the HTTP settings live in the UI (Settings → System → Network → HTTP server), not in a `configuration.yaml` `http:` block, which is deprecated and ignored after migration. Saving them restarts HA, so confirm with me before changing them.
+- CORS (checked live): HA's `/auth/*` endpoints, including the OAuth token exchange, allow any origin, and the WebSocket isn't subject to CORS. HA's **CORS allowed origins** list only gates REST `/api/*` calls, so the app's origin must be listed before it makes any REST call. Since HA 2026.8 the HTTP settings live in the UI (Settings → System → Network → HTTP server), not in a `configuration.yaml` `http:` block, which is deprecated and ignored after migration. Saving them restarts HA, so confirm with me before changing them.
 - Tooling env comes from direnv. `.envrc` (committed) holds non-secret config and loads `.env.local` (gitignored; template in `.env.example`), which holds `HA_TOKEN`, `HA_MCP_URL`, `UNIFI_NETWORK_USERNAME`, and `UNIFI_NETWORK_PASSWORD`. Claude Code only sees them when it's launched from a shell in this directory. Putting them in `settings.json` `env` does **not** work for `${VAR}` expansion in `.mcp.json`. `HA_URL` must not end in `/`, or `/api/...` turns into `//api/...` and returns 404. The local `config/` folder is a gitignored snapshot of the HA config; it can be out of date, so prefer live data from MCP.
 
 ## Claude tooling in this repo

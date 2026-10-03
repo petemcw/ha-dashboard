@@ -33,6 +33,14 @@ The HA config lives in a Docker volume on the HA host, so the add-on approaches 
 - Dev: `npm run dev` reads `VITE_HA_URL` from `.envrc` instead of `config.json`. The dev origin (`http://localhost:5173`) is also in CORS allowed origins.
 - Goal: eventually Funnel only the dashboard and make HA tailnet-only.
 
+## Testing
+
+- `npm run test:e2e` runs Playwright (headless Chromium) against the Vite dev server and the **live** HA instance, at `phone` (393×852) and `tablet` (1180×820) viewports. It starts the dev server itself, or reuses one already on :5173.
+- Auth: `e2e/fixtures.ts` puts `HA_TOKEN` (from `.env.local` via direnv) into the browser's localStorage, so the app uses its long-lived token path (`LONG_LIVED_TOKEN_KEY` in `src/storageKeys.ts`) instead of the OAuth redirect. The token never goes into the bundle or into source.
+- Screenshots go to `e2e/screenshots/` (gitignored). Use them to check layouts visually after UI changes.
+- Tests run against the real house: reading state is fine, but tests must not call services that change devices. Use a demo/fixture mode for exercising controls (not built yet).
+- Simulate network drops with `page.routeWebSocket` (see the reconnect test in `e2e/smoke.spec.ts`).
+
 ## Auth and secrets
 
 - **Never** commit tokens or put a long-lived token in the client bundle. Phones should use HA's OAuth login flow (`getAuth({ hassUrl })` in home-assistant-js-websocket). A kiosk tablet can use a token entered at runtime and stored on the device.

@@ -1,0 +1,11 @@
+.git
+.github
+.claude
+.env*
+.envrc
+.mcp.json
+config
+node_modules
+dist
+coverage
+*.md

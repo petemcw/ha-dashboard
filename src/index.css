@@ -1,0 +1,21 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #111418;
+  color: #e6e8eb;
+}
+
+body {
+  margin: 0;
+}
+
+.status {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 1.25rem;
+  line-height: 1.5;
+}

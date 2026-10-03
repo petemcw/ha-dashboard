@@ -1,0 +1,43 @@
+# Services to add to /home/prm/iot/docker-compose.yml on the Compose host.
+#
+# One-time setup on the host, from /home/prm/iot:
+#   mkdir -p config/ts-dashboard/state config/ts-dashboard/serve
+#   cp serve.json config/ts-dashboard/serve/serve.json   # deploy/serve.json from this repo
+#   docker compose up -d ts-dashboard dashboard
+#   docker logs ts-dashboard                              # open the login URL to approve the node
+#
+# Deploy a new build:
+#   docker compose pull dashboard && docker compose up -d dashboard
+
+services:
+  # Joins the tailnet as its own node and terminates HTTPS for
+  # https://maplefrontier.<tailnet>.ts.net, proxying to nginx on 127.0.0.1:80.
+  ts-dashboard:
+    container_name: ts-dashboard
+    image: tailscale/tailscale:latest
+    hostname: maplefrontier
+    restart: unless-stopped
+    volumes:
+      - ./config/ts-dashboard/state:/var/lib/tailscale
+      # Mount the directory, not the file, so edits to serve.json are picked up.
+      - ./config/ts-dashboard/serve:/config:ro
+    environment:
+      - TS_HOSTNAME=maplefrontier
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/serve.json
+      - TS_AUTH_ONCE=true
+      # No TS_AUTHKEY: the first start prints a login URL in `docker logs ts-dashboard`.
+      # - TS_AUTHKEY=${TS_AUTHKEY_DASHBOARD}
+      - TZ=${TZ}
+
+  dashboard:
+    container_name: ha-dashboard
+    image: ghcr.io/petemcw/ha-dashboard:latest
+    restart: unless-stopped
+    # Shares ts-dashboard's network namespace, so nothing is published on the host.
+    network_mode: service:ts-dashboard
+    depends_on:
+      - ts-dashboard
+    environment:
+      - HA_URL=https://homeassistant.alpine-ling.ts.net
+      - TZ=${TZ}

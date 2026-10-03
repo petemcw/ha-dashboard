@@ -1,0 +1,66 @@
+# Task 001: Move scaffold into target layout with entity store and config
+
+**Status**: pending
+**Depends on**: none
+**Retry count**: 0
+
+## Description
+
+Pre-factoring for every other task. Move the scaffold into the layout from `.farseer/architecture.md`, replace `App.tsx`'s local entity state with an infrastructure entity store read through per-entity selector hooks, add a connection status store, and write `src/config/home.ts` with every v1 entity ID and threshold. The page renders a `HomeScreen` with one empty, labelled region per section so later tasks fill their own region without touching each other's code.
+
+## Context
+
+- Related files: `src/ha.ts`, `src/config.ts`, `src/storageKeys.ts`, `src/App.tsx`, `src/main.tsx`, `e2e/fixtures.ts` (imports `storageKeys`), `e2e/smoke.spec.ts`, `docs/feature-decisions.md`, `.farseer/plans/v1-home-screen/_plan.md`
+- Target paths:
+  - `src/infrastructure/ha/connection.ts` (was `src/ha.ts`), `src/infrastructure/ha/runtimeConfig.ts` (was `src/config.ts`), `src/infrastructure/storageKeys.ts`
+  - `src/infrastructure/entities/entityStore.ts` + `useEntity.ts` (`useSyncExternalStore` with a selector)
+  - `src/infrastructure/ha/connectionStatus.ts` + `useConnectionStatus.ts`: `connecting` | `connected` | `reconnecting` | `error`
+  - `src/app/App.tsx`, `src/features/home/HomeScreen.tsx` (regions: attention, suggestions, presence, favorites, crypto). Each region is a stub component in its own file that renders an empty `<section aria-label=…>`: `attention/AttentionSection.tsx`, `suggestions/SuggestionsStrip.tsx`, `presence/PresenceRow.tsx`, `favorites/FavoritesSection.tsx`, `crypto/CryptoRow.tsx` (all under `src/features/home/`). Later tasks replace their own stub, so parallel tasks don't edit `HomeScreen.tsx`.
+  - `src/config/home.ts`
+- Patterns to follow: comment tone in `src/ha.ts`; storage access wrapped in try/catch.
+- Keep the existing visible strings "Connection lost. Reconnecting…" and an error `role="alert"` so `e2e/smoke.spec.ts` keeps passing; update the smoke test's "Connected to Home Assistant … / N entities" assertion to assert the home screen heading instead. Task 002 replaces the status text with the banner.
+- Entities: `subscribeEntities` returns `HassEntities`; the store holds that map and notifies per-entity subscribers. Test with a fake `Connection` at the library boundary (see `.farseer/testing.md`).
+- **Snapshot stability.** React's `useSyncExternalStore` has no selector or equality argument. A `getSnapshot` that returns a new object or array on each call warns ("The result of getSnapshot should be cached") and can re-render without end. Selector hooks return the state object by reference (or a primitive), and view models are built in render (`useMemo` if needed). The library's `processEvent` keeps the object identity of unchanged entities across emissions, so reference equality is enough. Task 006 adds a derived-list selector that caches its array.
+- **Loaded gate.** The store exposes `isLoaded` (true after the first `subscribeEntities` emission). Until then, `HomeScreen` renders a "Connecting…" placeholder instead of the regions, so no entity is reported missing before HA has sent the map. After a reconnect the store keeps the last map (stale, not empty).
+- **Settings hook-up.** `HomeScreen` takes `onOpenSettings?: () => void` and passes it to the `FavoritesSection` stub. Task 002 wires it from the shell; task 011 uses it for the "Add favorites" button. Features can't import from `src/app/`, so the callback is the only path.
+- **Connection start.** Start the connection from `App`'s effect through `getConnection()`, never as a side effect of importing a module. Task 004 needs to render the kiosk form before any connection or OAuth starts.
+- **Coverage.** Moving `src/ha.ts` and `src/config.ts` into `src/infrastructure/` puts them under the 80% gate in `vitest.config.ts`, and they have no tests today. Cover them with tests at the library and `fetch` boundaries. `loadConfig` branches on `import.meta.env.VITE_HA_URL`, which direnv sets locally but CI leaves unset, so stub it with `vi.stubEnv`/`vi.unstubAllEnvs`. Otherwise tests pass locally and fail in CI, or the other way round.
+- `src/config/home.ts` contents (all IDs verified live on 2026-10-03; see `docs/feature-decisions.md`):
+  - `leftOnRules`: garage door `binary_sensor.garage_door_status` (on = open, 10 min); garage work lights `switch.smart_plug_b725` (30 min); space heater `switch.space_heater` (60 min); bed lightstrip `light.master_bedroom_bed_lightstrip` (30 min). Each with an `id`, label, and the disabled action it will get later (door: `switch.toggle` on `switch.garage_door_switch_a0dd6c497c48`; others: turn off the same entity).
+  - `batteryRule`: threshold 20, ignore `sensor.iphizzle_battery_level`, `sensor.ipad_battery_level`.
+  - `updateRules`: `update.living_room_switch_a0dd6c2bcf74_firmware`, `update.update_firmware` (state `on`), `binary_sensor.docker_hub_update_available` (state `on`, label "Home Assistant Docker image").
+  - `tonerRule`: `sensor.family_room_printer_ink` below 15, reorder URL `https://www.amazon.com/dp/B00LJO8EQS`.
+  - `filterRules` (below 5 days): `sensor.hvac_filter_days_remaining` → `script.set_hvac_filter_replacement_date`; `sensor.refrigerator_water_filter_days_remaining` → `script.reset_refrigerator_water_filter_replacement_date`; `sensor.refrigerator_air_filter_days_remaining` → `script.reset_refrigerator_air_filter_replacement_date`.
+  - `suggestions`: player `media_player.family_room_apple_tv`; playing → `scene.family_room_off_during_tv` ("Media viewing mood", transition 5); paused → `scene.family_room_on_during_tv_paused` ("Bright up lights").
+  - `people`: `person.alex_rivera`, `person.sam_rivera`, `person.jordan_rivera`, `person.casey_rivera`, `person.taylor_rivera`, `person.morgan_rivera`.
+  - `crypto`: `sensor.btc_exchange_rate` (BTC), `sensor.eth_exchange_rate` (ETH), `sensor.sol_exchange_rate` (SOL).
+  - `favoriteDomains`: `light`, `switch`, `fan`, `media_player`, `cover`, `climate`, `lock`, `scene`, `script`.
+  - Config types live in `src/config/` (config must not import from features).
+
+## Requirements (Test Descriptions)
+
+- [ ] `it gives a selector subscriber the current state of its entity`
+- [ ] `it re-renders a component only when the entity it reads changes`
+- [ ] `it reports an entity that is not in the map as missing`
+- [ ] `it does not report entities as missing before the first entity snapshot arrives`
+- [ ] `it reports reconnecting when the connection emits disconnected`
+- [ ] `it reports connected again when entities are re-emitted after a reconnect`
+- [ ] `it reports an error with a readable message when the first connection fails`
+- [ ] `it renders the home screen with a labelled region for each section`
+- [ ] `it connects with a stored long-lived token instead of the Home Assistant login`
+- [ ] `it clears stored credentials when Home Assistant rejects them`
+- [ ] `it reads the Home Assistant URL from config.json when VITE_HA_URL is not set`
+
+## Acceptance Criteria
+
+- All requirements have passing tests
+- `src/ha.ts`, `src/config.ts`, `src/storageKeys.ts`, `src/App.tsx` no longer exist at the old paths; `e2e/fixtures.ts` imports the new `storageKeys` path
+- No component holds a copy of HA state in `useState`
+- `npm run test:e2e -- --grep @live` still passes
+- `npm run test:coverage` passes with `src/infrastructure/**` at or above 80%, with `VITE_HA_URL` both set and unset
+- Code follows code standards
+- No decrease in test coverage
+
+## Implementation Notes
+
+(Left blank - filled in by programmer during implementation)

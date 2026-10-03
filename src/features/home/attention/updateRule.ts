@@ -1,4 +1,4 @@
-import type { UpdateRule } from '../../../config/home'
+import type { UpdateRule } from '../../../config/homeConfig'
 import type { UpdateViewModel } from '../../../domains/update/types'
 import { UNDECIDED, active, missingEntity, resolved, type RuleResult } from './ruleResult'
 

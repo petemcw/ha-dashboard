@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { batteryRule as config } from '../../../config/home'
+import { testHomeConfig } from '../../../config/testHomeConfig'
 import { batterySensorState, sensorState } from '../../../domains/sensor/factories'
 import { sensorViewModel } from '../../../domains/sensor/viewModel'
 import { batteryRule } from './batteryRule'
 
 const run = (...states: ReturnType<typeof sensorState>[]) =>
   batteryRule(
-    config,
+    testHomeConfig.batteryRule,
     states.map((s) => sensorViewModel(s.entity_id, s)),
   )
 
@@ -40,7 +40,7 @@ describe('battery rule', () => {
 
   it('ignores battery sensors on the ignore list', () => {
     const result = run(
-      batterySensorState({ entity_id: 'sensor.iphizzle_battery_level', state: '3' }),
+      batterySensorState({ entity_id: 'sensor.old_phone_battery_level', state: '3' }),
     )
     expect(result).toEqual({ items: [], resolvedIds: [] })
   })

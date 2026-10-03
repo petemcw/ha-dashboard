@@ -1,6 +1,6 @@
 # Feature decisions
 
-What carries over from the Lovelace dashboard (`dashboard-home`), and how. Decided 2026-10-03 by walking through every card on that dashboard. Entity IDs here were checked against live HA on that date; `src/config/home.ts` becomes the source of truth once it exists.
+What carries over from the Lovelace dashboard (`dashboard-home`), and how. Decided 2026-10-03 by walking through every card on that dashboard. Entity IDs here were checked against live HA on that date; the owner's `home.json` (shape: `home.example.json`) is the source of truth for IDs; they are not kept in the repo.
 
 ## Release order
 

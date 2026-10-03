@@ -1,5 +1,5 @@
 import type { MediaPlayerPlayback } from '../../../domains/media_player/types'
-import type { suggestions as suggestionsConfig } from '../../../config/home'
+import type { SuggestionsConfig } from '../../../config/homeConfig'
 
 export type Suggestion = { id: string; label: string }
 
@@ -7,7 +7,7 @@ export type Suggestion = { id: string; label: string }
 // (idle, off, standby, unavailable, unknown, missing, other) suggests nothing.
 export function suggestionsFor(
   playback: MediaPlayerPlayback,
-  config: typeof suggestionsConfig,
+  config: SuggestionsConfig,
 ): Suggestion[] {
   if (playback === 'playing') return [{ id: config.playing.scene, label: config.playing.label }]
   if (playback === 'paused') return [{ id: config.paused.scene, label: config.paused.label }]

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { ERR_INVALID_AUTH } from 'home-assistant-js-websocket'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createFakeConnection } from '../test/fakeConnection'
+import { stubHomeJson } from '../test/stubHomeJson'
 import { entityStore } from '../infrastructure/entities/entityStore'
 import { resetConnection } from '../infrastructure/ha/connection'
 import { connectionStatus } from '../infrastructure/ha/connectionStatus'
@@ -25,6 +26,7 @@ const TOKEN_FIELD = /long-lived access token/i
 beforeEach(() => {
   vi.stubEnv('VITE_HA_URL', 'https://ha.example')
   vi.stubGlobal('location', { pathname: '/', search: '?kiosk', replace })
+  stubHomeJson()
   localStorage.clear()
   lib.createLongLivedTokenAuth.mockImplementation((_url: string, token: string) => ({ token }))
   // The token 'revoked' is rejected; anything else connects.

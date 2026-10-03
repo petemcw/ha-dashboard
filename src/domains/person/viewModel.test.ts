@@ -48,10 +48,10 @@ describe('personViewModel', () => {
   })
 
   it('shows a configured person missing from Home Assistant as missing', () => {
-    const vm = personViewModel(undefined, 'person.casey_rivera', HA)
+    const vm = personViewModel(undefined, 'person.sam_quinn', HA)
     expect(vm.presence).toBe('missing')
-    expect(vm.name).toBe('casey rivera')
-    expect(vm.initials).toBe('CR')
+    expect(vm.name).toBe('sam quinn')
+    expect(vm.initials).toBe('SQ')
   })
 
   it('takes initials from the first and last words of a name', () => {

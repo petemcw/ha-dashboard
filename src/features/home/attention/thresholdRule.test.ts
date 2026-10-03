@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { filterRules, tonerRule } from '../../../config/home'
+import { testHomeConfig } from '../../../config/testHomeConfig'
 import { sensorState } from '../../../domains/sensor/factories'
 import { sensorViewModel } from '../../../domains/sensor/viewModel'
 import { filterRule, tonerLowRule } from './thresholdRule'
+
+const { filterRules, tonerRule } = testHomeConfig
 
 const toner = (state: string) => {
   const s = sensorState({ entity_id: tonerRule.entity_id, state })
@@ -41,7 +43,7 @@ describe('filter rule', () => {
   it('lists a filter with fewer than 5 days left', () => {
     const { items, resolvedIds } = filter('3')
     expect(items.map((i) => [i.id, i.title, i.detail])).toEqual([
-      [`filter-due:${filterRules[1].entity_id}`, 'Refrigerator water filter', '3 days left'],
+      [`filter-due:${filterRules[1].entity_id}`, 'Water filter', '3 days left'],
     ])
     expect(resolvedIds).toEqual([])
     expect(filter('5').resolvedIds).toEqual([`filter-due:${filterRules[1].entity_id}`])

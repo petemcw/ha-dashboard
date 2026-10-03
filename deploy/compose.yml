@@ -3,8 +3,13 @@
 # One-time setup on the host, from /home/prm/iot:
 #   mkdir -p config/ts-dashboard/state config/ts-dashboard/serve
 #   cp serve.json config/ts-dashboard/serve/serve.json   # deploy/serve.json from this repo
+#   mkdir -p config/dashboard
+#   cp home.example.json config/dashboard/home.json       # home.example.json from this repo;
+#                                                          # edit it to your entity IDs
 #   docker compose up -d ts-dashboard dashboard
 #   docker logs ts-dashboard                              # open the login URL to approve the node
+#
+# Edit config/dashboard/home.json any time; reload the dashboard to pick it up (no rebuild).
 #
 # Deploy a new build:
 #   docker compose pull dashboard && docker compose up -d dashboard
@@ -30,7 +35,7 @@ services:
       # - TS_AUTHKEY=${TS_AUTHKEY_DASHBOARD}
       - TZ=${TZ}
 
-  dashboard:
+  ha-dashboard:
     container_name: ha-dashboard
     image: ghcr.io/petemcw/ha-dashboard:latest
     restart: unless-stopped
@@ -38,6 +43,9 @@ services:
     network_mode: service:ts-dashboard
     depends_on:
       - ts-dashboard
+    volumes:
+      # Mount the directory, not the file, so edits to home.json are picked up.
+      - ./config/ha-dashboard:/config:ro
     environment:
       - HA_URL=https://homeassistant.alpine-ling.ts.net
       - TZ=${TZ}

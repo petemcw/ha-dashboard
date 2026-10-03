@@ -1,5 +1,5 @@
 import type { HassEntity } from 'home-assistant-js-websocket'
-import { favoriteDomains } from '../../config/home'
+import { favoriteDomains } from '../../config/favoriteDomains'
 
 export const MAX_RESULTS = 20
 

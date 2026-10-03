@@ -1,6 +1,7 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
+import { renderWithHome as render } from '../../../test/renderWithHome'
 import { afterEach, describe, expect, it } from 'vitest'
-import { suggestions } from '../../../config/home'
+import { testHomeConfig } from '../../../config/testHomeConfig'
 import { mediaPlayer } from '../../../domains/media_player/factories'
 import { entityStore } from '../../../infrastructure/entities/entityStore'
 import { SuggestionsStrip } from './SuggestionsStrip'
@@ -8,7 +9,7 @@ import { SuggestionsStrip } from './SuggestionsStrip'
 afterEach(() => entityStore.reset())
 
 function seed(state?: string) {
-  const entities = state ? { [suggestions.player]: mediaPlayer(state) } : {}
+  const entities = state ? { [testHomeConfig.suggestions.player]: mediaPlayer(state) } : {}
   act(() => entityStore.setEntities(entities))
 }
 

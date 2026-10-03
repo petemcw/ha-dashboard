@@ -33,10 +33,10 @@ describe('PersonAvatar', () => {
   it('names a missing person', () => {
     render(
       <ul>
-        <PersonAvatar person={personViewModel(undefined, 'person.casey_rivera', HA)} />
+        <PersonAvatar person={personViewModel(undefined, 'person.sam_quinn', HA)} />
       </ul>,
     )
-    expect(screen.getByRole('listitem', { name: 'casey rivera, missing' })).toBeInTheDocument()
+    expect(screen.getByRole('listitem', { name: 'sam quinn, missing' })).toBeInTheDocument()
   })
 
   it('shows initials when a person has no picture or the picture fails to load', () => {

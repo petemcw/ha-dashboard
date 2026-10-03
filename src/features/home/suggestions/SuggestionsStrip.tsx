@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import { suggestions } from '../../../config/home'
+import { useHomeConfig } from '../../../config/useHomeConfig'
 import { mediaPlayerViewModel } from '../../../domains/media_player/viewModel'
 import { useEntity } from '../../../infrastructure/entities/useEntity'
 import { suggestionsFor } from './suggestionRules'
@@ -8,6 +8,7 @@ import { suggestionsFor } from './suggestionRules'
 // running a scene changes devices. The scene id and transition stay in config
 // for the controls phase.
 export function SuggestionsStrip() {
+  const { suggestions } = useHomeConfig()
   const entity = useEntity(suggestions.player)
   const hintId = useId()
   const { playback } = mediaPlayerViewModel(entity, suggestions.player)

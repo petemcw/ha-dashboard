@@ -1,4 +1,4 @@
-import type { FilterRule, tonerRule as TonerConfig } from '../../../config/home'
+import type { FilterRule, TonerRule } from '../../../config/homeConfig'
 import type { SensorViewModel } from '../../../domains/sensor/types'
 import { UNDECIDED, active, missingEntity, resolved, type RuleResult } from './ruleResult'
 import type { AttentionItem } from './types'
@@ -18,7 +18,7 @@ function thresholdRule(t: Threshold, vm: SensorViewModel): RuleResult {
   return active({ id: t.id, tier: 'chore', ...t.describe(vm.numericValue) })
 }
 
-export const tonerLowRule = (config: typeof TonerConfig, vm: SensorViewModel) =>
+export const tonerLowRule = (config: TonerRule, vm: SensorViewModel) =>
   thresholdRule(
     {
       id: 'toner-low',

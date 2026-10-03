@@ -1,8 +1,11 @@
+import { existsSync } from 'node:fs'
 import { test as base, expect } from '@playwright/test'
 import { LONG_LIVED_TOKEN_KEY } from '../src/infrastructure/storageKeys.ts'
 import { HaMock, WEBSOCKET_URL, type HaMockOptions, type SentMessage } from './haMock.ts'
 
 const DUMMY_TOKEN = 'mock-token'
+// In dev, Vite serves this as /home.json. It's the owner's real house config, gitignored.
+const LIVE_HOME_JSON = new URL('../public/home.json', import.meta.url)
 
 // Mock tests: the app talks to an in-test Home Assistant. HA_TOKEN is never read,
 // so these run anywhere and may exercise writes safely. The mock is installed for every
@@ -47,6 +50,12 @@ export const liveTest = base.extend<{ pageErrors: Error[]; liveSocket: LiveSocke
     const haUrl = process.env.HA_URL
     if (!token || !haUrl) {
       throw new Error('HA_TOKEN or HA_URL is not set. Run from a direnv shell in this repo.')
+    }
+    if (!existsSync(LIVE_HOME_JSON)) {
+      throw new Error(
+        '@live tests need public/home.json (your real house config, gitignored). ' +
+          'Copy home.example.json to public/home.json and edit it.',
+      )
     }
     // The Playwright dev server runs without VITE_HA_URL (see playwright.config.ts).
     await page.route('**/config.json', (route) => route.fulfill({ json: { haUrl } }))

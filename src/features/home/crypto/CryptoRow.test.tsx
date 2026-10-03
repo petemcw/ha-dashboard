@@ -1,4 +1,5 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
+import { renderWithHome as render } from '../../../test/renderWithHome'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { entityStore } from '../../../infrastructure/entities/entityStore'
 import { entityState } from '../../../domains/factories'

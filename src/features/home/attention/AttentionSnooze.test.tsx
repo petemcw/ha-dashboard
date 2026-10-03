@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, screen, within } from '@testing-library/react'
+import { renderWithHome as render } from '../../../test/renderWithHome'
 import type { Connection } from 'home-assistant-js-websocket'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { batterySensorState } from '../../../domains/sensor/factories'

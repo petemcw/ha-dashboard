@@ -26,18 +26,18 @@ The HA config lives in a Docker volume on the HA host, so the add-on approaches 
 
 ## Deployment (decided)
 
-- Image: multi-stage Dockerfile (Node build, then `nginx:alpine`). The HA URL comes from a `config.json` written at container start from env, not baked into the bundle. `index.html` is `no-cache`; hashed assets are `immutable`.
+- Image: multi-stage Dockerfile (Node build, then `nginx:alpine`). The HA URL comes from a `config.json` written at container start from env, not baked into the bundle. The house's entity IDs and thresholds live in a runtime `/home.json`, never in the repo: nginx serves it from `/config/home.json` on a mounted host directory (`config/dashboard/`), so edits need a reload, not a rebuild. `home.example.json` is the generic template. People come from the `person.*` entities in HA unless `home.json` has a `people` list. `index.html` is `no-cache`; hashed assets are `immutable`.
 - CI: GitHub Actions builds `linux/amd64` on push to `master` and pushes `ghcr.io/petemcw/ha-dashboard`. The repo is public, so the host pulls without credentials.
 - Exposure: a Tailscale sidecar container gives the dashboard its own tailnet name (`https://maplefrontier.alpine-ling.ts.net`). The nginx container shares its network namespace, so nothing is published on the host. It's a different origin from HA and is listed in HA's CORS allowed origins.
 - Deploy: `docker compose pull dashboard && docker compose up -d dashboard` in `/home/prm/iot`. `deploy/compose.yml` has the services and one-time setup; `deploy/serve.json` is the sidecar's serve config.
-- Dev: `npm run dev` reads `VITE_HA_URL` from `.envrc` instead of `config.json`. The dev origin (`http://localhost:5173`) is also in CORS allowed origins.
+- Dev: `npm run dev` reads `VITE_HA_URL` from `.envrc` instead of `config.json`, and Vite serves the gitignored `public/home.json` (copy `home.example.json` and edit it) as `/home.json`. The dev origin (`http://localhost:5173`) is also in CORS allowed origins.
 - Goal: eventually Funnel only the dashboard and make HA tailnet-only.
 
 ## Testing
 
 - Full strategy, mock boundaries, and naming: `.farseer/testing.md`. Before committing: `npm run format:check && npm run lint && npm test && npm run build`.
 - `npm test` runs Vitest (unit and component tests, jsdom). `npm run test:coverage` enforces 80% on `src/domains/` and `src/infrastructure/`.
-- `npm run test:e2e` runs Playwright (headless Chromium) against the Vite dev server and the **live** HA instance, at `phone` (393×852) and `tablet` (1180×820) viewports. It starts its own dev server on :5174 with `VITE_HA_URL` blanked, so mock specs never reach the real HA; each fixture serves `/config.json` (the mock URL, or `HA_URL` for `@live`).
+- `npm run test:e2e` runs Playwright (headless Chromium) against the Vite dev server and the **live** HA instance, at `phone` (393×852) and `tablet` (1180×820) viewports. It starts its own dev server on :5174 with `VITE_HA_URL` blanked, so mock specs never reach the real HA; each fixture serves `/config.json` (the mock URL, or `HA_URL` for `@live`). Mock specs also serve `/home.json` from the shared placeholder config `src/config/testHomeConfig.ts` (override per test with the `homeConfig` / `homeConfigMissing` mock options); `@live` specs use the real `public/home.json` and fail fast if it's missing.
 - Auth: `e2e/fixtures.ts` puts `HA_TOKEN` (from `.env.local` via direnv) into the browser's localStorage, so the app uses its long-lived token path (`LONG_LIVED_TOKEN_KEY` in `src/infrastructure/storageKeys.ts`) instead of the OAuth redirect. The token never goes into the bundle or into source.
 - Screenshots go to `e2e/screenshots/` (gitignored). Use them to check layouts visually after UI changes.
 - Tests run against the real house: reading state is fine, but tests must not call services that change devices. Use a demo/fixture mode for exercising controls (not built yet).

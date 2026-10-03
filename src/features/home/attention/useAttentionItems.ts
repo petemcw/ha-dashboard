@@ -1,11 +1,6 @@
+import { useMemo } from 'react'
 import type { HassEntity } from 'home-assistant-js-websocket'
-import {
-  batteryRule as batteryConfig,
-  filterRules,
-  leftOnRules,
-  tonerRule,
-  updateRules,
-} from '../../../config/home'
+import { useHomeConfig } from '../../../config/useHomeConfig'
 import { binarySensorViewModel } from '../../../domains/binary_sensor/viewModel'
 import { lightViewModel } from '../../../domains/light/viewModel'
 import { switchViewModel } from '../../../domains/switch/viewModel'
@@ -31,15 +26,22 @@ const VIEW_MODELS = {
   light: lightViewModel,
 } as const
 
-// Every entity a configured rule reads, in one stable list for one subscription.
-const RULE_ENTITY_IDS = [...leftOnRules, ...updateRules, tonerRule, ...filterRules].map(
-  (r) => r.entity_id,
-)
-
 // Composes every attention rule from the configured entities and the battery sensors.
 export function useAttentionItems(): RuleResult {
+  const {
+    leftOnRules,
+    updateRules,
+    tonerRule,
+    filterRules,
+    batteryRule: batteryConfig,
+  } = useHomeConfig()
   const now = useNow()
-  const entities = useEntitiesById(RULE_ENTITY_IDS)
+  // Every entity a configured rule reads, in one stable list for one subscription.
+  const ruleEntityIds = useMemo(
+    () => [...leftOnRules, ...updateRules, tonerRule, ...filterRules].map((r) => r.entity_id),
+    [leftOnRules, updateRules, tonerRule, filterRules],
+  )
+  const entities = useEntitiesById(ruleEntityIds)
   const batteries = useEntitiesById(useEntityIds(isBatterySensor))
   const sensor = (id: string) => sensorViewModel(id, entities[id])
 

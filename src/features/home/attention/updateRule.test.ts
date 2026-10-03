@@ -7,7 +7,7 @@ import { updateRule } from './updateRule'
 describe('update rule', () => {
   it('lists a pending update with its installed and latest versions', () => {
     const entity = updateState({
-      entity_id: 'update.update_firmware',
+      entity_id: 'update.router_firmware',
       state: 'on',
       attributes: { installed_version: '4.3.5', latest_version: '4.3.10' },
     })
@@ -17,9 +17,9 @@ describe('update rule', () => {
     )
     expect(result.items).toEqual([
       {
-        id: 'update:update.update_firmware',
+        id: 'update:update.router_firmware',
         tier: 'chore',
-        title: 'update.update_firmware',
+        title: 'update.router_firmware',
         detail: '4.3.5 → 4.3.10',
       },
     ])

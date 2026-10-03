@@ -1,5 +1,6 @@
 import type { Page, WebSocketRoute } from '@playwright/test'
 import type { HassEntity } from 'home-assistant-js-websocket'
+import { testHomeConfig } from '../src/config/testHomeConfig.ts'
 
 export const MOCK_HA_URL = 'http://ha.mock.test'
 const HA_VERSION = '2026.9.4'
@@ -29,6 +30,11 @@ export type HaMockOptions = {
   statistics?: Record<string, StatisticPoint[]>
   // Access tokens answered with auth_invalid.
   rejectTokens?: string[]
+  // What /home.json serves; defaults to the shared test house. Any value, so a test can
+  // serve an invalid file.
+  homeConfig?: unknown
+  // Serve a 404 for /home.json, as a server where the owner hasn't created one.
+  homeConfigMissing?: boolean
 }
 
 // `subs` holds subscription ids per channel: the subscribe command, plus the key for
@@ -87,16 +93,25 @@ export class HaMock {
   // Tokens the app presented in `auth` messages, in order.
   readonly authTokens: string[] = []
   private rejectTokens: string[]
+  private homeConfig: unknown
+  private homeConfigMissing: boolean
 
   constructor(options: HaMockOptions = {}) {
     this.user = { ...DEFAULT_USER, ...options.user }
     this.statistics = options.statistics ?? {}
     this.rejectTokens = options.rejectTokens ?? []
+    this.homeConfig = 'homeConfig' in options ? options.homeConfig : testHomeConfig
+    this.homeConfigMissing = options.homeConfigMissing ?? false
     for (const e of options.entities ?? []) this.entities.set(e.entity_id, e)
   }
 
   async install(page: Page) {
     await page.route('**/config.json', (route) => route.fulfill({ json: { haUrl: MOCK_HA_URL } }))
+    await page.route('**/home.json', (route) =>
+      this.homeConfigMissing
+        ? route.fulfill({ status: 404, body: 'not found' })
+        : route.fulfill({ json: this.homeConfig }),
+    )
     // Anything else aimed at the HA origin (person pictures, REST) never leaves the box.
     await page.route(`${MOCK_HA_URL}/**`, (route) => route.fulfill({ status: 404, body: 'mock' }))
     await page.routeWebSocket(WEBSOCKET_URL, (ws) => this.accept(ws))

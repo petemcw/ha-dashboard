@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { leftOnRules } from '../../../config/home'
+import { testHomeConfig } from '../../../config/testHomeConfig'
 import { binarySensorState } from '../../../domains/binary_sensor/factories'
 import { binarySensorViewModel } from '../../../domains/binary_sensor/viewModel'
 import { switchState } from '../../../domains/switch/factories'
@@ -9,8 +9,8 @@ import { leftOnRule } from './leftOnRule'
 const NOW = new Date('2026-10-03T12:00:00Z')
 const minutesAgo = (m: number) => NOW.getTime() / 1000 - m * 60
 
-const doorRule = leftOnRules.find((r) => r.id === 'garage-door')!
-const heaterRule = leftOnRules.find((r) => r.id === 'space-heater')!
+const doorRule = testHomeConfig.leftOnRules.find((r) => r.id === 'garage-door')!
+const heaterRule = testHomeConfig.leftOnRules.find((r) => r.id === 'space-heater')!
 
 const door = (state: string, min = 0) =>
   binarySensorViewModel(

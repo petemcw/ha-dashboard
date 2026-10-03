@@ -14,3 +14,7 @@ e2e/screenshots/
 
 # Local copy of the HA config (contains secrets). Anchored, so src/config/ stays tracked.
 /config/
+
+# Owner-provided house config (real entity IDs). Copy home.example.json.
+/home.json
+public/home.json

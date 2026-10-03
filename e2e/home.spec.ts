@@ -100,7 +100,7 @@ test.describe('home screen layout', () => {
     mockHa.setState(mediaPlayer('playing'))
     mockHa.setState(
       binarySensorState({
-        entity_id: 'binary_sensor.garage_door_status',
+        entity_id: 'binary_sensor.garage_door',
         state: 'on',
         last_changed: Math.floor(Date.now() / 1000) - 20 * 60,
       }),

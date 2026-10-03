@@ -1,4 +1,4 @@
-import type { LeftOnRule } from '../../../config/home'
+import type { LeftOnRule } from '../../../config/homeConfig'
 import type { OnOffViewModel } from '../../../domains/onOff'
 import { UNDECIDED, active, missingEntity, resolved, type RuleResult } from './ruleResult'
 

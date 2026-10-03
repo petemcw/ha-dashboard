@@ -15,7 +15,7 @@ test.describe('attention', () => {
   }) => {
     mockHa.setState(
       binarySensorState({
-        entity_id: 'binary_sensor.garage_door_status',
+        entity_id: 'binary_sensor.garage_door',
         state: 'on',
         last_changed: TWENTY_MIN_AGO,
       }),
@@ -48,7 +48,7 @@ test.describe('attention', () => {
     )
     mockHa.setState(
       updateState({
-        entity_id: 'update.update_firmware',
+        entity_id: 'update.router_firmware',
         state: 'on',
         attributes: { installed_version: '4.3.5', latest_version: '4.3.10' },
       }),
@@ -65,10 +65,8 @@ test.describe('attention', () => {
     await page.screenshot({ path: `e2e/screenshots/chores-${test.info().project.name}.png` })
   })
   test('shows low toner with a reorder link and an overdue filter', async ({ page, mockHa }) => {
-    mockHa.setState(sensorState({ entity_id: 'sensor.family_room_printer_ink', state: '9' }))
-    mockHa.setState(
-      sensorState({ entity_id: 'sensor.refrigerator_water_filter_days_remaining', state: '-117' }),
-    )
+    mockHa.setState(sensorState({ entity_id: 'sensor.printer_ink', state: '9' }))
+    mockHa.setState(sensorState({ entity_id: 'sensor.water_filter_days_remaining', state: '-117' }))
     await page.goto('/')
     const chores = page.getByRole('region', { name: 'Needs attention' }).getByRole('list', {
       name: 'Chores',

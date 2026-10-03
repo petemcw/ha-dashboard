@@ -1,5 +1,6 @@
 import type { HassEntity } from 'home-assistant-js-websocket'
-import { act, render, screen, within } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
+import { renderWithHome as render } from '../../../test/renderWithHome'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { binarySensorState } from '../../../domains/binary_sensor/factories'
 import { batterySensorState, sensorState } from '../../../domains/sensor/factories'
@@ -9,7 +10,7 @@ import { AttentionSection } from './AttentionSection'
 import { calmHouse } from './factories'
 
 const NOW = new Date('2026-10-03T12:00:00Z')
-const DOOR = 'binary_sensor.garage_door_status'
+const DOOR = 'binary_sensor.garage_door'
 const seconds = (d: Date) => d.getTime() / 1000
 
 // Every configured entity present and calm, except what a test overrides.
@@ -63,7 +64,7 @@ describe('attention section', () => {
         attributes: { friendly_name: 'Front door battery' },
       }),
       updateState({
-        entity_id: 'update.update_firmware',
+        entity_id: 'update.router_firmware',
         state: 'on',
         attributes: { installed_version: '4.3.5', latest_version: '4.3.10' },
       }),
@@ -81,8 +82,8 @@ describe('attention section', () => {
   it('renders toner reorder as an external link and Mark replaced as a disabled button', () => {
     seed(
       binarySensorState({ entity_id: DOOR, state: 'off' }),
-      sensorState({ entity_id: 'sensor.family_room_printer_ink', state: '9' }),
-      sensorState({ entity_id: 'sensor.hvac_filter_days_remaining', state: '-4' }),
+      sensorState({ entity_id: 'sensor.printer_ink', state: '9' }),
+      sensorState({ entity_id: 'sensor.furnace_filter_days_remaining', state: '-4' }),
     )
     render(<AttentionSection />)
     const link = screen.getByRole('link', { name: 'Reorder toner' })

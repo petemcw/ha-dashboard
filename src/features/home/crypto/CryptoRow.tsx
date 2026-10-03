@@ -1,11 +1,11 @@
-import { crypto } from '../../../config/home'
+import { useMemo } from 'react'
+import { useHomeConfig } from '../../../config/useHomeConfig'
 import { useEntity } from '../../../infrastructure/entities/useEntity'
 import { useHourlyMeans } from '../../../infrastructure/ha/useHourlyMeans'
 import { cryptoViewModel } from './cryptoViewModel'
 import { Sparkline } from './Sparkline'
 
 const HISTORY_HOURS = 24
-const STATISTIC_IDS = crypto.map((c) => c.entity_id)
 
 function Coin({ symbol, entityId, means }: { symbol: string; entityId: string; means: number[] }) {
   const vm = cryptoViewModel(symbol, useEntity(entityId), means)
@@ -25,7 +25,9 @@ function Coin({ symbol, entityId, means }: { symbol: string; entityId: string; m
 }
 
 export function CryptoRow() {
-  const means = useHourlyMeans(STATISTIC_IDS, HISTORY_HOURS)
+  const { crypto } = useHomeConfig()
+  const statisticIds = useMemo(() => crypto.map((c) => c.entity_id), [crypto])
+  const means = useHourlyMeans(statisticIds, HISTORY_HOURS)
   return (
     <section aria-label="Crypto">
       <ul className="crypto-row">

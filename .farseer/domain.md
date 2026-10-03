@@ -13,7 +13,7 @@ If any of the mentioned files do not exist, **proceed silently**. Do not flag th
 | `CLAUDE.md`                 | Environment, deployment, auth, rules for changing the house  |
 | `.farseer/architecture.md`  | Structure and principles                                     |
 | `.farseer/adr/`             | Architecture Decision Records (ADRs)                         |
-| `src/config/home.ts`        | Which entities the dashboard uses                            |
+| `home.json` (`src/config/` types) | Which entities the dashboard uses (runtime file; `home.example.json` is the template) |
 | Live HA (via `ha-mcp`)      | The real entities, areas, and devices. Source of truth.      |
 
 ## Core Vocabulary
@@ -25,7 +25,7 @@ If the concept you need isn't in the glossary yet, that's a signal: either you'r
 ### Glossary
 
 - **Entity**: one HA thing with a state, identified by `entity_id` (`light.kitchen_island`). Avoid "device" for this; a device is different.
-- **`entity_id`**: `<domain>.<object_id>`. Always taken from live data or `src/config/home.ts`; never invented.
+- **`entity_id`**: `<domain>.<object_id>`. Always taken from live data or `home.json`; never invented.
 - **HA domain**: the part of `entity_id` before the dot (`light`, `climate`, `cover`). A `src/domains/<ha-domain>/` folder exists per HA domain we support. Say "HA domain" when "domain" alone could mean the business domain.
 - **State object**: what HA sends for an entity: `state` (a string), `attributes`, `last_changed`, `last_updated`, `context`. "Raw entity" in code means this, before mapping.
 - **Attributes**: the per-domain extra data on a state object (`brightness`, `current_temperature`).
@@ -51,7 +51,7 @@ Changes here carry the highest test and review burden:
 - **Anything that sends HA actions** (service gateway, domain actions): these change real devices in a real house, including locks, covers, and climate. A bug can unlock a door or turn off heating.
 - **Auth and token handling** (`src/ha.ts`, `src/storageKeys.ts`, `e2e/fixtures.ts`): OAuth code handling, token storage, the long-lived token path. Tokens must never reach the bundle, logs, or git.
 - **Connection and reconnect**: the kiosk runs for weeks; a stuck or silent disconnect means the wall shows stale state.
-- **Entity config** (`src/config/home.ts`): wrong IDs show the wrong room or control the wrong device.
+- **Entity config** (`home.json`): wrong IDs show the wrong room or control the wrong device.
 - **Deployment** (`Dockerfile`, `deploy/`, workflow): a bad deploy takes the dashboard down; Compose mistakes on the host can take HA down.
 
 ## Architecture Decision Records

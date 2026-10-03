@@ -1,7 +1,9 @@
 {
     "enabledPlugins": {
         "home-assistant-skills@home-assistant-skills": true,
-        "unifi-network@unifi-plugins": true
+        "unifi-network@unifi-plugins": true,
+        "frontend-design@claude-plugins-official": true,
+        "ui-ux-pro-max@ui-ux-pro-max-skill": true
     },
     "extraKnownMarketplaces": {
         "home-assistant-skills": {
@@ -14,6 +16,12 @@
             "source": {
                 "source": "github",
                 "repo": "sirkirby/unifi-mcp"
+            }
+        },
+        "ui-ux-pro-max-skill": {
+            "source": {
+                "source": "github",
+                "repo": "nextlevelbuilder/ui-ux-pro-max-skill"
             }
         }
     },

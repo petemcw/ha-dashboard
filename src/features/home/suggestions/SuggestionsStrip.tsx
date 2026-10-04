@@ -1,7 +1,9 @@
-import { memo, useId } from 'react'
+import { Sparkles } from 'lucide-react'
+import { memo } from 'react'
 import { useHomeConfig } from '../../../config/useHomeConfig'
 import { mediaPlayerViewModel } from '../../../domains/media_player/viewModel'
 import { useEntity } from '../../../infrastructure/entities/useEntity'
+import { SectionCard } from '../SectionCard'
 import { SuggestionButton } from './SuggestionButton'
 import { suggestionsFor } from './suggestionRules'
 
@@ -9,18 +11,12 @@ import { suggestionsFor } from './suggestionRules'
 function SuggestionsStripContent() {
   const { suggestions } = useHomeConfig()
   const entity = useEntity(suggestions.player)
-  const hintId = useId()
   const { playback } = mediaPlayerViewModel(entity, suggestions.player)
   const items = suggestionsFor(playback, suggestions)
   if (items.length === 0) return null
 
   return (
-    <section aria-labelledby={`${hintId}-heading`} className="card suggestions">
-      <header className="card__header">
-        <h2 id={`${hintId}-heading`} className="card__title">
-          Suggestions
-        </h2>
-      </header>
+    <SectionCard title="Suggested" icon={Sparkles} className="suggestions">
       <ul className="suggestions__list">
         {items.map((s) => (
           <li key={s.id}>
@@ -28,7 +24,7 @@ function SuggestionsStripContent() {
           </li>
         ))}
       </ul>
-    </section>
+    </SectionCard>
   )
 }
 

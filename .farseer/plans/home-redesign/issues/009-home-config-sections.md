@@ -1,6 +1,6 @@
 # Task 009: `weather`, `systems`, and `media` Sections in home.json
 
-**Status**: pending
+**Status**: completed
 **Depends on**: none
 **Retry count**: 0
 
@@ -33,15 +33,15 @@ type MediaConfig = { players: string[] }
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it parses a home config with none of the weather, systems, or media sections`
-- [ ] `it parses a weather section and defaults the sun entity to sun.sun`
-- [ ] `it rejects a weather section without an entity_id`
-- [ ] `it parses a systems section with its status entity, up state, and label`
-- [ ] `it rejects a systems cpu entry without a label`
-- [ ] `it parses access points with their own up state and uptime with its own label`
-- [ ] `it names the full path of a bad entry in a nested list of entity ids`
-- [ ] `it parses a media section with its list of players`
-- [ ] `it parses the example home config including the new sections`
+- [x] `it parses a home config with none of the weather, systems, or media sections`
+- [x] `it parses a weather section and defaults the sun entity to sun.sun`
+- [x] `it rejects a weather section without an entity_id`
+- [x] `it parses a systems section with its status entity, up state, and label`
+- [x] `it rejects a systems cpu entry without a label`
+- [x] `it parses access points with their own up state and uptime with its own label`
+- [x] `it names the full path of a bad entry in a nested list of entity ids`
+- [x] `it parses a media section with its list of players`
+- [x] `it parses the example home config including the new sections`
 
 ## Acceptance Criteria
 
@@ -51,4 +51,8 @@ type MediaConfig = { players: string[] }
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- Optional `weather`, `systems`, `media` sections parse to `undefined` when absent; `weather.sun` defaults to `sun.sun`.
+- `systems.uptime` and `systems.accessPoints` carry their own `label` / `upState`, independent of `status`.
+- `strings()` now prefixes the path (`systems.accessPoints.entity_ids[1] must be a string`); `people[0]` unchanged.
+- `home.example.json` and `src/config/testHomeConfig.ts` share the three sections with placeholder IDs.
+- Worker wrote the nine tests in one batch rather than strict red/green per test (reported by the worker). Orchestrator verified all 24 config tests pass on Node 24.

@@ -1,6 +1,6 @@
 # Task 001: Card Shell, Compact Buttons, and the Column Grid
 
-**Status**: pending
+**Status**: completed
 **Depends on**: none
 **Retry count**: 0
 
@@ -27,15 +27,15 @@ Turn every Home section into a boxed card with an icon label and a status-chip s
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it renders a home section as a card region named by its title`
-- [ ] `it shows the section's icon label and its header chip in the card header`
-- [ ] `it stacks the cards in one column on a phone in the order attention, suggested, favorites, crypto`
-- [ ] `it shows two top-aligned columns on a tablet in portrait with favorites on the right`
-- [ ] `it keeps two columns on a 1180 by 820 wall tablet while the third column has no cards`
-- [ ] `it never scrolls sideways at phone, tablet, wall-tablet, or desktop sizes`
-- [ ] `it hits a compact button when tapping just outside its visible edge`
-- [ ] `it sends a tap on the visible edge of an action button to that button, not to the snooze button beside it`
-- [ ] `it keeps full-size buttons in the settings sheet`
+- [x] `it renders a home section as a card region named by its title`
+- [x] `it shows the section's icon label and its header chip in the card header`
+- [x] `it stacks the cards in one column on a phone in the order attention, suggested, favorites, crypto`
+- [x] `it shows two top-aligned columns on a tablet in portrait with favorites on the right`
+- [x] `it keeps two columns on a 1180 by 820 wall tablet while the third column has no cards`
+- [x] `it never scrolls sideways at phone, tablet, wall-tablet, or desktop sizes`
+- [x] `it hits a compact button when tapping just outside its visible edge`
+- [x] `it sends a tap on the visible edge of an action button to that button, not to the snooze button beside it`
+- [x] `it keeps full-size buttons in the settings sheet`
 
 ## Acceptance Criteria
 
@@ -46,4 +46,9 @@ Turn every Home section into a boxed card with an icon label and a status-chip s
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- SectionCard now takes `icon` (lucide, aria-hidden) and `chip`; Suggestions uses it, titled "Suggested". Attention keeps a slab title via `.card.attention`.
+- Grid: `.home__col--1/2/3`; order classes `home__order--{attention,suggested,favorites,today,systems,media,crypto}` live on wrappers in HomeScreen (all seven defined in CSS). Three columns only via `:has(> .home__col--3:not(:empty))` from 1024 px (011 owns that test).
+- Compact buttons: 34 px visual, `::after` inset -6px (the overlay is sized from the padding box inside the 1 px border, so -5 only reached 4 px past the edge). Action/snooze/suggestion rows use a 12 px gap.
+- Settings sheet scrolls (overflow-y: auto), which would clip the overlay, so `.sheet` buttons stay 44 px full-size with no overlay (this resolves the "everywhere" scope vs the "full-size in settings sheet" requirement). Favorite tiles also have no overlay.
+- Specs: new e2e/compact-buttons.spec.ts; layout specs in home.spec.ts rewritten (People assertions dropped); crypto spec sparkline locator scoped to `.crypto-spark`. DOM order is attention, suggested, crypto, favorites.
+- Node 24 needed (nvm use); default shell node 20 breaks vitest.

@@ -9,7 +9,14 @@ export function batteryRule(config: BatteryRule, sensors: SensorViewModel[]): Ru
       if (config.ignore.includes(s.entity_id) || s.numericValue === undefined) return UNDECIDED
       const id = `battery-low:${s.entity_id}`
       if (s.numericValue >= config.threshold) return resolved(id)
-      return active({ id, tier: 'chore', title: s.friendlyName, detail: `${s.numericValue}%` })
+      return active({
+        id,
+        tier: 'chore',
+        kind: 'battery',
+        icon: 'battery',
+        title: s.friendlyName,
+        detail: `${s.numericValue}%`,
+      })
     }),
   )
 }

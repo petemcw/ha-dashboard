@@ -32,7 +32,7 @@ describe('suggestions strip', () => {
   it('suggests the media viewing mood while the Apple TV is playing', () => {
     seed('playing')
     render(<SuggestionsStrip />)
-    expect(screen.getByRole('region', { name: 'Suggestions' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Suggested' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Media viewing mood' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Bright up lights' })).not.toBeInTheDocument()
   })
@@ -49,7 +49,7 @@ describe('suggestions strip', () => {
     (state) => {
       seed(state)
       render(<SuggestionsStrip />)
-      expect(screen.queryByRole('region', { name: 'Suggestions' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('region', { name: 'Suggested' })).not.toBeInTheDocument()
       expect(screen.queryByRole('button')).not.toBeInTheDocument()
     },
   )

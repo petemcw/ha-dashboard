@@ -1,5 +1,5 @@
 import type { ScriptViewModel } from '../../../domains/script/viewModel'
-import { STATUS_TEXT } from './statusText'
+import { STATUS_TEXT } from '../statusText'
 import { Tile, type TileControl } from './Tile'
 
 // A run button: no `pressed`, because a script has no on/off state to toggle.

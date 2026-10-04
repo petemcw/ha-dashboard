@@ -20,7 +20,7 @@ test('tapping the playing suggestion activates its scene with the transition', a
   mockHa.setState(mediaPlayer('playing'))
   await page.goto('/')
   await page
-    .getByRole('region', { name: 'Suggestions' })
+    .getByRole('region', { name: 'Suggested' })
     .getByRole('button', { name: 'Media viewing mood' })
     .click()
   await expect
@@ -62,7 +62,7 @@ test.describe('when HA refuses the scene', () => {
   test('the suggestion shows an inline retry message', async ({ page, mockHa }) => {
     mockHa.setState(mediaPlayer('playing'))
     await page.goto('/')
-    const strip = page.getByRole('region', { name: 'Suggestions' })
+    const strip = page.getByRole('region', { name: 'Suggested' })
     await strip.getByRole('button', { name: 'Media viewing mood' }).click()
     await expect(strip.getByRole('status')).toHaveText("Didn't work, tap to retry")
   })

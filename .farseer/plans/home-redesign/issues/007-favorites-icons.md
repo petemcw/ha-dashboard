@@ -1,6 +1,6 @@
 # Task 007: Favorites Tile Icons
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001
 **Retry count**: 0
 
@@ -18,10 +18,10 @@ Add an icon to each favorites tile based on the entity's HA domain, and restyle 
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it shows a lightbulb icon on a light tile`
-- [ ] `it shows the matching icon for switch, fan, scene, and script tiles`
-- [ ] `it shows a fallback icon on a display-only tile`
-- [ ] `it highlights the icon of a tile whose entity is on`
+- [x] `it shows a lightbulb icon on a light tile`
+- [x] `it shows the matching icon for switch, fan, scene, and script tiles`
+- [x] `it shows a fallback icon on a display-only tile`
+- [x] `it highlights the icon of a tile whose entity is on`
 
 ## Acceptance Criteria
 
@@ -32,4 +32,8 @@ Add an icon to each favorites tile based on the entity's HA domain, and restyle 
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- New `favorites/favoriteIcon.ts` maps HA domain to a lucide icon (light, switch, fan, scene, script; media_player, cover, climate, lock; fallback CircleDot).
+- `FavoriteTile` passes `icon` to every tile; `Tile` renders it as `svg.favorite-icon` (aria-hidden) above name/state. `icon` is part of `TileControl`.
+- CSS: `.favorites` min 96px / gap 10px, tile min-height 74px; own block at the end of `index.css` for `.favorite-icon` (round, leaf-filled when `data-active`).
+- Tests added to `FavoritesSection.test.tsx` (class-based icon checks). Favorites/controls e2e pass unchanged.
+- Unrelated tsc error from worker 004 (`attentionKinds.test.ts` `kind`) not touched.

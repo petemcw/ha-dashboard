@@ -1,6 +1,6 @@
 # Task 003: Light/Dark Toggle in the Header
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 002
 **Retry count**: 0
 
@@ -19,12 +19,12 @@ Add a sun/moon icon button next to Settings in the header bar that flips between
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it switches to dark mode when the header toggle is tapped in light mode`
-- [ ] `it switches to light mode when the header toggle is tapped in dark mode`
-- [ ] `it switches to the opposite of the device theme when the preference is system`
-- [ ] `it names the toggle for the theme a tap will switch to`
-- [ ] `it shows the theme chosen in the header as selected in the settings sheet`
-- [ ] `it remembers the theme chosen in the header after a reload`
+- [x] `it switches to dark mode when the header toggle is tapped in light mode`
+- [x] `it switches to light mode when the header toggle is tapped in dark mode`
+- [x] `it switches to the opposite of the device theme when the preference is system`
+- [x] `it names the toggle for the theme a tap will switch to`
+- [x] `it shows the theme chosen in the header as selected in the settings sheet`
+- [x] `it remembers the theme chosen in the header after a reload`
 
 ## Acceptance Criteria
 
@@ -34,4 +34,8 @@ Add a sun/moon icon button next to Settings in the header bar that flips between
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `src/app/theme/ThemeToggle.tsx`: moon/sun icon button named "Switch to dark mode" / "Switch to light mode". `AppShell` passes it into `HomeScreen`'s `tools` slot from the same `useThemePreference` instance the settings sheet uses.
+- Effective theme is the explicit preference, or a guarded `window.matchMedia?.(...)` with an OS-change listener while on `system` (no `matchMedia` means light).
+- The six requirements are tested in `src/app/AppShell.test.tsx`; the `system` case uses a `matchMedia` stub local to that test. No Playwright spec for the toggle.
+- No new CSS; reuses `.icon-button`. `CLAUDE.md` Status mentions the header bar and toggle.
+- Worker wrote tests alongside the implementation rather than strictly red-first (reported by the worker). Orchestrator filled in this file after verifying the tests pass.

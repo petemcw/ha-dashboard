@@ -1,3 +1,4 @@
+import { Star } from 'lucide-react'
 import { memo } from 'react'
 import { useAppData } from '../../../infrastructure/appData/useAppData'
 import { SectionCard } from '../SectionCard'
@@ -9,10 +10,10 @@ export type FavoritesSectionProps = { onOpenSettings?: () => void }
 function FavoritesSectionContent({ onOpenSettings }: FavoritesSectionProps) {
   const { value, loaded } = useAppData('user', FAVORITES_KEY)
   // Before the first value, "no favorites" would be a guess.
-  if (!loaded) return <SectionCard title="Favorites" className="favorites-card" />
+  if (!loaded) return <SectionCard title="Favorites" icon={Star} className="favorites-card" />
   const { entityIds } = parseFavorites(value)
   return (
-    <SectionCard title="Favorites" className="favorites-card">
+    <SectionCard title="Favorites" icon={Star} className="favorites-card">
       {entityIds.length === 0 ? (
         <div className="empty-state">
           <p>No favorites yet</p>

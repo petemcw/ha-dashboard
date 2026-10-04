@@ -1,6 +1,6 @@
 # Task 002: Slim Sticky Header Bar with Presence and Clock
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001
 **Retry count**: 0
 
@@ -22,15 +22,15 @@ Replace the tall heartwood sign and its scroll-collapse with the slim header bar
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it shows the greeting for the time of day in the header`
-- [ ] `it shows the current time and date in the header`
-- [ ] `it updates the header clock when the minute changes`
-- [ ] `it ticks the shared clock on the wall-clock minute rather than 30 seconds after the first subscriber`
-- [ ] `it renders the tools passed to the header before the Settings button`
-- [ ] `it shows the people avatars inside the header banner`
-- [ ] `it no longer shows a house status sentence`
-- [ ] `it keeps the header pinned to the top after scrolling on a phone`
-- [ ] `it lays out the avatars side by side without overlapping`
+- [x] `it shows the greeting for the time of day in the header`
+- [x] `it shows the current time and date in the header`
+- [x] `it updates the header clock when the minute changes`
+- [x] `it ticks the shared clock on the wall-clock minute rather than 30 seconds after the first subscriber`
+- [x] `it renders the tools passed to the header before the Settings button`
+- [x] `it shows the people avatars inside the header banner`
+- [x] `it no longer shows a house status sentence`
+- [x] `it keeps the header pinned to the top after scrolling on a phone`
+- [x] `it lays out the avatars side by side without overlapping`
 
 ## Acceptance Criteria
 
@@ -42,4 +42,8 @@ Replace the tall heartwood sign and its scroll-collapse with the slim header bar
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `HouseSign` became `HeaderBar` (same folder); `houseStatus.ts` and its tests were removed, `useScrolledUnder` and the `data-collapsed` styles are gone. CSS is a new `.header-bar*` block in `src/index.css` replacing the sign block; the sign's presence styles were shrunk to 32 px avatars with a 6 px gap (the 44 px listitem size assertion in `presence.spec.ts` became a non-overlap check).
+- `HeaderBar` takes `tools?: ReactNode` (rendered before Settings) and `people`; `HomeScreen` takes `tools` and passes it through. 003 should pass the toggle from `AppShell`.
+- Time uses `Intl.DateTimeFormat` parts so the locale's am/pm marker becomes a small lowercase suffix; date is "Saturday, Oct 3".
+- Shared clock now uses `setTimeout` re-armed after each tick to the next multiple of the interval on the wall clock, so ticks land on :00 and :30.
+- Rewrote `e2e/sign.spec.ts` (pinned header on phone, no status sentence), `HeaderBar.test.tsx`, smoke order locator (`header section, main section`). Full mocked Playwright suite and Vitest pass; the only format:check failure is the mockup.html.

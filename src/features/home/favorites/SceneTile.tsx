@@ -1,5 +1,5 @@
 import type { SceneViewModel } from '../../../domains/scene/viewModel'
-import { STATUS_TEXT } from './statusText'
+import { STATUS_TEXT } from '../statusText'
 import { Tile, type TileControl } from './Tile'
 
 // A run button: no `pressed`. The scene's state is its last activation time, so the

@@ -61,19 +61,21 @@ input {
 
 /* Controls */
 
-/* Every button is a 44 px touch target that never shrinks or breaks its label; rows
-   wrap whole buttons instead. Components don't need to repeat this. */
+/* Buttons look 34 px tall, like the mock-up, but are still 44 px touch targets: an
+   invisible ::after reaches 5 px past every border edge. Buttons never shrink or break their
+   label; rows wrap whole buttons instead. Components don't need to repeat this. */
 button,
 .button-link {
+  position: relative;
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
   flex: none;
-  min-height: 44px;
-  min-width: 44px;
-  padding: 0 var(--space-4);
+  min-height: 34px;
+  min-width: 34px;
+  padding: 0 var(--space-3);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
   background: var(--surface-raised);
@@ -85,6 +87,37 @@ button,
   transition:
     background-color 0.15s,
     transform 0.1s;
+}
+
+button::after,
+.button-link::after {
+  content: '';
+  position: absolute;
+  /* The overlay is sized from the padding box, inside the 1 px border. */
+  inset: -6px;
+}
+
+/* Two compact buttons side by side need at least 10 px between them, or the later one's
+   overlay covers the earlier one's edge. */
+.attention-item__actions,
+.snooze-choices,
+.suggestions__list {
+  gap: var(--space-3);
+}
+
+/* An ancestor with overflow other than visible clips the overlay, so the settings sheet
+   (which scrolls) keeps full-size buttons instead. */
+.sheet button,
+.sheet .button-link {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--space-4);
+}
+
+.sheet button::after,
+.sheet .button-link::after,
+.favorite-button::after {
+  content: none;
 }
 
 button:active:not(:disabled),
@@ -136,7 +169,7 @@ button:disabled {
 
 .icon-button {
   padding: 0;
-  width: 44px;
+  width: 34px;
   border-color: transparent;
   background: transparent;
   color: var(--text);
@@ -166,129 +199,43 @@ input[type='checkbox'] {
   font-weight: 600;
 }
 
-/* The house sign */
+/* Header bar */
 
 /* Full-bleed heartwood that runs up under the status bar (theme-color matches). The
    gutter centres the content at the same width as the page below. */
-.sign-bar,
-.sign {
-  --sign-gutter: max(calc(env(safe-area-inset-left) + 16px), calc((100% - 1408px) / 2));
-  background: var(--wood);
-  color: var(--on-wood);
-}
-
-.sign :focus-visible,
-.sign-bar :focus-visible {
-  outline-color: var(--on-wood);
-}
-
-/* The sign's top row stays pinned. Once the status sentence scrolls under it, it turns
-   into a translucent bar carrying that sentence, with the page scrolling beneath. */
-.sign-bar {
+.header-bar {
+  --bar-gutter: max(calc(env(safe-area-inset-left) + 16px), calc((100% - 1408px) / 2));
   position: sticky;
   top: 0;
   z-index: 5;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3);
-  padding: calc(env(safe-area-inset-top) + var(--space-2)) var(--sign-gutter) var(--space-2);
-  transition: background-color 0.2s;
-}
-
-.sign-bar[data-collapsed] {
-  background: color-mix(in srgb, var(--wood) 80%, transparent);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  backdrop-filter: blur(20px) saturate(160%);
-}
-
-/* The name gives way to the status once there's a status to show. */
-.sign-bar[data-collapsed] .sign__name {
-  display: none;
-}
-
-.sign-bar__status {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--on-wood-muted);
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  animation: bar-status-in 0.2s ease-out;
-}
-
-.sign-bar__status[data-urgent] {
+  gap: var(--space-2) var(--space-3);
+  padding: calc(env(safe-area-inset-top) + 10px) var(--bar-gutter) 10px;
+  background: var(--wood);
   color: var(--on-wood);
+  box-shadow:
+    0 1px 0 rgb(20 8 2 / 0.12),
+    0 4px 10px -4px rgb(20 8 2 / 0.4);
 }
 
-@keyframes bar-status-in {
-  from {
-    opacity: 0;
-    translate: 0 4px;
-  }
+.header-bar :focus-visible {
+  outline-color: var(--on-wood);
 }
 
-@media (prefers-reduced-transparency: reduce) {
-  .sign-bar[data-collapsed] {
-    background: var(--wood);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sign-bar__status {
-    animation: none;
-  }
-}
-
-.sign {
-  padding: var(--space-2) var(--sign-gutter) var(--space-6);
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-}
-
-.sign .presence {
-  margin-top: var(--space-5);
-}
-
-/* From tablet width, the faces sit top right, level with the greeting. */
-@media (min-width: 740px) {
-  .sign {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-6);
-  }
-
-  .sign__text {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .sign .presence {
-    flex: 0 1 auto;
-    max-width: 50%;
-    margin-top: var(--space-4);
-  }
-
-  .sign .presence-row {
-    justify-content: flex-end;
-  }
-}
-
-.sign__brand {
+.header-bar__brand {
   display: flex;
-  flex: none;
+  flex: 1;
   align-items: center;
-  gap: var(--space-3);
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 600;
+  gap: 10px;
+  min-width: 0;
 }
 
 /* The logo's house is heartwood brown, so it sits on a birch tile like the app icon. */
-.sign__badge {
+.header-bar__logo {
   display: grid;
+  flex: none;
   place-items: center;
   width: 36px;
   height: 36px;
@@ -296,48 +243,97 @@ input[type='checkbox'] {
   background: var(--on-wood);
 }
 
-.sign__settings {
-  margin-left: auto;
+.header-bar__text {
+  display: grid;
+  min-width: 0;
 }
 
-.sign-bar .icon-button {
-  color: var(--on-wood);
-}
-
-@media (hover: hover) {
-  .sign-bar .icon-button:hover {
-    background: rgb(255 247 237 / 0.12);
-  }
-}
-
-.sign__greeting {
-  margin: var(--space-4) 0 0;
+.header-bar__name {
+  color: var(--on-wood-muted);
   font-family: var(--font-display);
-  font-size: var(--text-sign);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.header-bar__greeting {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
   font-weight: 700;
   line-height: 1.05;
 }
 
-.sign__status {
-  max-width: 34ch;
-  margin: var(--space-3) 0 0;
-  color: var(--on-wood-muted);
-  font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem);
-  line-height: 1.3;
+.header-bar__clock {
+  display: grid;
+  text-align: right;
+  line-height: 1.05;
 }
 
-/* Something needs you: full-strength lettering and a maple-red edge. */
-.sign__status[data-urgent] {
-  padding-left: var(--space-3);
-  border-left: 4px solid #f57520;
-  color: var(--on-wood);
+.header-bar__time {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
   font-weight: 600;
 }
 
-.sign__date {
-  margin: var(--space-3) 0 0;
+.header-bar__time small {
+  margin-left: 2px;
+  font-size: 0.8rem;
+}
+
+.header-bar__date {
+  display: none;
   color: var(--on-wood-muted);
-  font-size: var(--text-sm);
+  font-size: 0.75rem;
+}
+
+.header-bar__tools {
+  display: flex;
+  gap: 2px;
+}
+
+.header-bar .icon-button {
+  color: var(--on-wood);
+}
+
+@media (hover: hover) {
+  .header-bar .icon-button:hover {
+    background: rgb(255 247 237 / 0.12);
+  }
+}
+
+/* On a phone the faces take a second row of their own. */
+.header-bar .presence {
+  order: 5;
+  width: 100%;
+}
+
+/* Tablet and wider: one row, with hairlines around the clock. */
+@media (min-width: 740px) {
+  .header-bar {
+    flex-wrap: nowrap;
+    gap: 20px;
+    padding-block-end: 10px;
+  }
+
+  .header-bar .presence {
+    order: 0;
+    width: auto;
+  }
+
+  .header-bar__name,
+  .header-bar__date {
+    display: block;
+  }
+
+  .header-bar__clock {
+    padding-inline: 20px;
+    border-inline: 1px solid rgb(255 247 237 / 0.18);
+  }
+
+  .header-bar__time {
+    font-size: 1.6rem;
+  }
 }
 
 /* Sticky, so a dropped connection is obvious however far down the page you are. */
@@ -518,29 +514,23 @@ input[type='checkbox'] {
   text-align: center;
 }
 
-/* Three stacks, like Home Assistant's sections view: one column on phones; two on
-   tablets, with favorites alone on the right; three on desktops. Each stack is its own
-   column, so a long attention list never opens a gap beside favorites. The DOM order
-   (attention, suggestions, favorites, crypto) is the reading order at every width. */
+/* Three stacks that reflow like Home Assistant's sections view. Each stack is its own
+   column, so a long attention list never opens a gap beside favorites.
+   Below 740 px the stacks dissolve (display: contents) and every card takes its own
+   order, so the phone reading order is attention, suggested, favorites, today, systems,
+   media, crypto whatever column a card lives in. */
 .home__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-6);
+  gap: var(--space-4);
   align-items: start;
 }
 
 .home__col {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
+  display: contents;
 }
 
-/* Grid and flex children default to min-width: auto, which lets one long word widen
-   the page; 0 keeps every section inside the viewport. */
-.home__col,
-.home__col > *,
-.attention-item > *,
-.crypto-coin > * {
+.home__col > * {
   min-width: 0;
 }
 
@@ -548,65 +538,143 @@ input[type='checkbox'] {
   display: none;
 }
 
-/* iPads in either orientation, and the 13-inch one in landscape (1366px). */
+.home__order--attention {
+  order: 1;
+}
+.home__order--suggested {
+  order: 2;
+}
+.home__order--favorites {
+  order: 3;
+}
+.home__order--today {
+  order: 4;
+}
+.home__order--systems {
+  order: 5;
+}
+.home__order--media {
+  order: 6;
+}
+.home__order--crypto {
+  order: 7;
+}
+
+/* Grid and flex children default to min-width: auto, which lets one long word widen
+   the page; 0 keeps every section inside the viewport. */
+.attention-item > *,
+.crypto-coin > * {
+  min-width: 0;
+}
+
+/* iPads in either orientation. Column 3 drops below both, as its own two-column grid. */
 @media (min-width: 740px) {
   .home__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-areas:
-      'now favorites'
-      'side favorites';
-    /* Favorites spans both rows; any height it has beyond the left stack goes to the
-       last row, so crypto sits right under attention and suggestions. */
-    grid-template-rows: auto 1fr;
   }
 
-  .home__col--now {
-    grid-area: now;
+  .home__col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
   }
-  .home__col--favorites {
-    grid-area: favorites;
+
+  .home__order--attention,
+  .home__order--suggested,
+  .home__order--favorites,
+  .home__order--today,
+  .home__order--systems,
+  .home__order--media,
+  .home__order--crypto {
+    order: 0;
   }
-  .home__col--side {
-    grid-area: side;
+
+  .home__col--3 {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  /* An empty column never takes space (or a grid gap). */
+  .home__col:empty {
+    display: none;
   }
 }
 
-@media (min-width: 1400px) {
-  .home__grid {
+/* Three equal columns, but only once column 3 has a card: an empty third track would
+   waste a third of a wall tablet. */
+@media (min-width: 1024px) {
+  .home__grid:has(> .home__col--3:not(:empty)) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-areas: 'now favorites side';
-    grid-template-rows: auto;
+  }
+
+  .home__grid:has(> .home__col--3:not(:empty)) > .home__col--3 {
+    grid-column: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
 /* Sections */
 
-/* Sections aren't boxed: a slab title and a hairline mark each one, so the filled
-   surfaces (urgent items, favorite tiles) are what stands out. */
+/* Every section is a boxed card: a small-caps label with an icon on the left and a
+   chip or link on the right. Needs attention is the primary card: a slab title and a
+   stronger border. */
+.card {
+  box-sizing: border-box;
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-4) var(--space-4) 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface-raised);
+}
+
+.card.attention {
+  border-color: var(--border-strong);
+}
+
 .card__header {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
-}
-
-.card__header::after {
-  content: '';
-  order: 1;
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-.card__header > :not(.card__title) {
-  order: 2;
+  gap: var(--space-2);
+  min-height: 24px;
 }
 
 .card__title {
-  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 auto 0 0;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.card.attention .card__title {
+  color: var(--text);
   font-family: var(--font-display);
   font-size: var(--text-lg);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.card__icon {
+  flex: none;
+}
+
+.card__chip {
+  display: flex;
+  align-items: center;
+  font-size: 0.72rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 /* A real box, for screens that are a single panel (kiosk setup, config errors). */
@@ -633,16 +701,6 @@ input[type='checkbox'] {
 
 /* Attention */
 
-.all-clear {
-  margin: 0;
-  color: var(--ok);
-  font-weight: 600;
-}
-
-.all-clear::before {
-  content: '✓ ';
-}
-
 .urgent-list,
 .chore-row,
 .snoozed__list {
@@ -652,26 +710,49 @@ input[type='checkbox'] {
   list-style: none;
 }
 
-.urgent-list {
+/* Attention rows: badge, text, actions on one line, the failure under them.
+   Actions never wrap beneath the text; a long title wraps inside its own column. */
+.urgent-list,
+.chore-row {
   gap: var(--space-2);
 }
 
 .urgent-list + .chore-row {
-  margin-top: var(--space-3);
+  margin-top: var(--space-2);
 }
 
-/* Text on the left, actions on the right. When both don't fit (two buttons on a phone),
-   the actions wrap below the text instead of squeezing it. */
 .attention-item {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--space-2) var(--space-3);
+  gap: 0 var(--space-3);
+  padding: 10px 10px 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.attention-item--urgent {
+  background: var(--danger-soft);
+}
+
+.attention-item__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--warn);
+  color: var(--on-warn);
+}
+
+.attention-item--urgent .attention-item__badge {
+  background: var(--danger);
+  color: #fff;
 }
 
 .attention-item__text {
   display: flex;
-  flex: 1 1 12rem;
   flex-direction: column;
 }
 
@@ -688,77 +769,91 @@ input[type='checkbox'] {
 
 .attention-item__actions {
   display: flex;
-  flex: 0 1 auto;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-left: auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
 }
 
-.urgent-item {
-  padding: var(--space-3);
-  border-left: 4px solid var(--danger);
-  border-radius: var(--radius-sm);
-  background: var(--danger-soft);
+/* The failure takes its own line under the row, so it never widens the actions column. */
+.attention-item > .action-error {
+  grid-column: 1 / -1;
+  padding: 0;
 }
 
-.urgent-item .attention-item__title {
-  font-size: var(--text-lg);
-}
-
-.urgent-item .attention-item__detail {
-  color: var(--text);
-}
-
-.chore-item {
-  padding: var(--space-3) 0;
-  border-top: 1px solid var(--border);
-}
-
-.chore-row > .chore-item:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
-
-.chore-item .attention-item__title::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: var(--space-2);
-  border-radius: 50%;
-  background: var(--warn);
-  vertical-align: middle;
+.attention-item > .action-error:not(:empty) {
+  padding-top: var(--space-2);
 }
 
 .snooze-choices {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+}
+
+/* Snoozed strip and card footer */
+
+.attention__chip {
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.attention__chip--danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.attention__chip--warn {
+  background: var(--warn-soft);
+  color: var(--warn);
 }
 
 .snoozed {
-  margin-top: var(--space-3);
-  border-top: 1px solid var(--border);
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
 }
 
-.snoozed summary {
+.snoozed__bar,
+.snoozed__foot {
   display: flex;
   align-items: center;
+  gap: var(--space-2);
   min-height: 44px;
-  color: var(--text-muted);
-  cursor: pointer;
+  font-size: var(--text-sm);
+}
+
+.snoozed__bar svg {
+  flex: none;
+}
+
+.snoozed__bar b {
+  color: var(--text);
+}
+
+.snoozed__toggle {
+  margin-left: auto;
+}
+
+.snoozed__foot {
+  justify-content: space-between;
+  padding: 0 var(--space-1);
 }
 
 .snoozed__list li {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-1) var(--space-3);
   padding: var(--space-2) 0;
 }
 
 .snoozed__list strong {
+  display: block;
   overflow-wrap: anywhere;
+  color: var(--text);
 }
 
 .snoozed__list span {
@@ -771,7 +866,6 @@ input[type='checkbox'] {
 .suggestions__list {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -779,13 +873,13 @@ input[type='checkbox'] {
 
 /* Presence */
 
-/* Faces on the sign, with a dot for whoever is home. Names and states are in each
+/* Faces in the header, with a dot for whoever is home. Names and states are in each
    item's label for assistive tech; on screen the faces carry them. Wraps instead of
    scrolling, so nobody is hidden off the edge of a phone or kiosk. */
 .presence-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -795,8 +889,8 @@ input[type='checkbox'] {
   position: relative;
   display: grid;
   place-items: center;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 32px;
+  min-height: 32px;
 }
 
 /* Lime from the maple's leaf, bright enough to read on heartwood in both themes, ringed
@@ -807,8 +901,8 @@ input[type='checkbox'] {
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border: 2px solid var(--wood);
   border-radius: 50%;
   background: #8fd16a;
@@ -822,8 +916,8 @@ input[type='checkbox'] {
 
 .person__avatar {
   box-sizing: border-box;
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   overflow: hidden;
   display: grid;
@@ -848,7 +942,7 @@ input[type='checkbox'] {
 }
 
 .person__initials {
-  font-size: var(--text-sm);
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--on-wood);
 }
@@ -869,8 +963,8 @@ input[type='checkbox'] {
 
 .favorites {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
-  gap: var(--space-2);
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -881,7 +975,7 @@ input[type='checkbox'] {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  min-height: 72px;
+  min-height: 74px;
   padding: var(--space-3);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
@@ -1098,6 +1192,32 @@ input[type='checkbox'] {
   }
 }
 
+/* Sliding confirm: the armed icon button grows leftward (it sits at the right end
+   of the actions, so the snooze icon beside it stays put) and "Confirm?" slides in after the
+   icon. Only max-width/opacity animate; the hit area stays at least 44 px in both states. */
+.button--confirm-armed .button__confirm-text {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: confirm-reveal 0.22s ease-out;
+}
+
+@keyframes confirm-reveal {
+  from {
+    max-width: 0;
+    opacity: 0;
+  }
+  to {
+    max-width: 6rem;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button--confirm-armed .button__confirm-text {
+    animation: none;
+  }
+}
+
 /* Favorite tile controls */
 
 .favorite-tile[data-interactive] {
@@ -1115,7 +1235,7 @@ input[type='checkbox'] {
   justify-content: flex-start;
   gap: var(--space-1);
   min-width: 44px;
-  min-height: 72px;
+  min-height: 74px;
   padding: var(--space-3);
   border: 0;
   border-radius: inherit;
@@ -1149,7 +1269,7 @@ input[type='checkbox'] {
   position: fixed;
   top: env(safe-area-inset-top);
   /* A tab hanging from the top edge, centered: the header has the logo on the left and
-     settings on the right, and the collapsed sign bar's text sits below the tab. */
+     settings on the right. */
   left: 50%;
   transform: translateX(-50%);
   z-index: 50;
@@ -1163,4 +1283,321 @@ input[type='checkbox'] {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   pointer-events: none;
+}
+
+/* Favorite tile icons: a round icon on top, name and state pushed to the bottom. */
+
+.favorite-icon {
+  box-sizing: content-box;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  padding: 6px;
+  margin-bottom: auto;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.favorite-tile[data-active] .favorite-icon {
+  background: var(--leaf);
+  color: var(--surface);
+}
+
+/* Systems card: status chip and stat tiles */
+
+.systems__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+
+.systems__chip::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.systems__chip--ok {
+  background: color-mix(in srgb, var(--ok) 16%, transparent);
+  color: var(--ok);
+}
+
+.systems__chip--danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.stat {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+.stat__k {
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stat__v {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.stat__v small {
+  font-size: 0.8rem;
+}
+
+.stat__s {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+/* Systems card: CPU bars */
+
+.cpu {
+  display: grid;
+  gap: 10px;
+  margin-top: var(--space-3);
+}
+
+.cpu__row {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+}
+
+.cpu__label {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cpu__track {
+  display: block;
+  height: 5px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+}
+
+.cpu__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ok);
+}
+
+.cpu__value,
+.cpu__note {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.cpu__note {
+  grid-column: 2 / -1;
+  color: var(--text-muted);
+}
+
+/* Media card (display-only) */
+
+.media-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.media-now {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.media-art {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--leaf) 0%, var(--wood) 100%);
+  color: var(--on-wood);
+}
+
+.media-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.media-now__title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.media-now__artist {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.media-now__room {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--leaf);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.media-empty {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.media-volume {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+}
+
+.media-volume__bar {
+  flex: 1;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--border-strong);
+}
+
+.media-volume__bar > span {
+  display: block;
+  height: 100%;
+  background: var(--text-muted);
+}
+
+.media-volume__value {
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.media-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.media-chip {
+  padding: 2px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.media-chip--leaf {
+  border-color: color-mix(in srgb, var(--leaf) 45%, transparent);
+  background: var(--leaf-soft);
+  color: var(--leaf);
+}
+
+/* Today card */
+.today__sunset {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+.today__status {
+  margin: 0;
+  color: var(--text-muted);
+}
+.today__main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.today__icon {
+  flex: none;
+}
+.today__temp {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 3rem;
+  line-height: 0.9;
+}
+.today__cond {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.today__hilo {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.today__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+.today__stats > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 9px 12px;
+  font-size: 0.8rem;
+}
+.today__stats > div + div {
+  border-left: 1px solid var(--border);
+}
+.today__stats > div > span:first-child {
+  color: var(--text-muted);
+}
+.today__hourly {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+.today__hourly li {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+}
+.today__hour {
+  color: var(--text-muted);
+  font-size: 0.7rem;
 }

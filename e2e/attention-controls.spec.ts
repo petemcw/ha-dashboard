@@ -37,7 +37,7 @@ test('closing the garage door takes two taps and sends one switch.toggle', async
   await close.click()
   expect(toggles(mockHa)).toHaveLength(0)
 
-  const confirm = region.getByRole('button', { name: 'Tap to close' })
+  const confirm = region.getByRole('button', { name: 'Confirm close garage door' })
   await expect(confirm).toBeVisible()
   await page.waitForTimeout(600)
   await confirm.click()
@@ -57,7 +57,7 @@ test('sends nothing when the door closed between the two taps', async ({ page, m
   await page.goto('/')
   const region = page.getByRole('region', { name: 'Needs attention' })
   await region.getByRole('button', { name: 'Close garage door' }).click()
-  await expect(region.getByRole('button', { name: 'Tap to close' })).toBeVisible()
+  await expect(region.getByRole('button', { name: 'Confirm close garage door' })).toBeVisible()
   mockHa.setState(binarySensorState({ entity_id: 'binary_sensor.garage_door', state: 'off' }))
   await expect(region.getByText('Garage door', { exact: true })).toBeHidden()
   await page.waitForTimeout(600)
@@ -77,7 +77,7 @@ test('Mark replaced takes two taps and sends one script.turn_on for the reset sc
   await mark.click()
   expect(toggles(mockHa)).toHaveLength(0)
 
-  const confirm = region.getByRole('button', { name: 'Tap to confirm' })
+  const confirm = region.getByRole('button', { name: 'Confirm mark replaced' })
   await expect(confirm).toBeVisible()
   await page.waitForTimeout(600)
   await confirm.click()
@@ -90,4 +90,34 @@ test('Mark replaced takes two taps and sends one script.turn_on for the reset sc
   // The chore goes when the days-remaining sensor is back above the threshold.
   mockHa.setState(sensorState({ entity_id: 'sensor.water_filter_days_remaining', state: '90' }))
   await expect(region.getByText('Water filter', { exact: true })).toBeHidden()
+})
+
+test('the armed confirm shows no running animation when reduced motion is preferred', async ({
+  page,
+  mockHa,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  mockHa.setState(openDoor())
+  await page.goto('/')
+  const region = page.getByRole('region', { name: 'Needs attention' })
+  await region.getByRole('button', { name: 'Close garage door' }).click()
+  const armed = region.getByRole('button', { name: 'Confirm close garage door' })
+  await expect(armed).toContainText('Confirm?')
+  const animations = await armed.evaluate((el) =>
+    el.querySelectorAll('*').length === 0
+      ? 0
+      : [...el.querySelectorAll('*')].flatMap((child) => child.getAnimations()).length,
+  )
+  expect(animations).toBe(0)
+})
+
+test('tapping elsewhere disarms the confirm without sending', async ({ page, mockHa }) => {
+  mockHa.setState(openDoor())
+  await page.goto('/')
+  const region = page.getByRole('region', { name: 'Needs attention' })
+  await region.getByRole('button', { name: 'Close garage door' }).click()
+  await expect(region.getByRole('button', { name: 'Confirm close garage door' })).toBeVisible()
+  await page.mouse.click(5, 5)
+  await expect(region.getByRole('button', { name: 'Close garage door' })).toBeVisible()
+  expect(toggles(mockHa)).toHaveLength(0)
 })

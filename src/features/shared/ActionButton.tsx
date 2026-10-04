@@ -1,6 +1,6 @@
-import type { ButtonHTMLAttributes } from 'react'
+import type { ComponentPropsWithRef } from 'react'
 
-type ActionButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'onClick'> & {
+type ActionButtonProps = Omit<ComponentPropsWithRef<'button'>, 'type' | 'onClick'> & {
   onPress: () => void
   pending?: boolean
 }

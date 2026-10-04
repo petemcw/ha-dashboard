@@ -1,6 +1,6 @@
 # Task 013: Media Card (Display-Only)
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 009
 **Retry count**: 0
 
@@ -24,14 +24,14 @@ Add the Media card under Systems in column 3. It shows the configured player tha
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it maps a playing media player to its title, artist, artwork, and volume`
-- [ ] `it features the playing player with its title, artist, and room`
-- [ ] `it features a paused player when nothing is playing`
-- [ ] `it shows Nothing playing when no configured player is playing or paused`
-- [ ] `it shows the other configured players as state chips`
-- [ ] `it shows how many players are playing in the card header`
-- [ ] `it hides the Media card when home config has no media section`
-- [ ] `it tries the artwork again when the track's picture changes after a failed load`
+- [x] `it maps a playing media player to its title, artist, artwork, and volume`
+- [x] `it features the playing player with its title, artist, and room`
+- [x] `it features a paused player when nothing is playing`
+- [x] `it shows Nothing playing when no configured player is playing or paused`
+- [x] `it shows the other configured players as state chips`
+- [x] `it shows how many players are playing in the card header`
+- [x] `it hides the Media card when home config has no media section`
+- [x] `it tries the artwork again when the track's picture changes after a failed load`
 
 ## Acceptance Criteria
 
@@ -42,4 +42,9 @@ Add the Media card under Systems in column 3. It shows the configured player tha
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `mediaPlayerViewModel(entity, id, haUrl?)` gained friendlyName, title, artist (artist, album, app_name), artworkUrl, volumePercent, muted. The entity_picture resolver moved to `src/domains/entityPicture.ts` (shared with `personViewModel`).
+- `src/features/home/media/`: `mediaViewModel.ts` (featured player, chips, playing count), `MediaCard.tsx` (display-only; `role="meter"` Volume; Artwork keyed by URL so a failed image never sticks; placeholder while `useHaUrl()` is undefined). Rendered in column 3 below Systems; the card carries its own `home__order--media` class so an unconfigured Media leaves column 3 empty.
+- A missing player's chip name is derived from its entity id (title-cased).
+- CSS block "Media card (display-only)" at the end of `src/index.css`. Also added `align-items: stretch` to the three-column col-3 rule: the 740 px rule's `align-items: start` leaked into the flex column and shrank Systems once Media sat beneath it.
+- e2e: `e2e/media.spec.ts` (mock HA); "Media" added to `SECTIONS`/DOM-order lists in `home.spec.ts` and `smoke.spec.ts`. 011's three-equal-columns spec already existed.
+- Parallel workers clobber `test-results/`; run Playwright with `--output=<scratch dir>`.

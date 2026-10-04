@@ -1,6 +1,6 @@
 # Task 012: Systems Card: CPU Usage Bars
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 009, 011
 **Retry count**: 0
 
@@ -17,10 +17,10 @@ Add CPU usage bars under the Systems stat tiles, one per entry in `systems.cpu`.
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it shows a CPU bar for each configured device with its percentage`
-- [ ] `it exposes each CPU bar as a meter with its value`
-- [ ] `it shows a dash instead of a bar when a CPU sensor is unavailable`
-- [ ] `it shows no CPU bars when none are configured`
+- [x] `it shows a CPU bar for each configured device with its percentage`
+- [x] `it exposes each CPU bar as a meter with its value`
+- [x] `it shows a dash instead of a bar when a CPU sensor is unavailable`
+- [x] `it shows no CPU bars when none are configured`
 
 ## Acceptance Criteria
 
@@ -30,4 +30,7 @@ Add CPU usage bars under the Systems stat tiles, one per entry in `systems.cpu`.
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `systemsViewModel` now returns `cpu: CpuBar[]` (percent rounded and clamped 0-100; note "—" for unavailable/unknown/non-numeric, "Missing" for missing entities), built with `sensorViewModel`.
+- `SystemsCard` renders a `role="group"` "CPU usage" block under the tiles; each bar is a `role="meter"` named "{label} CPU" with aria-valuenow/min/max. Unreadable sensors render no meter, only the note. Block omitted when `cpu` is unset or empty. CPU entity IDs added to the subscribed set.
+- CSS: "Systems card: CPU bars" block (6.5rem / 1fr / auto grid, 5px track, 10px row gap, fill in `--ok`).
+- e2e: `systems.spec.ts` seeds the CPU sensors and checks the meters; `home.spec.ts` gains the restored two-column fallback at 1180x820 (home config without `systems` and `media` via the mock's `homeConfig` option), alongside the three-column spec.

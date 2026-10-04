@@ -31,7 +31,7 @@ test('shows prices, signed change and a sparkline, then follows a live price cha
   await expect(row).toContainText('ETH $3,000 +50.0%')
   // SOL has no statistics: price only.
   await expect(row).toContainText('SOL $142.50')
-  await expect(row.locator('svg[aria-hidden="true"]')).toHaveCount(2)
+  await expect(row.locator('.crypto-spark svg[aria-hidden="true"]')).toHaveCount(2)
 
   const statsCalls = () =>
     mockHa.sent().filter((m) => m.type === 'recorder/statistics_during_period').length

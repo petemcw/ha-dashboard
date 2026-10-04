@@ -1,6 +1,6 @@
 # Task 004: Attention Rows with Kinds, Icons, and Icon Actions
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 009
 **Retry count**: 0
 
@@ -25,13 +25,13 @@ Give every attention item a kind and an icon, and render each item as one row: a
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it gives every attention item the kind of the rule that raised it`
-- [ ] `it uses the icon named on a left-on rule and rejects an unknown icon name`
-- [ ] `it shows an item's icon badge, title, and detail in one row with its actions on the right`
-- [ ] `it shows an item's action as an icon button that keeps the action's name`
-- [ ] `it shows the toner reorder link as an icon link named Reorder toner`
-- [ ] `it shows snooze as a clock icon button that opens the one day and one week choices`
-- [ ] `it shows an action's failure on its own line under the row without moving the action buttons`
+- [x] `it gives every attention item the kind of the rule that raised it`
+- [x] `it uses the icon named on a left-on rule and rejects an unknown icon name`
+- [x] `it shows an item's icon badge, title, and detail in one row with its actions on the right`
+- [x] `it shows an item's action as an icon button that keeps the action's name`
+- [x] `it shows the toner reorder link as an icon link named Reorder toner`
+- [x] `it shows snooze as a clock icon button that opens the one day and one week choices`
+- [x] `it shows an action's failure on its own line under the row without moving the action buttons`
 
 ## Acceptance Criteria
 
@@ -42,4 +42,4 @@ Give every attention item a kind and an icon, and render each item as one row: a
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+Rows are now one `AttentionRow` (replaces `UrgentItem`; `ItemAction` removed; `ChoreRow` is just the chores list). Items carry `kind` and `icon`; actions carry `icon` ('power' | 'close-garage' | 'check' | 'cart'). `LeftOnRule.icon` is optional and validated against `LEFT_ON_ICONS` (`oneOf` helper in homeConfig.ts); default comes from the action domain. `attentionIcons.ts` holds the pure name-to-Lucide mappings (`badgeIcon`, `actionIcon`) plus `BadgeGlyph`/`ActionGlyph` components (createElement, to satisfy the static-components lint rule). `useAttentionAction` (was `AttentionAction`) returns the button and the failure line separately so the row renders the failure as a full-width grid child. `ConfirmButton` got `icon` (icon-only with aria-label until armed; armed text unchanged). Snooze is a 34 px `icon-button` with AlarmClock, name unchanged. CSS: "Attention rows (task 004)" block in index.css (grid badge/text/actions, 10/12 px padding, 32 px badge radius 9, ochre vs red badge). Tests: attentionKinds, attentionIcons, AttentionRow, homeConfig, leftOnRule (default icon). Also added kind/icon to the fixture in HouseSign.test.tsx (type fix only). Vitest 479 pass, tsc/oxlint/prettier clean; attention, attention-controls, snooze, compact-buttons, filter-controls mocked e2e pass.

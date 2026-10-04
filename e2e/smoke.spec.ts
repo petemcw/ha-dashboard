@@ -28,17 +28,29 @@ test(
     await expect(page.getByRole('region', { name: 'Favorites' })).toBeAttached({
       timeout: 15_000,
     })
-    // Structure only: the house decides whether items, people, or suggestions show up.
-    await expect(page.getByRole('region', { name: 'Needs attention' })).toBeVisible()
+    // Structure only: the house decides whether items, people, or suggestions show up. A
+    // calm house has no attention card at all, so it's only checked for order below.
     await expect(page.getByRole('region', { name: 'People' })).toBeAttached()
     await expect(page.getByRole('region', { name: 'Crypto' })).toBeAttached()
     // Suggestions depend on whether the Apple TV is playing; check order only if present.
     const names = await page
-      .locator('.sign section, main section')
+      .locator('header section, main section')
       .evaluateAll((els) =>
         els.map((el) => el.getAttribute('aria-label') ?? el.querySelector('h2')?.textContent),
       )
-    const order = ['People', 'Needs attention', 'Suggestions', 'Favorites', 'Crypto']
+    // DOM order, column by column (what a screen reader reads), as in home.spec.ts.
+    const order = [
+      'People',
+      'Needs attention',
+      // Takes the attention card's place when everything left is snoozed.
+      'Snoozed',
+      'Suggested',
+      'Crypto',
+      'Favorites',
+      'Today',
+      'Systems',
+      'Media',
+    ]
     expect(names).toEqual(order.filter((n) => names.includes(n)))
     await page.screenshot({
       path: `e2e/screenshots/home-${testInfo.project.name}.png`,

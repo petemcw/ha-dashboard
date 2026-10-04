@@ -22,9 +22,11 @@ describe('toner rule', () => {
       {
         id: 'toner-low',
         tier: 'chore',
+        kind: 'toner',
+        icon: 'toner',
         title: 'Printer toner',
         detail: '9% left',
-        action: { label: 'Reorder toner', href: tonerRule.reorderUrl },
+        action: { label: 'Reorder toner', icon: 'cart', href: tonerRule.reorderUrl },
       },
     ])
   })
@@ -61,8 +63,9 @@ describe('filter rule', () => {
   it('offers Mark replaced as a confirmed run of the reset script', () => {
     expect(filter('2').items[0].action).toEqual({
       label: 'Mark replaced',
+      icon: 'check',
       pendingLabel: 'Saving…',
-      confirmLabel: 'Tap to confirm',
+      confirmLabel: 'Confirm mark replaced',
       script: filterRules[1].resetScript,
       sensorId: filterRules[1].entity_id,
     })

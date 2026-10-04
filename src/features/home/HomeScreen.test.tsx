@@ -3,6 +3,7 @@ import { renderWithHome as render } from '../../test/renderWithHome'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { personState } from '../../domains/person/factories'
 import { entityStore } from '../../infrastructure/entities/entityStore'
+import { testHomeConfig } from '../../config/testHomeConfig'
 import { HomeScreen } from './HomeScreen'
 
 afterEach(() => {
@@ -23,7 +24,7 @@ describe('home screen', () => {
     }
   })
 
-  it('shows who is home on the sign, above the sections', async () => {
+  it('shows who is home in the header, above the sections', async () => {
     vi.stubEnv('VITE_HA_URL', 'https://ha.example')
     render(<HomeScreen />)
     act(() =>
@@ -38,5 +39,18 @@ describe('home screen', () => {
     const people = await screen.findByRole('region', { name: 'People' })
     expect(people).toContainElement(screen.getByRole('listitem', { name: 'Alex Rivera, home' }))
     expect(screen.getByRole('main')).not.toContainElement(people)
+  })
+
+  it('hides the Today card when home config has no weather section', () => {
+    const { weather: _weather, ...rest } = testHomeConfig
+    const { unmount } = render(<HomeScreen />)
+    act(() => entityStore.setEntities({}))
+    expect(screen.getByRole('region', { name: 'Today' })).toBeInTheDocument()
+    unmount()
+
+    render(<HomeScreen />, { config: rest })
+    act(() => entityStore.setEntities({}))
+    expect(screen.getByRole('region', { name: 'Favorites' })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Today' })).not.toBeInTheDocument()
   })
 })

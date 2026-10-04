@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test'
 import { binarySensorState } from '../src/domains/binary_sensor/factories.ts'
 import { entityState } from '../src/domains/factories.ts'
 import { mediaPlayer } from '../src/domains/media_player/factories.ts'
+import { testHomeConfig } from '../src/config/testHomeConfig.ts'
 import { personState } from '../src/domains/person/factories.ts'
 import { batterySensorState } from '../src/domains/sensor/factories.ts'
 import { SNOOZES_KEY } from '../src/features/home/attention/snoozes.ts'
@@ -148,89 +149,131 @@ test.describe('home screen layout', () => {
     return box
   }
 
-  const SECTIONS = ['Needs attention', 'Suggestions', 'Favorites', 'Crypto']
+  const SECTIONS = [
+    'Needs attention',
+    'Suggested',
+    'Favorites',
+    'Today',
+    'Systems',
+    'Media',
+    'Crypto',
+  ]
 
   const layoutAt = async (page: Page) => {
     await expect(page.getByRole('region', { name: 'Crypto' })).toBeAttached()
-    await expect(page.getByRole('region', { name: 'Suggestions' })).toBeVisible()
-    await expect(page.getByRole('listitem', { name: 'Alex Rivera, home' })).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Suggested' })).toBeVisible()
     await expectNoHorizontalScroll(page)
-    const [attention, suggestions, favorites, crypto] = await Promise.all(
+    const [attention, suggestions, favorites, today, systems, media, crypto] = await Promise.all(
       SECTIONS.map((n) => boxOf(page, n)),
     )
-    return { attention, suggestions, favorites, crypto, people: await boxOf(page, 'People') }
+    return { attention, suggestions, favorites, today, systems, media, crypto }
   }
 
-  test('reads people on the sign, then attention, suggestions, favorites, crypto', async ({
-    page,
-  }) => {
+  test('reads attention, suggested, favorites, crypto', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByRole('region', { name: 'Crypto' })).toBeAttached()
-    await expect(page.getByRole('region', { name: 'Suggestions' })).toBeVisible()
-    await expect(page.getByRole('listitem', { name: 'Alex Rivera, home' })).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Suggested' })).toBeVisible()
     const names = await page
-      .locator('.sign section, main section')
+      .locator('main section')
       .evaluateAll((els) =>
         els.map((el) => el.getAttribute('aria-label') ?? el.querySelector('h2')?.textContent),
       )
-    expect(names).toEqual(['People', ...SECTIONS])
+    expect(names).toEqual([
+      'Needs attention',
+      'Suggested',
+      'Crypto',
+      'Favorites',
+      'Today',
+      'Systems',
+      'Media',
+    ])
   })
 
-  test('lays the home screen out in one column at phone width without horizontal scroll', async ({
+  test('stacks the cards in one column on a phone in the order attention, suggested, favorites, today, systems, crypto', async ({
     page,
   }) => {
     test.skip(test.info().project.name !== 'phone')
     await page.goto('/')
     await expect(page.getByRole('listitem', { name: 'Alex Rivera, home' })).toBeVisible()
-    await page.screenshot({ path: 'e2e/screenshots/home-sign-phone.png' })
+    await page.screenshot({ path: 'e2e/screenshots/home-header-phone.png' })
     await expect(page.getByText('1 snoozed')).toBeVisible()
-    await page.getByText('1 snoozed').click()
-    const { people, ...sections } = await layoutAt(page)
-    const boxes = Object.values(sections)
+    await page.getByRole('button', { name: 'Show' }).click()
+    // Boxes, not DOM order: crypto sits in column 1 in the DOM but reads last on a phone.
+    const boxes = Object.values(await layoutAt(page))
     expect(new Set(boxes.map((b) => b.x)).size).toBe(1)
     for (let i = 1; i < boxes.length; i++) expect(boxes[i].y).toBeGreaterThan(boxes[i - 1].y)
-    // The faces sit under the sign's date, above the first section.
-    expect(people.x).toBe(sections.attention.x)
-    expect(people.y + people.height).toBeLessThan(sections.attention.y)
     await page.screenshot({ path: 'e2e/screenshots/home-layout-phone.png', fullPage: true })
   })
 
-  for (const [label, width, height] of [
-    ['ipad-portrait', 820, 1180],
-    ['tablet', 1180, 820],
-  ] as const) {
-    test(`lays the home screen out in two columns at ${label} width`, async ({ page }) => {
-      test.skip(test.info().project.name !== 'tablet')
-      await page.setViewportSize({ width, height })
-      await page.goto('/')
-      const { attention, suggestions, favorites, crypto, people } = await layoutAt(page)
-      // Attention, suggestions, and crypto stack on the left; favorites has the right.
-      expect(suggestions.x).toBe(attention.x)
-      expect(crypto.x).toBe(attention.x)
-      expect(suggestions.y).toBeGreaterThanOrEqual(attention.y + attention.height)
-      expect(crypto.y).toBeGreaterThanOrEqual(suggestions.y + suggestions.height)
-      expect(favorites.x).toBeGreaterThan(attention.x + attention.width - 1)
-      expect(Math.abs(favorites.y - attention.y)).toBeLessThan(2)
-      expect(Math.abs(favorites.width - attention.width)).toBeLessThan(2)
-      // The faces sit top right on the sign, above the columns.
-      expect(people.x).toBeGreaterThan(width / 2)
-      expect(people.y + people.height).toBeLessThan(attention.y)
-      await page.screenshot({ path: `e2e/screenshots/home-layout-${label}.png`, fullPage: true })
-    })
-  }
-
-  test('lays the home screen out in three columns at desktop width', async ({ page }) => {
+  test('shows two top-aligned columns on a tablet in portrait with favorites on the right', async ({
+    page,
+  }) => {
     test.skip(test.info().project.name !== 'tablet')
-    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.setViewportSize({ width: 820, height: 1180 })
     await page.goto('/')
     const { attention, suggestions, favorites, crypto } = await layoutAt(page)
     expect(suggestions.x).toBe(attention.x)
+    expect(crypto.x).toBe(attention.x)
+    expect(suggestions.y).toBeGreaterThanOrEqual(attention.y + attention.height)
+    expect(crypto.y).toBeGreaterThanOrEqual(suggestions.y + suggestions.height)
     expect(favorites.x).toBeGreaterThan(attention.x + attention.width - 1)
-    expect(crypto.x).toBeGreaterThan(favorites.x + favorites.width - 1)
-    for (const box of [favorites, crypto]) {
-      expect(Math.abs(box.y - attention.y)).toBeLessThan(2)
-      expect(Math.abs(box.width - attention.width)).toBeLessThan(2)
-    }
-    await page.screenshot({ path: 'e2e/screenshots/home-layout-desktop.png', fullPage: true })
+    expect(Math.abs(favorites.y - attention.y)).toBeLessThan(2)
+    expect(Math.abs(favorites.width - attention.width)).toBeLessThan(2)
+    await page.screenshot({ path: 'e2e/screenshots/home-layout-ipad-portrait.png', fullPage: true })
   })
+
+  test('shows three equal top-aligned columns on a 1180 by 820 wall tablet', async ({ page }) => {
+    test.skip(test.info().project.name !== 'tablet')
+    await page.setViewportSize({ width: 1180, height: 820 })
+    await page.goto('/')
+    const { attention, favorites, systems } = await layoutAt(page)
+    expect(favorites.x).toBeGreaterThan(attention.x + attention.width - 1)
+    expect(systems.x).toBeGreaterThan(favorites.x + favorites.width - 1)
+    expect(Math.abs(favorites.y - attention.y)).toBeLessThan(2)
+    expect(Math.abs(systems.y - attention.y)).toBeLessThan(2)
+    expect(Math.abs(favorites.width - attention.width)).toBeLessThan(2)
+    expect(Math.abs(systems.width - attention.width)).toBeLessThan(2)
+    // Three tracks fill the row.
+    const main = (await page.locator('main').boundingBox())!
+    expect(systems.x + systems.width).toBeGreaterThan(main.x + main.width - 40)
+    await page.screenshot({ path: 'e2e/screenshots/home-layout-tablet.png', fullPage: true })
+  })
+
+  test.describe('without systems and media', () => {
+    const { systems: _s, media: _m, ...bareHome } = testHomeConfig
+    test.use({ haOptions: { homeConfig: bareHome } })
+
+    test('keeps two columns on a 1180 by 820 wall tablet while the third column has no cards', async ({
+      page,
+    }) => {
+      test.skip(test.info().project.name !== 'tablet')
+      await page.setViewportSize({ width: 1180, height: 820 })
+      await page.goto('/')
+      await expect(page.getByRole('region', { name: 'Crypto' })).toBeAttached()
+      await expect(page.getByRole('region', { name: 'Suggested' })).toBeVisible()
+      await expectNoHorizontalScroll(page)
+      await expect(page.getByRole('region', { name: 'Systems' })).toHaveCount(0)
+      const boxes = await Promise.all(
+        ['Needs attention', 'Suggested', 'Favorites', 'Today', 'Crypto'].map((n) => boxOf(page, n)),
+      )
+      expect(new Set(boxes.map((b) => Math.round(b.x))).size).toBe(2)
+      // Two tracks fill the row: no empty third track at the right.
+      const main = (await page.locator('main').boundingBox())!
+      const right = Math.max(...boxes.map((b) => b.x + b.width))
+      expect(right).toBeGreaterThan(main.x + main.width - 40)
+    })
+  })
+
+  for (const [label, width, height] of [
+    ['phone', 393, 852],
+    ['tablet', 820, 1180],
+    ['wall-tablet', 1180, 820],
+    ['desktop', 1440, 900],
+  ] as const) {
+    test(`never scrolls sideways at ${label} size`, async ({ page }) => {
+      await page.setViewportSize({ width, height })
+      await page.goto('/')
+      await layoutAt(page)
+    })
+  }
 })

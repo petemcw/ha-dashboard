@@ -338,3 +338,47 @@ describe('favorite tile controls', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })
+
+describe('favorite tile icons', () => {
+  const iconOf = (name: string) =>
+    screen.getByRole('button', { name }).querySelector('svg.favorite-icon')
+
+  it('shows a lightbulb icon on a light tile', async () => {
+    seed(lightState({ entity_id: 'light.k', attributes: { friendly_name: 'Kitchen' } }))
+    await renderLoaded(saved('light.k'))
+    const icon = iconOf('Kitchen')
+    expect(icon).toHaveClass('lucide-lightbulb')
+    expect(icon).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('shows the matching icon for switch, fan, scene, and script tiles', async () => {
+    seed(
+      switchState({ entity_id: 'switch.s', attributes: { friendly_name: 'Sw' } }),
+      fanState({ entity_id: 'fan.f', attributes: { friendly_name: 'Fa' } }),
+      sceneState({ entity_id: 'scene.c', attributes: { friendly_name: 'Sc' } }),
+      scriptState({ entity_id: 'script.p', attributes: { friendly_name: 'Sp' } }),
+    )
+    await renderLoaded(saved('switch.s', 'fan.f', 'scene.c', 'script.p'))
+    expect(iconOf('Sw')).toHaveClass('lucide-plug')
+    expect(iconOf('Fa')).toHaveClass('lucide-fan')
+    expect(iconOf('Sc')).toHaveClass('lucide-sparkles')
+    expect(iconOf('Sp')).toHaveClass('lucide-play')
+  })
+
+  it('shows a fallback icon on a display-only tile', async () => {
+    seed(entityState({ entity_id: 'sensor.x', state: '5', attributes: { friendly_name: 'Odd' } }))
+    await renderLoaded(saved('sensor.x'))
+    const tile = screen.getByText('Odd').closest('li')!
+    expect(tile.querySelector('svg.favorite-icon')).toHaveClass('lucide-circle-dot')
+  })
+
+  it('highlights the icon of a tile whose entity is on', async () => {
+    seed(
+      lightState({ entity_id: 'light.on', state: 'on', attributes: { friendly_name: 'Lit' } }),
+      lightState({ entity_id: 'light.off', attributes: { friendly_name: 'Dark' } }),
+    )
+    await renderLoaded(saved('light.on', 'light.off'))
+    expect(iconOf('Lit')?.closest('.favorite-tile')).toHaveAttribute('data-active')
+    expect(iconOf('Dark')?.closest('.favorite-tile')).not.toHaveAttribute('data-active')
+  })
+})

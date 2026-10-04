@@ -1,3 +1,4 @@
+import { AlarmClock } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { SnoozeDuration } from './useSnoozes'
 
@@ -30,12 +31,12 @@ export function SnoozeMenu({
       <button
         ref={trigger}
         type="button"
-        className="button--quiet snooze-button"
+        className="icon-button snooze-button"
         aria-label={`Snooze ${title}`}
         disabled={disabled}
         onClick={() => setOpen(true)}
       >
-        Snooze
+        <AlarmClock aria-hidden="true" size={18} />
       </button>
     )
   }

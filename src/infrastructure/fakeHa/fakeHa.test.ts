@@ -172,3 +172,67 @@ describe('FakeHa responseDelayMs', () => {
     expect(types.lastIndexOf('event')).toBeLessThan(types.indexOf('result', 2))
   })
 })
+
+describe('FakeHa weather forecasts', () => {
+  const hourly = [{ datetime: '2026-10-04T14:00:00+00:00', condition: 'sunny', temperature: 52 }]
+  const weather = entityState({ entity_id: 'weather.forecast_home', state: 'sunny' })
+  const subscribe = (id: number, entity_id: string, forecast_type: string): ClientMessage => ({
+    id,
+    type: 'weather/subscribe_forecast',
+    entity_id,
+    forecast_type,
+  })
+
+  it('answers a forecast subscription with the configured forecast in the fake HA', () => {
+    const { ha, connect } = setup({
+      entities: [weather],
+      forecasts: { 'weather.forecast_home': { hourly } },
+    })
+    const { client, received } = connect()
+    ha.receive(client, subscribe(1, 'weather.forecast_home', 'hourly'))
+    expect(resultOf(received, 1)).toMatchObject({ success: true, result: null })
+    expect(received.find((m) => m.type === 'event')).toEqual({
+      id: 1,
+      type: 'event',
+      event: { type: 'hourly', forecast: hourly },
+    })
+  })
+
+  it('pushes a forecast update to subscribers in the fake HA', () => {
+    const { ha, connect } = setup({
+      entities: [weather],
+      forecasts: { 'weather.forecast_home': { hourly } },
+    })
+    const { client, received } = connect()
+    ha.receive(client, subscribe(1, 'weather.forecast_home', 'hourly'))
+    const next = [{ ...hourly[0], temperature: 60 }]
+    ha.setForecast('weather.forecast_home', 'hourly', next)
+    expect(received.at(-1)).toEqual({
+      id: 1,
+      type: 'event',
+      event: { type: 'hourly', forecast: next },
+    })
+    ha.receive(client, { id: 2, type: 'unsubscribe_events', subscription: 1 })
+    const count = received.length
+    ha.setForecast('weather.forecast_home', 'hourly', hourly)
+    expect(received).toHaveLength(count)
+  })
+
+  it('rejects a forecast subscription for an entity without that forecast type like HA does', () => {
+    const { ha, connect } = setup({
+      entities: [weather],
+      forecasts: { 'weather.forecast_home': { hourly } },
+    })
+    const { client, received } = connect()
+    ha.receive(client, subscribe(1, 'weather.forecast_home', 'daily'))
+    expect(resultOf(received, 1)).toMatchObject({
+      success: false,
+      error: { code: 'forecast_not_supported' },
+    })
+    ha.receive(client, subscribe(2, 'weather.missing', 'hourly'))
+    expect(resultOf(received, 2)).toMatchObject({
+      success: false,
+      error: { code: 'invalid_entity_id' },
+    })
+  })
+})

@@ -1,3 +1,4 @@
+import type { LucideIcon } from 'lucide-react'
 import { useId, type ReactNode } from 'react'
 import type { ActionFailure } from '../../../infrastructure/serviceGateway/useAction'
 import { ActionButton } from '../../shared/ActionButton'
@@ -11,6 +12,8 @@ export type TileControl = {
   pending?: boolean
   failure?: ActionFailure | null
   disabled?: boolean
+  // Decorative domain icon; the name and state carry the meaning.
+  icon: LucideIcon
 }
 
 type TileProps = TileControl & {
@@ -31,10 +34,12 @@ export function Tile({
   pending,
   failure = null,
   disabled,
+  icon: Icon,
 }: TileProps) {
   const id = useId()
   const nameId = `${id}-name`
   const stateId = `${id}-state`
+  const iconEl = <Icon className="favorite-icon" aria-hidden="true" />
   const nameEl = (
     <span id={nameId} className="favorite-name">
       {name}
@@ -66,6 +71,7 @@ export function Tile({
             pending={pending}
             onPress={onPress}
           >
+            {iconEl}
             {nameEl}
             {stateEl}
           </ActionButton>
@@ -73,6 +79,7 @@ export function Tile({
         </>
       ) : (
         <>
+          {iconEl}
           {nameEl}
           {stateEl}
         </>

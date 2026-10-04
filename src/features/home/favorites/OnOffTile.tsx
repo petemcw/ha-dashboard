@@ -1,5 +1,5 @@
 import type { OnOffViewModel } from '../../../domains/onOff'
-import { STATUS_TEXT } from './statusText'
+import { STATUS_TEXT } from '../statusText'
 import { Tile, type TileControl } from './Tile'
 
 // Light, switch, and fan: a toggle button. `onText` lets a light add its brightness.

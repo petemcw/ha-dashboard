@@ -18,6 +18,15 @@ describe('parsing home.json', () => {
     expect(parsed.people).toEqual(['person.a', 'person.b'])
   })
 
+  it('uses the icon named on a left-on rule and rejects an unknown icon name', () => {
+    const raw = example()
+    expect(parseHomeConfig(raw).leftOnRules[0].icon).toBe('garage')
+    delete raw.leftOnRules[0].icon
+    expect(parseHomeConfig(raw).leftOnRules[0].icon).toBeUndefined()
+    raw.leftOnRules[0].icon = 'rocket'
+    expect(() => parseHomeConfig(raw)).toThrow('leftOnRules[0].icon must be one of garage')
+  })
+
   it('names the invalid field when home.json has the wrong shape', () => {
     const raw = example()
     raw.leftOnRules[1].minutes = '30'
@@ -65,6 +74,110 @@ describe('parsing home.json', () => {
     expect(() => parseHomeConfig(raw)).not.toThrow()
     raw.updateRules[0].label = 5
     expect(() => parseHomeConfig(raw)).toThrow('updateRules[0].label must be a string')
+  })
+})
+
+describe('the weather, systems, and media sections', () => {
+  const systems = () => ({
+    status: { entity_id: 'sensor.gateway_state', upState: 'connected', label: 'Gateway' },
+  })
+
+  it('parses a home config with none of the weather, systems, or media sections', () => {
+    const raw = example()
+    delete raw.weather
+    delete raw.systems
+    delete raw.media
+    const parsed = parseHomeConfig(raw)
+    expect(parsed.weather).toBeUndefined()
+    expect(parsed.systems).toBeUndefined()
+    expect(parsed.media).toBeUndefined()
+  })
+
+  it('parses a weather section and defaults the sun entity to sun.sun', () => {
+    const parsed = parseHomeConfig({
+      ...example(),
+      weather: { entity_id: 'weather.forecast_home' },
+    })
+    expect(parsed.weather).toEqual({ entity_id: 'weather.forecast_home', sun: 'sun.sun' })
+    const custom = parseHomeConfig({
+      ...example(),
+      weather: { entity_id: 'weather.forecast_home', sun: 'sun.other' },
+    })
+    expect(custom.weather?.sun).toBe('sun.other')
+  })
+
+  it('rejects a weather section without an entity_id', () => {
+    expect(() => parseHomeConfig({ ...example(), weather: {} })).toThrow(
+      'weather.entity_id must be a string',
+    )
+  })
+
+  it('parses a systems section with its status entity, up state, and label', () => {
+    const parsed = parseHomeConfig({ ...example(), systems: systems() })
+    expect(parsed.systems?.status).toEqual({
+      entity_id: 'sensor.gateway_state',
+      upState: 'connected',
+      label: 'Gateway',
+    })
+    expect(parsed.systems?.uptime).toBeUndefined()
+    expect(parsed.systems?.accessPoints).toBeUndefined()
+    expect(parsed.systems?.backup).toBeUndefined()
+    expect(parsed.systems?.cpu).toBeUndefined()
+  })
+
+  it('rejects a systems cpu entry without a label', () => {
+    const raw = { ...example(), systems: { ...systems(), cpu: [{ entity_id: 'sensor.cpu' }] } }
+    expect(() => parseHomeConfig(raw)).toThrow('systems.cpu[0].label must be a string')
+  })
+
+  it('parses access points with their own up state and uptime with its own label', () => {
+    const parsed = parseHomeConfig({
+      ...example(),
+      systems: {
+        status: { entity_id: 'binary_sensor.wan_ping', upState: 'on', label: 'Internet' },
+        uptime: { entity_id: 'sensor.gateway_boot', label: 'Gateway' },
+        accessPoints: { entity_ids: ['sensor.office_ap_state'], upState: 'connected' },
+        backup: 'sensor.last_backup',
+        cpu: [{ label: 'HA', entity_id: 'sensor.processor_use' }],
+      },
+    })
+    expect(parsed.systems?.status.upState).toBe('on')
+    expect(parsed.systems?.uptime).toEqual({ entity_id: 'sensor.gateway_boot', label: 'Gateway' })
+    expect(parsed.systems?.accessPoints).toEqual({
+      entity_ids: ['sensor.office_ap_state'],
+      upState: 'connected',
+    })
+    expect(parsed.systems?.backup).toBe('sensor.last_backup')
+    expect(parsed.systems?.cpu).toEqual([{ label: 'HA', entity_id: 'sensor.processor_use' }])
+  })
+
+  it('names the full path of a bad entry in a nested list of entity ids', () => {
+    const raw = {
+      ...example(),
+      systems: {
+        ...systems(),
+        accessPoints: { entity_ids: ['sensor.a', 4], upState: 'connected' },
+      },
+    }
+    expect(() => parseHomeConfig(raw)).toThrow(
+      'systems.accessPoints.entity_ids[1] must be a string',
+    )
+  })
+
+  it('parses a media section with its list of players', () => {
+    const parsed = parseHomeConfig({
+      ...example(),
+      media: { players: ['media_player.living_room_speaker'] },
+    })
+    expect(parsed.media).toEqual({ players: ['media_player.living_room_speaker'] })
+  })
+
+  it('parses the example home config including the new sections', () => {
+    const parsed = parseHomeConfig(example())
+    expect(parsed.weather?.entity_id).toBe('weather.forecast_home')
+    expect(parsed.systems?.status.entity_id).toBe('sensor.gateway_state')
+    expect(parsed.systems?.accessPoints?.entity_ids).toContain('sensor.office_ap_state')
+    expect(parsed.media?.players).toContain('media_player.living_room_speaker')
   })
 })
 

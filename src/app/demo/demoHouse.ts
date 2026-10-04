@@ -5,6 +5,9 @@ import { fanState } from '../../domains/fan/factories'
 import { lightState } from '../../domains/light/factories'
 import { mediaPlayer } from '../../domains/media_player/factories'
 import { personState } from '../../domains/person/factories'
+import { sunState } from '../../domains/sun/factories'
+import { weatherState } from '../../domains/weather/factories'
+import { updateState } from '../../domains/update/factories'
 import { sceneState } from '../../domains/scene/factories'
 import { scriptState } from '../../domains/script/factories'
 import { batterySensorState, sensorState } from '../../domains/sensor/factories'
@@ -14,6 +17,7 @@ import { FAVORITES_KEY, serializeFavorites } from '../../features/home/favorites
 import type {
   FakeHaOptions,
   FakeHouse,
+  Forecasts,
   ServiceCall,
   StatisticPoint,
 } from '../../infrastructure/fakeHa/fakeHa'
@@ -35,6 +39,57 @@ export const FAVORITE_IDS = [
   'scene.living_room_bright',
   'script.good_night',
 ]
+
+const iso = (ms: number) => new Date(ms).toISOString()
+
+function demoToday(now: number): HassEntity[] {
+  const { weather } = testHomeConfig
+  if (!weather) return []
+  return [
+    weatherState('partlycloudy', { entity_id: weather.entity_id }),
+    // Later today, so the sunset line reads as upcoming.
+    sunState(iso(now + 3 * HOUR * 1000), 'above_horizon', weather.sun),
+  ]
+}
+
+function demoSystems(now: number): HassEntity[] {
+  const { systems } = testHomeConfig
+  if (!systems) return []
+  const { status, uptime, accessPoints, backup, cpu } = systems
+  const up = accessPoints?.upState ?? 'connected'
+  const apIds = accessPoints?.entity_ids ?? []
+  return [
+    sensorState({ entity_id: status.entity_id, state: status.upState }),
+    ...(uptime
+      ? [sensorState({ entity_id: uptime.entity_id, state: iso(now - 19 * 24 * HOUR * 1000) })]
+      : []),
+    // One access point is down so the tile reads like "3/4".
+    ...apIds.map((id, i) => sensorState({ entity_id: id, state: i === 0 ? 'disconnected' : up })),
+    ...(backup ? [sensorState({ entity_id: backup, state: iso(now - 4 * HOUR * 1000) })] : []),
+    ...(cpu ?? []).map((c, i) =>
+      sensorState({ entity_id: c.entity_id, state: String(18 + i * 31) }),
+    ),
+    updateState({ entity_id: 'update.demo_app', state: 'on' }),
+    updateState({ entity_id: 'update.demo_firmware' }),
+  ]
+}
+
+function demoMediaPlayers(): HassEntity[] {
+  return (testHomeConfig.media?.players ?? []).map((id, i) =>
+    mediaPlayer(i === 0 ? 'playing' : 'idle', {
+      entity_id: id,
+      attributes:
+        i === 0
+          ? {
+              friendly_name: 'Living room speaker',
+              media_title: 'Demo Song',
+              media_artist: 'Demo Band',
+              volume_level: 0.3,
+            }
+          : { friendly_name: 'Kitchen speaker' },
+    }),
+  )
+}
 
 export function demoEntities(now: number = Date.now()): HassEntity[] {
   const since = (seconds: number) => Math.floor(now / 1000) - seconds
@@ -62,7 +117,13 @@ export function demoEntities(now: number = Date.now()): HassEntity[] {
       state: '12',
       attributes: { friendly_name: 'Hallway sensor battery' },
     }),
-    mediaPlayer('playing', { entity_id: suggestions.player }),
+    mediaPlayer('playing', {
+      entity_id: suggestions.player,
+      attributes: { media_title: 'Demo Track', media_artist: 'Demo Artist', volume_level: 0.4 },
+    }),
+    ...demoMediaPlayers(),
+    ...demoToday(now),
+    ...demoSystems(now),
     lightState({
       entity_id: 'light.living_room_lamp',
       state: 'off',
@@ -133,12 +194,31 @@ function demoServiceEffects(call: ServiceCall, house: FakeHouse): HassEntity[] {
   ]
 }
 
+function demoForecasts(now: number): Record<string, Forecasts> {
+  const weather = testHomeConfig.weather
+  if (!weather) return {}
+  const conditions = ['partlycloudy', 'sunny', 'cloudy', 'rainy', 'partlycloudy']
+  const hourly = Array.from({ length: 12 }, (_, i) => ({
+    datetime: iso(now + (i + 1) * HOUR * 1000),
+    condition: conditions[i % conditions.length],
+    temperature: 52 + Math.round(6 * Math.sin(i / 3)),
+  }))
+  const daily = Array.from({ length: 5 }, (_, i) => ({
+    datetime: iso(now + i * 24 * HOUR * 1000),
+    condition: conditions[i % conditions.length],
+    temperature: 60 - i,
+    templow: 44 - i,
+  }))
+  return { [weather.entity_id]: { hourly, daily } }
+}
+
 export function demoHouse(now: number = Date.now()): FakeHaOptions {
   return {
     entities: demoEntities(now),
     statistics: demoStatistics(now),
     responseDelayMs: DEMO_RESPONSE_DELAY_MS,
     onServiceCall: demoServiceEffects,
+    forecasts: demoForecasts(now),
     userData: { [FAVORITES_KEY]: serializeFavorites(FAVORITE_IDS) },
   }
 }

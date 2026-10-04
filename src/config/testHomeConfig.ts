@@ -11,6 +11,7 @@ export const testHomeConfig: HomeConfig = {
       entity_id: 'binary_sensor.garage_door',
       onState: 'on',
       minutes: 10,
+      icon: 'garage',
       action: { domain: 'switch', service: 'toggle', entity_id: 'switch.garage_door_opener' },
     },
     {
@@ -19,6 +20,7 @@ export const testHomeConfig: HomeConfig = {
       entity_id: 'switch.space_heater',
       onState: 'on',
       minutes: 60,
+      icon: 'heater',
       action: { domain: 'switch', service: 'turn_off', entity_id: 'switch.space_heater' },
     },
     {
@@ -76,4 +78,19 @@ export const testHomeConfig: HomeConfig = {
     { symbol: 'ETH', entity_id: 'sensor.eth_exchange_rate' },
     { symbol: 'SOL', entity_id: 'sensor.sol_exchange_rate' },
   ],
+  weather: { entity_id: 'weather.forecast_home', sun: 'sun.sun' },
+  systems: {
+    status: { entity_id: 'sensor.gateway_state', upState: 'connected', label: 'Gateway' },
+    uptime: { entity_id: 'sensor.gateway_boot_time', label: 'Gateway' },
+    accessPoints: {
+      entity_ids: ['sensor.office_ap_state', 'sensor.hallway_ap_state'],
+      upState: 'connected',
+    },
+    backup: 'sensor.backup_last_successful_automatic_backup',
+    cpu: [
+      { label: 'Home Assistant', entity_id: 'sensor.processor_use' },
+      { label: 'Gateway', entity_id: 'sensor.gateway_cpu_utilization' },
+    ],
+  },
+  media: { players: ['media_player.living_room_speaker', 'media_player.kitchen_speaker'] },
 }

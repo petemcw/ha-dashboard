@@ -1,6 +1,6 @@
 # Task 008: Forecast Subscription and Fake HA Forecasts
 
-**Status**: pending
+**Status**: completed
 **Depends on**: none
 **Retry count**: 0
 
@@ -27,13 +27,13 @@ Add infrastructure that subscribes to a weather entity's forecast over HA's `wea
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it subscribes to the hourly forecast for a weather entity`
-- [ ] `it delivers each forecast the subscription pushes`
-- [ ] `it keeps the last good forecast when an event has no forecast`
-- [ ] `it unsubscribes from the forecast when the card unmounts`
-- [ ] `it answers a forecast subscription with the configured forecast in the fake HA`
-- [ ] `it pushes a forecast update to subscribers in the fake HA`
-- [ ] `it rejects a forecast subscription for an entity without that forecast type like HA does`
+- [x] `it subscribes to the hourly forecast for a weather entity`
+- [x] `it delivers each forecast the subscription pushes`
+- [x] `it keeps the last good forecast when an event has no forecast`
+- [x] `it unsubscribes from the forecast when the card unmounts`
+- [x] `it answers a forecast subscription with the configured forecast in the fake HA`
+- [x] `it pushes a forecast update to subscribers in the fake HA`
+- [x] `it rejects a forecast subscription for an entity without that forecast type like HA does`
 
 ## Acceptance Criteria
 
@@ -45,4 +45,7 @@ Add infrastructure that subscribes to a weather entity's forecast over HA's `wea
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- Live check (HA 2026.9.4, read-only): `{type:'weather/subscribe_forecast', entity_id, forecast_type:'hourly'|'daily'}` is acked `result:null, success:true`, then an `event` arrives shaped `{type:'hourly'|'daily', forecast:[{datetime, condition, temperature, templow? (daily), precipitation, humidity, wind_speed, ...}]}`. An unknown entity fails with code `invalid_entity_id` ("Weather entity not found"), not `not_found`, so the fake HA uses `invalid_entity_id`. Unsupported type uses `forecast_not_supported` (not observed live).
+- New: `src/infrastructure/ha/forecast.ts` (`subscribeForecast`, `ForecastEntry`, `ForecastType`) and `useForecast.ts` (`useForecast(entityId | undefined, type, connect?)`), with tests. The hook ignores a stale forecast after an entityId/type change.
+- Fake HA: `forecasts` option, `setForecast()`, `weather/subscribe_forecast` handling; `forecasts` added to the `HaMockOptions` Pick; architecture.md infrastructure line mentions forecast subscription. `e2e/fixtures.ts` untouched.
+- Full suite and coverage pass; lint, build, tsc node pass. format:check only flags the plan's mockup.html (not mine).

@@ -39,9 +39,27 @@ test.describe('people from Home Assistant', () => {
     await expect(
       people.getByRole('listitem', { name: 'Alex Rivera, home' }).getByText('AR'),
     ).toBeVisible()
-    const box = await people.getByRole('listitem').first().boundingBox()
-    expect(box!.width).toBeGreaterThanOrEqual(44)
-    expect(box!.height).toBeGreaterThanOrEqual(44)
+    await expect(page.getByRole('banner').getByRole('region', { name: 'People' })).toBeVisible()
+  })
+
+  test('lays out the avatars side by side without overlapping', async ({ page }) => {
+    await page.goto('/')
+    const items = page.getByRole('region', { name: 'People' }).getByRole('listitem')
+    await expect(items).toHaveCount(4)
+    const boxes = await items.evaluateAll((els) =>
+      els.map((el) => {
+        const r = el.getBoundingClientRect()
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom }
+      }),
+    )
+    for (const box of boxes) expect(box.right - box.left).toBe(32)
+    for (const [i, a] of boxes.entries()) {
+      for (const b of boxes.slice(i + 1)) {
+        const apart =
+          a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top
+        expect(apart).toBe(true)
+      }
+    }
   })
 })
 

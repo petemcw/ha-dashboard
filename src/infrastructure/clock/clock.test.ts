@@ -29,4 +29,19 @@ describe('clock', () => {
     clock.subscribe(() => {})
     expect(clock.get().getTime()).toBe(99_000)
   })
+
+  it('ticks the shared clock on the wall-clock minute rather than 30 seconds after the first subscriber', () => {
+    vi.setSystemTime(new Date('2026-10-03T18:41:47Z'))
+    const clock = createClock()
+    const seen: number[] = []
+    clock.subscribe(() => seen.push(clock.get().getTime()))
+
+    vi.advanceTimersByTime(12_999)
+    expect(seen).toEqual([])
+    vi.advanceTimersByTime(1)
+    expect(seen).toEqual([new Date('2026-10-03T18:42:00Z').getTime()])
+    vi.advanceTimersByTime(30_000)
+    expect(seen).toHaveLength(2)
+    expect(clock.get().getTime()).toBe(new Date('2026-10-03T18:42:30Z').getTime())
+  })
 })

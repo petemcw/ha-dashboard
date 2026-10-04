@@ -23,6 +23,8 @@ describe('battery rule', () => {
       {
         id: 'battery-low:sensor.door_battery',
         tier: 'chore',
+        kind: 'battery',
+        icon: 'battery',
         title: 'Front door battery',
         detail: '12%',
       },

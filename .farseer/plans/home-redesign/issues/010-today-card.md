@@ -1,6 +1,6 @@
 # Task 010: Today Card
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 008, 009
 **Retry count**: 0
 
@@ -23,13 +23,13 @@ Add the Today card under Favorites in column 2. It shows the current temperature
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it maps a weather entity to its temperature, unit, condition label, and icon`
-- [ ] `it shows the current temperature and condition on the Today card`
-- [ ] `it shows today's high and low from the daily forecast`
-- [ ] `it shows humidity, wind, and UV from the weather entity`
-- [ ] `it shows the next seven hours from the hourly forecast`
-- [ ] `it shows the sunset time from the sun entity`
-- [ ] `it hides the Today card when home config has no weather section`
+- [x] `it maps a weather entity to its temperature, unit, condition label, and icon`
+- [x] `it shows the current temperature and condition on the Today card`
+- [x] `it shows today's high and low from the daily forecast`
+- [x] `it shows humidity, wind, and UV from the weather entity`
+- [x] `it shows the next seven hours from the hourly forecast`
+- [x] `it shows the sunset time from the sun entity`
+- [x] `it hides the Today card when home config has no weather section`
 
 ## Acceptance Criteria
 
@@ -39,4 +39,9 @@ Add the Today card under Favorites in column 2. It shows the current temperature
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `src/domains/weather/` (`types`, `viewModel` with `weatherViewModel` and `conditionInfo`, the one name-to-icon switch, `factories`) and `src/domains/sun/` (`sunViewModel` giving `nextSetting`), both 100% line coverage.
+- `src/features/home/today/`: `todayViewModel.ts` (pure: today's daily entry by local date, next 7 hourly entries with "Now"/"7p" labels, "Sunset 6:52 pm"), `TodayCard.tsx` (presentational; Missing/Unavailable/Unknown shown in place of the body), `TodaySection.tsx` (container: two `useForecast` subscriptions, `useNow`, renders null without `weather` config).
+- Wired into `HomeScreen` column 2 under Favorites with the existing `home__order--today` class; CSS in a headed "Today card" block at the end of `index.css`.
+- Hourly entries whose hour already ended are skipped; the first is "Now" only when its hour has started.
+- Added "Today" to `SECTIONS`, the DOM-order and phone-order specs in `e2e/home.spec.ts`, and `order` in `e2e/smoke.spec.ts`. New `e2e/today.spec.ts` (forecasts via fake HA option; no-forecast case).
+- Unrelated failure seen: `home.spec.ts` wall-tablet test (Systems width differs from attention by about 85 px), in column 3 / Systems/Media work from other workers.

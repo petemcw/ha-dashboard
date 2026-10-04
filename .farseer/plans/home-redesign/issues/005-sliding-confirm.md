@@ -1,6 +1,6 @@
 # Task 005: Sliding Two-Tap Confirm with Outside-Tap Disarm
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 004, 009
 **Retry count**: 0
 
@@ -22,14 +22,14 @@ Rework the two-tap confirm for icon actions. On the first tap the button fills r
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it reveals Confirm beside the action icon on the first tap`
-- [ ] `it sends the action on a second tap after the guard window`
-- [ ] `it ignores a second tap inside the guard window`
-- [ ] `it disarms when the user taps outside the armed button`
-- [ ] `it disarms when keyboard focus leaves the armed button`
-- [ ] `it disarms after the confirm window passes without a second tap`
-- [ ] `it announces the armed confirm to assistive technology`
-- [ ] `it shows the armed state without sliding when reduced motion is preferred`
+- [x] `it reveals Confirm beside the action icon on the first tap`
+- [x] `it sends the action on a second tap after the guard window`
+- [x] `it ignores a second tap inside the guard window`
+- [x] `it disarms when the user taps outside the armed button`
+- [x] `it disarms when keyboard focus leaves the armed button`
+- [x] `it disarms after the confirm window passes without a second tap`
+- [x] `it announces the armed confirm to assistive technology`
+- [x] `it shows the armed state without sliding when reduced motion is preferred`
 
 ## Acceptance Criteria
 
@@ -40,4 +40,7 @@ Rework the two-tap confirm for icon actions. On the first tap the button fills r
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `ConfirmButton`: with an `icon`, the armed button shows icon + "Confirm?" (span `.button__confirm-text`) and its accessible name is `confirmLabel`. A `document` `pointerdown` listener exists only while armed and ignores presses inside the button (via a ref; `ActionButton` props now use `ComponentPropsWithRef`). `onBlur` disarms unless a pointer press is in progress (flag cleared on pointerup/cancel).
+- `confirmLabel` is now "Confirm close garage door" / "Confirm mark replaced" (rules, unit tests, e2e updated).
+- CSS: own "Sliding confirm (task 005)" block; the label reveals with a 0.22 s max-width/opacity keyframe animation, removed under `prefers-reduced-motion`. The existing danger fill is unchanged. No sent state; pending uses the existing aria-disabled style and `pendingLabel`.
+- Tests: new ConfirmButton unit tests plus two Playwright checks (reduced motion has no running animations; outside tap disarms). Guard, 4 s window, disarm-on-disabled and send-time recheck tests unchanged and green. Full Vitest (496), lint, tsc and the attention/compact-buttons e2e pass.

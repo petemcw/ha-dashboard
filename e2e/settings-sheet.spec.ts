@@ -54,3 +54,14 @@ test('still closes with the Close button and Escape', async ({ page }) => {
   await page.keyboard.press('Escape')
   await expect(sheet).toBeHidden()
 })
+
+// The sheet scrolls, which would clip the invisible overlay that makes compact buttons
+// 44 px targets, so its buttons are 44 px tall for real.
+test('keeps full-size buttons in the settings sheet', async ({ page }) => {
+  const sheet = await openSheet(page)
+  const close = sheet.getByRole('button', { name: 'Close' })
+  const box = (await close.boundingBox())!
+  expect(box.height).toBeGreaterThanOrEqual(44)
+  expect(box.width).toBeGreaterThanOrEqual(44)
+  await page.screenshot({ path: 'e2e/screenshots/settings-sheet.png' })
+})

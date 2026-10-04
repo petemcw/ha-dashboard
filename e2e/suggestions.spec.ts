@@ -17,7 +17,7 @@ test('suggests a scene for the Apple TV state, enabled, and follows live changes
 }) => {
   mockHa.setState(mediaPlayer('playing'))
   await page.goto('/')
-  const strip = page.getByRole('region', { name: 'Suggestions' })
+  const strip = page.getByRole('region', { name: 'Suggested' })
   const mood = strip.getByRole('button', { name: 'Media viewing mood' })
   await expect(mood).toBeEnabled()
 

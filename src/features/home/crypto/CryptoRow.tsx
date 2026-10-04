@@ -1,3 +1,4 @@
+import { Coins } from 'lucide-react'
 import { memo, useMemo } from 'react'
 import { useHomeConfig } from '../../../config/useHomeConfig'
 import { useEntity } from '../../../infrastructure/entities/useEntity'
@@ -32,7 +33,7 @@ function CryptoRowContent() {
   const statisticIds = useMemo(() => crypto.map((c) => c.entity_id), [crypto])
   const means = useHourlyMeans(statisticIds, HISTORY_HOURS)
   return (
-    <SectionCard title="Crypto" className="crypto">
+    <SectionCard title="Crypto" icon={Coins} className="crypto">
       <ul className="crypto-row">
         {crypto.map((c) => (
           <Coin

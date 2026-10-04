@@ -34,12 +34,15 @@ describe('left-on rule', () => {
       {
         id: 'garage-door',
         tier: 'urgent',
+        kind: 'left-on',
+        icon: 'garage',
         title: 'Garage door',
         detail: 'Open for 10 min',
         action: {
           label: 'Close garage door',
+          icon: 'close-garage',
           pendingLabel: 'Closing…',
-          confirmLabel: 'Tap to close',
+          confirmLabel: 'Confirm close garage door',
           ha: doorRule.action,
           sensorId: 'binary_sensor.garage_door',
           onState: 'on',
@@ -73,6 +76,8 @@ describe('left-on rule', () => {
       {
         id: `missing:${heaterRule.entity_id}`,
         tier: 'chore',
+        kind: 'missing',
+        icon: 'missing',
         title: 'Missing entity',
         detail: heaterRule.entity_id,
       },
@@ -87,5 +92,23 @@ describe('left-on rule', () => {
   it('does not report an unavailable entity as resolved', () => {
     expect(leftOnRule(doorRule, door('unavailable'), NOW).resolvedIds).toEqual([])
     expect(leftOnRule(doorRule, door('unknown'), NOW).resolvedIds).toEqual([])
+  })
+})
+
+describe('left-on badge icon', () => {
+  it('defaults the badge to the action domain when the rule names no icon', () => {
+    const lights = testHomeConfig.leftOnRules.find((r) => r.id === 'bedroom-lightstrip')!
+    const vm = switchViewModel(
+      lights.entity_id,
+      switchState({ entity_id: lights.entity_id, state: 'on', last_changed: minutesAgo(500) }),
+    )
+    const icon = (rule: typeof lights) => leftOnRule(rule, vm, NOW).items[0].icon
+    expect(icon({ ...lights, icon: undefined })).toBe('light')
+    expect(icon({ ...lights, icon: undefined, action: { ...lights.action, domain: 'fan' } })).toBe(
+      'fan',
+    )
+    expect(
+      icon({ ...lights, icon: undefined, action: { ...lights.action, domain: 'switch' } }),
+    ).toBe('power')
   })
 })

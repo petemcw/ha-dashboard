@@ -4,14 +4,14 @@ A custom web dashboard for my Home Assistant. It's a standalone React app, not a
 
 ## Status
 
-v1 home screen built: a read-mostly Home view (needs-attention with snoozes, suggestions, presence, favorites with an editor, crypto) over `subscribeEntities`, with an app shell, connection banner, settings sheet, and kiosk token entry. Plus the deploy pipeline (`Dockerfile`, `deploy/`, `.github/workflows/image.yml`). Mocked e2e specs use the HA WebSocket mock; `@live` specs are read-only.
+v1 home screen built: a read-mostly Home view laid out as a responsive card grid (needs-attention rows with icons and snoozes, suggestions, presence, favorites with icons and an editor, crypto, plus display-only Today (weather, forecast, sunset), Systems (gateway, access points, backup, updates, CPU bars), and Media (configured players, now playing) cards) over `subscribeEntities`, with a slim sticky header bar (presence, clock, Settings, and a one-tap light/dark toggle), an app shell, connection banner, settings sheet, and kiosk token entry. Plus the deploy pipeline (`Dockerfile`, `deploy/`, `.github/workflows/image.yml`). Mocked e2e specs use the HA WebSocket mock; `@live` specs are read-only. The Today, Systems, and Media cards come from optional `weather`, `systems`, and `media` sections of `home.json` (see `home.example.json`); a card with no section is hidden.
 
 Controls are live through the service gateway (`src/infrastructure/serviceGateway/`), the only code that calls `callService`. It refuses to send unless the connection is `connected` and never queues.
 
 - Live: light, switch, and fan favorites (toggle); scene favorites (activate); script favorites (run, disabled while running); suggestion buttons (activate a scene, with an optional transition); left-on attention actions (rechecked at send time; `toggle` actions use a two-tap confirm); filter "Mark replaced" (two-tap confirm, runs the reset script).
 - Display-only: media_player, cover, climate, and lock tiles.
 - Failures show inline on the control and clear on the next tap, after 60 s, or when HA reports the entity changed.
-- Demo mode: `?demo` runs the real app and gateway over a shared in-browser fake HA (`src/infrastructure/fakeHa/`, `src/app/demo/`) on placeholder data. Per page load, never stored, no real HA contact. See `.farseer/adr/0001-demo-mode-shared-fake-ha.md`.
+- Demo mode: `?demo` runs the real app and gateway over a shared in-browser fake HA (`src/infrastructure/fakeHa/`, `src/app/demo/`) on placeholder data (including weather and forecast, systems, and media players). Per page load, never stored, no real HA contact. See `.farseer/adr/0001-demo-mode-shared-fake-ha.md`.
 
 ## Environment
 

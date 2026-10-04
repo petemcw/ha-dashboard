@@ -6,7 +6,7 @@
 
 ## Status
 
-ready
+completed
 
 ## Objective
 
@@ -144,20 +144,20 @@ Decisions after the post-plan review:
 
 | Task | Description                                         | Depends On              | Status  |
 | ---- | --------------------------------------------------- | ----------------------- | ------- |
-| 001  | Card shell, compact buttons, and the column grid    | -                       | pending |
-| 002  | Slim sticky header bar with presence and clock      | 001                     | pending |
-| 003  | Light/dark toggle in the header                     | 001, 002                | pending |
-| 004  | Attention rows with kinds, icons, and icon actions  | 001, 009                | pending |
-| 005  | Sliding two-tap confirm with outside-tap disarm     | 001, 004, 009           | pending |
-| 006  | Hide the empty attention card; snoozed strip        | 001, 004, 009           | pending |
-| 007  | Favorites tile icons                                | 001                     | pending |
-| 008  | Forecast subscription and fake HA forecasts         | -                       | pending |
-| 009  | `weather`, `systems`, `media` sections in home.json | -                       | pending |
-| 010  | Today card                                          | 001, 008, 009           | pending |
-| 011  | Systems card: status chip and stat tiles            | 001, 009                | pending |
-| 012  | Systems card: CPU usage bars                        | 001, 009, 011           | pending |
-| 013  | Media card (display-only)                           | 001, 009                | pending |
-| 014  | Demo house and docs for the new cards               | 001, 008, 009, 010, 011, 012, 013 | pending |
+| 001  | Card shell, compact buttons, and the column grid    | -                       | completed |
+| 002  | Slim sticky header bar with presence and clock      | 001                     | completed |
+| 003  | Light/dark toggle in the header                     | 001, 002                | completed |
+| 004  | Attention rows with kinds, icons, and icon actions  | 001, 009                | completed |
+| 005  | Sliding two-tap confirm with outside-tap disarm     | 001, 004, 009           | completed |
+| 006  | Hide the empty attention card; snoozed strip        | 001, 004, 009           | completed |
+| 007  | Favorites tile icons                                | 001                     | completed |
+| 008  | Forecast subscription and fake HA forecasts         | -                       | completed |
+| 009  | `weather`, `systems`, `media` sections in home.json | -                       | completed |
+| 010  | Today card                                          | 001, 008, 009           | completed |
+| 011  | Systems card: status chip and stat tiles            | 001, 009                | completed |
+| 012  | Systems card: CPU usage bars                        | 001, 009, 011           | completed |
+| 013  | Media card (display-only)                           | 001, 009                | completed |
+| 014  | Demo house and docs for the new cards               | 001, 008, 009, 010, 011, 012, 013 | completed |
 
 ## Architecture Notes
 

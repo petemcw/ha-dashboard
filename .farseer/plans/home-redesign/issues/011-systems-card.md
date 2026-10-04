@@ -1,6 +1,6 @@
 # Task 011: Systems Card: Status Chip and Stat Tiles
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 009
 **Retry count**: 0
 
@@ -23,15 +23,15 @@ Add the Systems card at the top of column 3. Its header chip says whether the co
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it shows Gateway online when the status entity is in its up state`
-- [ ] `it shows Gateway offline when the status entity is in any other state`
-- [ ] `it shows the gateway uptime in days from its boot timestamp`
-- [ ] `it shows how many access points are online out of those configured`
-- [ ] `it shows when the last backup succeeded`
-- [ ] `it counts every update entity that has an update ready`
-- [ ] `it hides the Systems card when home config has no systems section`
-- [ ] `it counts access points against their own up state, not the status entity's`
-- [ ] `it shows three equal top-aligned columns on a 1180 by 820 wall tablet` (Playwright)
+- [x] `it shows Gateway online when the status entity is in its up state`
+- [x] `it shows Gateway offline when the status entity is in any other state`
+- [x] `it shows the gateway uptime in days from its boot timestamp`
+- [x] `it shows how many access points are online out of those configured`
+- [x] `it shows when the last backup succeeded`
+- [x] `it counts every update entity that has an update ready`
+- [x] `it hides the Systems card when home config has no systems section`
+- [x] `it counts access points against their own up state, not the status entity's`
+- [x] `it shows three equal top-aligned columns on a 1180 by 820 wall tablet` (Playwright)
 
 ## Acceptance Criteria
 
@@ -41,4 +41,11 @@ Add the Systems card at the top of column 3. Its header chip says whether the co
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- New `src/features/home/systems/`: `systemsViewModel.ts` (pure: chip tone/text, uptime/AP/backup/updates tiles), `SystemsCard.tsx` (reads config, the clock, configured entities and every `update.*`), tests in `SystemsCard.test.tsx` (13, through the component).
+- The card carries `home__order--systems` on the `.card` itself (no wrapper), so with no `systems` section column 3 stays `:empty` and the three-column rule doesn't turn on.
+- Tiles are `role=group` named by the tile key; value and unit sit in one element, so tests use `toHaveTextContent` for "19 d" and "1/2".
+- Backup and uptime tiles show "Unknown" when the timestamp is missing/unparseable (uptime: also future). Backup time is lower-cased ("3:10 am"). Chip colours use `--ok`/`--danger` (the theme's `--leaf-soft` is not green).
+- CSS in its own "Systems card" block at the end of `src/index.css`.
+- e2e: `e2e/systems.spec.ts` (mock); `e2e/home.spec.ts` gained Systems in `SECTIONS`/DOM-order/phone-order and the "two columns while third is empty" spec became "three equal top-aligned columns on a 1180 by 820 wall tablet"; `e2e/smoke.spec.ts` order gained Systems (appended; that @live spec's existing order already differs from DOM order).
+- Playwright note: concurrent workers share the :5174 server and `test-results/`; use `--output=<scratch>` and rerun on ERR_CONNECTION_REFUSED.
+- Not done (012): CPU bars.

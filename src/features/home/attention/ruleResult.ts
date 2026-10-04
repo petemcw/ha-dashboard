@@ -14,7 +14,14 @@ export const resolved = (id: string): RuleResult => ({ items: [], resolvedIds: [
 
 // A configured entity HA doesn't have: a visible chore, never silence.
 export const missingEntity = (entityId: string): RuleResult =>
-  active({ id: `missing:${entityId}`, tier: 'chore', title: 'Missing entity', detail: entityId })
+  active({
+    id: `missing:${entityId}`,
+    tier: 'chore',
+    kind: 'missing',
+    icon: 'missing',
+    title: 'Missing entity',
+    detail: entityId,
+  })
 
 export const mergeResults = (results: RuleResult[]): RuleResult => ({
   items: results.flatMap((r) => r.items),

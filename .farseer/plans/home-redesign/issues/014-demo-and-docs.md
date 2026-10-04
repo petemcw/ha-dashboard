@@ -1,6 +1,6 @@
 # Task 014: Demo House and Docs for the New Cards
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 001, 008, 009, 010, 011, 012, 013
 **Retry count**: 0
 
@@ -21,10 +21,10 @@ Seed demo mode with placeholder data for the Today, Systems, and Media cards so 
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it shows the Today card with a forecast in demo mode`
-- [ ] `it shows the Systems card with the gateway online in demo mode`
-- [ ] `it shows the Media card with a player playing in demo mode`
-- [ ] `it requests no images in demo mode`
+- [x] `it shows the Today card with a forecast in demo mode`
+- [x] `it shows the Systems card with the gateway online in demo mode`
+- [x] `it shows the Media card with a player playing in demo mode`
+- [x] `it requests no images in demo mode`
 
 ## Acceptance Criteria
 
@@ -35,4 +35,8 @@ Seed demo mode with placeholder data for the Today, Systems, and Media cards so 
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `demoHouse.ts` seeds weather + sun, hourly/daily forecasts (relative to page load, via `forecasts`), gateway/uptime/AP/backup/CPU sensors, update entities (one pending, not in an attention rule), and two media players (first playing, no entity_picture).
+- The shared test config has two access points, so the demo tile reads "1/2" (one down), not "3/4".
+- The no-images test ignores same-origin requests (the app's own logo); only remote images would fail it.
+- Docs: CLAUDE.md Status and .farseer/architecture.md updated (header bar / theme toggle not claimed, since 002/003 not done).
+- Verified: demo.spec.ts 12/12, vitest 496 pass, lint, build, prettier on touched files. Full e2e not run.

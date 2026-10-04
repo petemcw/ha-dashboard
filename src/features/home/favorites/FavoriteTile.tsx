@@ -10,6 +10,7 @@ import { scriptViewModel } from '../../../domains/script/viewModel'
 import { useEntity } from '../../../infrastructure/entities/useEntity'
 import type { ServiceGateway } from '../../../infrastructure/serviceGateway/serviceGateway'
 import { useAction } from '../../../infrastructure/serviceGateway/useAction'
+import { favoriteIcon } from './favoriteIcon'
 import { LightTile } from './LightTile'
 import { OnOffTile } from './OnOffTile'
 import { SceneTile } from './SceneTile'
@@ -22,6 +23,7 @@ export function FavoriteTile({ entityId }: { entityId: string }) {
   const { enabled, pending, failure, run } = useAction({ clearKey: entity?.state })
   // A missing entity keeps its id as the name: it was saved once, so show it, don't drop it.
   const name = friendlyName(entityId, entity)
+  const icon = favoriteIcon(entityId)
   const control = (
     status: EntityStatus,
     action: (gateway: ServiceGateway) => Promise<unknown>,
@@ -38,24 +40,28 @@ export function FavoriteTile({ entityId }: { entityId: string }) {
   switch (entityId.split('.')[0]) {
     case 'light': {
       const light = lightViewModel(entityId, entity)
-      return <LightTile name={name} light={light} {...toggle(light)} />
+      return <LightTile name={name} icon={icon} light={light} {...toggle(light)} />
     }
     case 'switch':
     case 'fan': {
       const onOff = onOffViewModel(entityId, entity)
-      return <OnOffTile name={name} entity={onOff} {...toggle(onOff)} />
+      return <OnOffTile name={name} icon={icon} entity={onOff} {...toggle(onOff)} />
     }
     case 'script': {
       const script = scriptViewModel(entityId, entity)
       const runIt = (gateway: ServiceGateway) => runScript(gateway, entityId)
-      return <ScriptTile name={name} script={script} {...control(script.status, runIt)} />
+      return (
+        <ScriptTile name={name} icon={icon} script={script} {...control(script.status, runIt)} />
+      )
     }
     case 'scene': {
       const scene = sceneViewModel(entityId, entity)
       const activate = (gateway: ServiceGateway) => activateScene(gateway, entityId)
-      return <SceneTile name={name} scene={scene} {...control(scene.status, activate)} />
+      return (
+        <SceneTile name={name} icon={icon} scene={scene} {...control(scene.status, activate)} />
+      )
     }
     default:
-      return <StateTile name={name} entity={stateViewModel(entityId, entity)} />
+      return <StateTile name={name} icon={icon} entity={stateViewModel(entityId, entity)} />
   }
 }

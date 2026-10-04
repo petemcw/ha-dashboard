@@ -1,0 +1,82 @@
+/* Crypto: one row per coin with its price, daily change, and sparkline. */
+
+.crypto-row {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crypto-coin {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border);
+}
+
+.crypto-coin > * {
+  /* Grid children default to min-width: auto, which lets one long word widen the page. */
+  min-width: 0;
+}
+
+.crypto-coin:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.crypto-symbol {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.crypto-price {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.crypto-change {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.crypto-coin[data-direction='up'] .crypto-change {
+  background: color-mix(in srgb, var(--up) 14%, transparent);
+  color: var(--up);
+}
+
+.crypto-coin[data-direction='down'] .crypto-change {
+  background: color-mix(in srgb, var(--down) 14%, transparent);
+  color: var(--down);
+}
+
+.crypto-spark {
+  display: flex;
+  color: var(--text-muted);
+}
+
+.crypto-spark svg {
+  display: block;
+  width: 72px;
+  height: auto;
+}
+
+.crypto-coin[data-direction='up'] .crypto-spark {
+  color: var(--up);
+}
+
+.crypto-coin[data-direction='down'] .crypto-spark {
+  color: var(--down);
+}
+
+/* Header: the period, as plain muted text rather than a chip. */
+.crypto__period {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}

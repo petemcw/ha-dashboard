@@ -16,7 +16,7 @@ export type SentMessage = ClientMessage
 // The Playwright mock answers at once and has no demo side effects.
 export type HaMockOptions = Pick<
   FakeHaOptions,
-  'user' | 'entities' | 'statistics' | 'failServices'
+  'user' | 'entities' | 'statistics' | 'failServices' | 'forecasts'
 > & {
   // Access tokens answered with auth_invalid.
   rejectTokens?: string[]

@@ -17,13 +17,16 @@ test('suggests a scene for the Apple TV state, enabled, and follows live changes
 }) => {
   mockHa.setState(mediaPlayer('playing'))
   await page.goto('/')
-  const strip = page.getByRole('region', { name: 'Suggestions' })
+  const strip = page.getByRole('region', { name: 'Suggested' })
   const mood = strip.getByRole('button', { name: 'Media viewing mood' })
   await expect(mood).toBeEnabled()
+  // The header says why: the player's state.
+  await expect(strip.getByText('Playing', { exact: true })).toBeVisible()
 
   mockHa.setState(mediaPlayer('paused'))
   await expect(strip.getByRole('button', { name: 'Bright up lights' })).toBeVisible()
   await expect(mood).toBeHidden()
+  await expect(strip.getByText('Paused', { exact: true })).toBeVisible()
 
   mockHa.setState(mediaPlayer('idle'))
   await expect(strip).toBeHidden()

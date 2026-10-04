@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createFakeServiceGateway } from '../../../test/fakeServiceGateway'
 import { resetConnectionStatus, setConnected } from '../../../test/connectionStatus'
@@ -32,7 +32,7 @@ describe('suggestions strip', () => {
   it('suggests the media viewing mood while the Apple TV is playing', () => {
     seed('playing')
     render(<SuggestionsStrip />)
-    expect(screen.getByRole('region', { name: 'Suggestions' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Suggested' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Media viewing mood' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Bright up lights' })).not.toBeInTheDocument()
   })
@@ -44,12 +44,22 @@ describe('suggestions strip', () => {
     expect(screen.queryByRole('button', { name: 'Media viewing mood' })).not.toBeInTheDocument()
   })
 
+  it.each([
+    ['playing', 'Playing'],
+    ['paused', 'Paused'],
+  ])('shows a header chip saying the player is %s', (state, text) => {
+    seed(state)
+    render(<SuggestionsStrip />)
+    const header = screen.getByRole('heading', { name: 'Suggested' }).parentElement!
+    expect(within(header).getByText(text)).toBeInTheDocument()
+  })
+
   it.each(['idle', 'off', 'standby', 'unavailable', 'unknown', undefined])(
     'shows no suggestions while the Apple TV is %s',
     (state) => {
       seed(state)
       render(<SuggestionsStrip />)
-      expect(screen.queryByRole('region', { name: 'Suggestions' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('region', { name: 'Suggested' })).not.toBeInTheDocument()
       expect(screen.queryByRole('button')).not.toBeInTheDocument()
     },
   )

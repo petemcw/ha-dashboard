@@ -1,0 +1,5 @@
+/* The config error panel (no usable home.json). */
+
+.setup-error {
+  border-left: 4px solid var(--danger);
+}

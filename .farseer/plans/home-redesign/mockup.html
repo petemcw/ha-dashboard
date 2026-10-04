@@ -1,0 +1,1724 @@
+<title>Maple Frontier Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&display=swap"
+/>
+<style>
+  /* Layout: a slim heartwood bar over a tight card grid. Three columns on a wall tablet, two on
+   tablet portrait, one on a phone. "Needs attention" is the primary card, top left / first. */
+  :root {
+    /* Maple Frontier tokens, unchanged */
+    --surface: #fff7ed;
+    --surface-raised: #fffdf9;
+    --surface-sunken: #f5e9da;
+    --border: #e9d8c4;
+    --border-strong: #cdb49a;
+    --text: #3e1c0d;
+    --text-muted: #6e5243;
+    --wood: #542711;
+    --on-wood: #fff7ed;
+    --on-wood-muted: #e9cdb5;
+    --accent: #542711;
+    --on-accent: #fff7ed;
+    --leaf: #b9300c;
+    --leaf-soft: #fbe3d6;
+    --danger: #991b13;
+    --on-danger: #ffffff;
+    --danger-soft: #fbe4e0;
+    --warn: #a86a12;
+    --warn-soft: #f6e6c8;
+    --ok: #2f6b4f;
+    --ok-soft: #e1eee5;
+    --shadow: 0 1px 0 rgb(84 39 17 / 0.04), 0 8px 20px -16px rgb(84 39 17 / 0.45);
+    --track: #ead9c6;
+    --bezel: #241812;
+
+    --radius-sm: 9px;
+    --radius: 12px;
+    --radius-card: 18px;
+    --radius-pill: 999px;
+
+    --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Zilla Slab', Rockwell, 'Roboto Slab', Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --surface: #1c130e;
+      --surface-raised: #271b14;
+      --surface-sunken: #140d0a;
+      --border: #3a2a20;
+      --border-strong: #5a4232;
+      --text: #f6ede3;
+      --text-muted: #c2ae9e;
+      --wood: #3e1c0d;
+      --on-wood: #fff7ed;
+      --on-wood-muted: #e9cdb5;
+      --accent: #f57520;
+      --on-accent: #1c130e;
+      --leaf: #f57520;
+      --leaf-soft: #3a1a0e;
+      --danger: #f0705f;
+      --on-danger: #1c130e;
+      --danger-soft: #3b1512;
+      --warn: #e0a030;
+      --warn-soft: #33240e;
+      --ok: #7cc49a;
+      --ok-soft: #16281e;
+      --shadow: 0 0 0 transparent;
+      --track: #3a2a20;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme='dark'] {
+    --surface: #1c130e;
+    --surface-raised: #271b14;
+    --surface-sunken: #140d0a;
+    --border: #3a2a20;
+    --border-strong: #5a4232;
+    --text: #f6ede3;
+    --text-muted: #c2ae9e;
+    --wood: #3e1c0d;
+    --on-wood: #fff7ed;
+    --on-wood-muted: #e9cdb5;
+    --accent: #f57520;
+    --on-accent: #1c130e;
+    --leaf: #f57520;
+    --leaf-soft: #3a1a0e;
+    --danger: #f0705f;
+    --on-danger: #1c130e;
+    --danger-soft: #3b1512;
+    --warn: #e0a030;
+    --warn-soft: #33240e;
+    --ok: #7cc49a;
+    --ok-soft: #16281e;
+    --shadow: 0 0 0 transparent;
+    --track: #3a2a20;
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.35;
+    padding: 24px 16px 48px;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    margin: 0;
+  }
+  p {
+    margin: 0;
+  }
+  svg.i {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: none;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- Mock-up controls (not part of the dashboard) ---------- */
+  .mock-bar {
+    max-width: 1200px;
+    margin: 0 auto 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    align-items: center;
+  }
+  .mock-bar__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.35rem;
+    margin-right: auto;
+  }
+  .seg {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .seg__label {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .seg__opts {
+    display: inline-flex;
+    background: var(--surface-sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    padding: 3px;
+  }
+  .seg__opts input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .seg__opts label {
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .seg__opts input:checked + label {
+    background: var(--surface-raised);
+    color: var(--text);
+    box-shadow: 0 0 0 1px var(--border-strong);
+  }
+  .seg__opts input:focus-visible + label {
+    outline: 3px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .mock-note {
+    max-width: 1200px;
+    margin: 0 auto 20px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  /* ---------- Device frame ---------- */
+  .stage {
+    display: flex;
+    justify-content: center;
+  }
+  .device {
+    width: min(1200px, 100%);
+    border: 10px solid var(--bezel);
+    border-radius: 32px;
+    overflow: hidden;
+    background: var(--surface);
+    transition: width 0.25s ease;
+  }
+  .stage[data-view='phone'] .device {
+    width: min(413px, 100%);
+    border-radius: 44px;
+  }
+  .screen {
+    container-type: inline-size;
+    container-name: screen;
+  }
+
+  /* ---------- Dashboard ---------- */
+  /* Buttons look 34 px tall but keep a 44 px touch target through ::after. */
+  button {
+    font: inherit;
+    color: inherit;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 34px;
+    min-width: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-pill);
+    background: var(--surface-raised);
+    font-weight: 600;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  button::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+  }
+  button:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+  button.icon {
+    padding: 0;
+    width: 34px;
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-muted);
+  }
+
+  /* Header bar */
+  .bar {
+    background: var(--wood);
+    color: var(--on-wood);
+    padding: 10px 16px;
+    position: relative;
+    z-index: 1;
+    box-shadow:
+      0 1px 0 rgb(20 8 2 / 0.12),
+      0 4px 10px -4px rgb(20 8 2 / 0.4);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: auto;
+    min-width: 0;
+  }
+  .logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: var(--on-wood);
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .logo svg {
+    width: 22px;
+    height: 22px;
+  }
+  .brand__text {
+    display: grid;
+    min-width: 0;
+  }
+  .brand__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--on-wood-muted);
+    line-height: 1.1;
+  }
+  .brand__greet {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.3rem;
+    line-height: 1.05;
+  }
+  .people {
+    display: flex;
+    gap: 6px;
+  }
+  .av {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    position: relative;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgb(255 247 237 / 0.14);
+    border: 2px solid var(--on-wood);
+  }
+  .av::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #7cc49a;
+    border: 2px solid var(--wood);
+  }
+  .av--away {
+    border-color: rgb(255 247 237 / 0.35);
+    color: var(--on-wood-muted);
+  }
+  .av--away::after {
+    display: none;
+  }
+  .clock {
+    text-align: right;
+    line-height: 1.05;
+    padding: 0 20px;
+    border-inline: 1px solid rgb(255 247 237 / 0.18);
+  }
+  .clock__time {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.6rem;
+  }
+  .clock__time small {
+    font-size: 0.8rem;
+    margin-left: 2px;
+  }
+  .clock__date {
+    font-size: 0.75rem;
+    color: var(--on-wood-muted);
+  }
+  .bar__tools {
+    display: flex;
+    gap: 2px;
+  }
+  .bar__tools button {
+    color: var(--on-wood);
+  }
+  .bar__tools svg.i {
+    width: 19px;
+    height: 19px;
+  }
+  .theme-btn .sun {
+    display: none;
+  }
+  .theme-btn[data-mode='dark'] .sun {
+    display: block;
+  }
+  .theme-btn[data-mode='dark'] .moon {
+    display: none;
+  }
+
+  /* Grid */
+  .grid {
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+  .col {
+    display: contents;
+  }
+  .card {
+    order: var(--o);
+  }
+
+  .card {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow);
+    padding: 16px 16px 18px;
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+    container-type: inline-size;
+  }
+  .card__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 24px;
+  }
+  .label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-right: auto;
+  }
+  .label .i {
+    width: 14px;
+    height: 14px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: var(--surface-sunken);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .chip .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .chip--ok {
+    background: var(--ok-soft);
+    color: var(--ok);
+  }
+  .chip--danger {
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
+  .chip--leaf {
+    background: var(--leaf-soft);
+    color: var(--leaf);
+  }
+  .muted {
+    color: var(--text-muted);
+  }
+  .small {
+    font-size: 0.8rem;
+  }
+
+  /* Needs attention: the primary card. Every item is one row: icon, what, actions on the right. */
+  .attn {
+    border-color: var(--border-strong);
+  }
+  .attn__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-right: auto;
+  }
+  .items {
+    display: grid;
+    gap: 8px;
+  }
+  .item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 10px 10px 12px;
+    border-radius: var(--radius);
+  }
+  .item__badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+  }
+  .item__name {
+    font-weight: 650;
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+  .item__meta {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+  .item__acts {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .item--urgent {
+    background: var(--danger-soft);
+  }
+  .item--urgent .item__badge {
+    background: var(--danger);
+    color: var(--on-danger);
+  }
+  .act {
+    width: auto;
+    min-width: 34px;
+    padding: 0 9px;
+    gap: 0;
+    color: var(--text);
+    transition:
+      background-color 0.2s,
+      color 0.2s,
+      border-color 0.2s,
+      padding 0.2s;
+  }
+  .act__label {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition:
+      max-width 0.25s ease,
+      opacity 0.2s,
+      margin 0.25s;
+  }
+  .item--urgent .act {
+    border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  }
+  .act.armed {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: var(--on-danger);
+    padding: 0 12px 0 10px;
+  }
+  .act.armed .act__label {
+    max-width: 6rem;
+    opacity: 1;
+    margin-left: 6px;
+  }
+  .act.sent {
+    background: var(--ok);
+    border-color: var(--ok);
+    color: var(--surface-raised);
+  }
+  .act .ic-done {
+    display: none;
+  }
+  .act.sent .ic-do {
+    display: none;
+  }
+  .act.sent .ic-done {
+    display: block;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .act,
+    .act__label {
+      transition: none;
+    }
+  }
+  .item--chore {
+    background: var(--surface-sunken);
+  }
+  .item--chore .item__badge {
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+  .attn__foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2px;
+  }
+  .linkish {
+    min-height: 28px;
+    padding: 0 6px;
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  /* Snoozed: a quiet strip in the attention card's place when nothing else needs you,
+   and the same list behind the card's own footer. */
+  [hidden] {
+    display: none !important;
+  }
+  .snoozed {
+    order: var(--o);
+    display: grid;
+    gap: 4px;
+    padding: 4px 6px 4px 14px;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-card);
+    color: var(--text-muted);
+  }
+  .snoozed__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    font-size: 0.85rem;
+  }
+  .snoozed__bar b {
+    color: var(--text);
+    font-weight: 650;
+  }
+  .snoozed__bar .linkish {
+    margin-left: auto;
+  }
+  .snoozed__list {
+    display: grid;
+    gap: 8px;
+    padding-bottom: 10px;
+  }
+  .snz-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    padding: 10px 10px 10px 12px;
+    border-radius: var(--radius);
+    background: var(--surface-sunken);
+  }
+  .snz-row__name {
+    font-weight: 650;
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+  .snz-row__meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .attn .snoozed__list {
+    padding-bottom: 0;
+  }
+
+  /* Suggestions */
+  .suggest {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .suggest p {
+    flex: 1 1 10rem;
+    min-width: 0;
+  }
+
+  /* Favorites */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 10px;
+  }
+  .tile {
+    text-align: left;
+    display: grid;
+    align-content: space-between;
+    justify-items: start;
+    gap: 8px;
+    min-height: 74px;
+    padding: 10px;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    background: var(--surface-sunken);
+    white-space: normal;
+    font-weight: 600;
+    font-size: 0.85rem;
+    line-height: 1.2;
+  }
+  .tile__icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--surface-raised);
+    color: var(--text-muted);
+  }
+  .tile__icon .i {
+    width: 14px;
+    height: 14px;
+  }
+  .tile__state {
+    display: block;
+    font-weight: 500;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .tile--on {
+    background: var(--leaf-soft);
+    border-color: color-mix(in srgb, var(--leaf) 35%, transparent);
+  }
+  .tile--on .tile__icon {
+    background: var(--leaf);
+    color: var(--surface-raised);
+  }
+  .tile--on .tile__state {
+    color: var(--leaf);
+    font-weight: 700;
+  }
+
+  /* Today */
+  .wx__main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .wx__icon {
+    width: 46px;
+    height: 46px;
+    flex: none;
+  }
+  .wx__temp {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 3rem;
+    line-height: 0.9;
+  }
+  .wx__temp sup {
+    font-size: 1.4rem;
+    line-height: 0;
+    vertical-align: 1.1em;
+    margin-left: 1px;
+  }
+  .wx__cond {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+  .wx__hilo {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: var(--surface-sunken);
+    border-radius: var(--radius-sm);
+  }
+  .stats div {
+    padding: 9px 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+    font-size: 0.8rem;
+  }
+  .stats div + div {
+    border-left: 1px solid var(--border);
+  }
+  .stats span:first-child {
+    color: var(--text-muted);
+  }
+  .hourly {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+  }
+  .hourly div {
+    display: grid;
+    justify-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+  }
+  .hourly .t {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+  }
+  .hourly svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Media */
+  .np {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+  }
+  .art {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--leaf) 0%, var(--wood) 100%);
+    display: grid;
+    place-items: center;
+    color: var(--on-wood);
+  }
+  .art .i {
+    width: 22px;
+    height: 22px;
+  }
+  .np__title {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .np__room {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--leaf);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .np__room .i {
+    width: 12px;
+    height: 12px;
+  }
+  .transport {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .transport button {
+    padding: 0;
+    width: 34px;
+    border-color: transparent;
+    background: transparent;
+  }
+  .transport button.play {
+    width: 40px;
+    min-height: 40px;
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  .volrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+  }
+  .vol {
+    flex: 1;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--track);
+    position: relative;
+  }
+  .vol span {
+    position: absolute;
+    inset: 0 62% 0 0;
+    background: var(--text-muted);
+    border-radius: 3px;
+  }
+  .vol span::after {
+    content: '';
+    position: absolute;
+    right: -7px;
+    top: -4.5px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text);
+  }
+  .players {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Systems */
+  .stat-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .stat {
+    background: var(--surface-sunken);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    display: grid;
+    gap: 2px;
+  }
+  .stat__k {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .stat__v {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.1;
+  }
+  .stat__v small {
+    font-size: 0.8rem;
+  }
+  .stat__s {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+  .bars {
+    display: grid;
+    gap: 10px;
+  }
+  .barrow {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr 2.5rem;
+    gap: 10px;
+    align-items: center;
+    font-size: 0.8rem;
+  }
+  .barrow .track {
+    height: 5px;
+    border-radius: 3px;
+    background: var(--track);
+    overflow: hidden;
+  }
+  .barrow .fill {
+    display: block;
+    height: 100%;
+    background: var(--ok);
+    border-radius: 3px;
+  }
+  .barrow span:last-child {
+    text-align: right;
+    color: var(--text-muted);
+  }
+
+  /* Crypto */
+  .coins {
+    display: grid;
+  }
+  .coin {
+    display: grid;
+    grid-template-columns: 2.6rem 1fr auto 64px;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .coin:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .coin:last-child {
+    padding-bottom: 0;
+  }
+  .coin b {
+    font-family: var(--font-display);
+  }
+  .coin svg {
+    width: 64px;
+    height: 20px;
+  }
+  .spark {
+    fill: none;
+    stroke: var(--ok);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .spark-area {
+    fill: var(--ok-soft);
+    stroke: none;
+  }
+  .spark-down {
+    stroke: var(--danger);
+  }
+  .spark-area-down {
+    fill: var(--danger-soft);
+  }
+
+  /* Order on one column: attention first, then what you act on, then what you glance at. */
+  .o-attn {
+    --o: 1;
+  }
+  .o-sugg {
+    --o: 2;
+  }
+  .o-fav {
+    --o: 3;
+  }
+  .o-today {
+    --o: 4;
+  }
+  .o-sys {
+    --o: 5;
+  }
+  .o-media {
+    --o: 6;
+  }
+  .o-coin {
+    --o: 7;
+  }
+
+  /* Phone: the bar drops the date, and favorites go three across. */
+  @container screen (max-width: 639px) {
+    .bar {
+      gap: 10px 14px;
+      padding: 10px 12px;
+      flex-wrap: wrap;
+    }
+    .clock {
+      border-left: 0;
+      padding: 0 14px 0 0;
+    }
+    .brand__name {
+      display: none;
+    }
+    .clock__date {
+      display: none;
+    }
+    .clock__time {
+      font-size: 1.3rem;
+    }
+    .people {
+      order: 5;
+      width: 100%;
+    }
+    .grid {
+      padding: 12px;
+      gap: 12px;
+    }
+    .tiles {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* Tablet portrait: attention, suggestions and crypto left; favorites and today right; the rest below. */
+  @container screen (min-width: 640px) {
+    .grid {
+      grid-template-columns: 1fr 1fr;
+      padding: 14px;
+      gap: 14px;
+    }
+    .col {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+      min-width: 0;
+    }
+    .col--3 {
+      grid-column: 1 / -1;
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+    }
+    .card,
+    .snoozed {
+      order: 0;
+    }
+  }
+  /* Wall tablet landscape: three equal columns. */
+  @container screen (min-width: 1000px) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      padding: 16px;
+      gap: 16px;
+    }
+    .col {
+      gap: 16px;
+    }
+    .col--3 {
+      grid-column: auto;
+      grid-template-columns: 1fr;
+    }
+  }
+
+  [data-state='busy'] .when-clear,
+  [data-state='clear'] .when-busy {
+    display: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .device {
+      transition: none;
+    }
+  }
+</style>
+
+<svg width="0" height="0" style="position: absolute" aria-hidden="true">
+  <symbol id="cloud" viewBox="0 0 24 24">
+    <circle cx="9" cy="8" r="4" fill="#e0a030" />
+    <path
+      d="M7.5 20a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18.4 12.2 3.9 3.9 0 0 1 17.6 20z"
+      fill="#d9cfc4"
+      stroke="#b8a999"
+      stroke-width="1"
+    />
+  </symbol>
+  <symbol id="cloud-only" viewBox="0 0 24 24">
+    <path
+      d="M7 19a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 17.9 11.2 3.9 3.9 0 0 1 17.1 19z"
+      fill="#d9cfc4"
+      stroke="#b8a999"
+      stroke-width="1"
+    />
+  </symbol>
+  <symbol id="moon-wx" viewBox="0 0 24 24">
+    <path d="M18 15.5A7.5 7.5 0 0 1 9.5 6a7.5 7.5 0 1 0 8.5 9.5z" fill="#e0a030" />
+  </symbol>
+  <symbol id="snooze" viewBox="0 0 24 24">
+    <circle cx="12" cy="13" r="8" />
+    <path d="M12 9v4l2.5 2M5 3 2 6M19 3l3 3" />
+  </symbol>
+</svg>
+
+<div class="mock-bar">
+  <h1 class="mock-bar__title">Maple Frontier Home</h1>
+  <div class="seg" role="radiogroup" aria-label="Screen">
+    <span class="seg__label">Screen</span>
+    <span class="seg__opts">
+      <input type="radio" name="view" id="view-tablet" value="tablet" checked /><label
+        for="view-tablet"
+        >Wall tablet</label
+      >
+      <input type="radio" name="view" id="view-phone" value="phone" /><label for="view-phone"
+        >Phone</label
+      >
+    </span>
+  </div>
+  <div class="seg" role="radiogroup" aria-label="House state">
+    <span class="seg__label">House</span>
+    <span class="seg__opts">
+      <input type="radio" name="state" id="state-busy" value="busy" checked /><label
+        for="state-busy"
+        >Needs you</label
+      >
+      <input type="radio" name="state" id="state-clear" value="clear" /><label for="state-clear"
+        >All clear</label
+      >
+    </span>
+  </div>
+</div>
+<p class="mock-note">
+  Static mock-up with placeholder data. Today, Media and Systems are new, display-only cards.
+  Everything else is what the app shows now, restyled. Tap the garage or filter action to see the
+  two-tap confirm. With nothing to do, the attention card hides and a snoozed strip takes its place.
+  The sun/moon button switches light and dark.
+</p>
+
+<div class="stage" id="stage" data-view="tablet">
+  <div class="device">
+    <div class="screen" id="screen" data-state="busy">
+      <header class="bar">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M3 11 12 4l9 7v9H3z"
+                fill="none"
+                stroke="#542711"
+                stroke-width="2"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M12 9.5l1 2 1.8-.6-.6 1.9 1.6.9-2.3 1 .2 1.6H10.3l.2-1.6-2.3-1 1.6-.9-.6-1.9 1.8.6z"
+                fill="#b9300c"
+              />
+            </svg>
+          </div>
+          <div class="brand__text">
+            <span class="brand__name">Maple Frontier</span>
+            <span class="brand__greet">Good evening</span>
+          </div>
+        </div>
+        <div class="people" aria-label="2 of 3 people home">
+          <span class="av" title="Home">AR</span>
+          <span class="av" title="Home">JP</span>
+          <span class="av av--away" title="Away">SL</span>
+        </div>
+        <div class="clock">
+          <div class="clock__time num">6:42<small>pm</small></div>
+          <div class="clock__date">Saturday, Oct 3</div>
+        </div>
+        <div class="bar__tools">
+          <button
+            class="icon theme-btn"
+            id="theme-btn"
+            aria-label="Switch to dark mode"
+            data-mode="light"
+          >
+            <svg class="i moon" viewBox="0 0 24 24">
+              <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+            </svg>
+            <svg class="i sun" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="4" />
+              <path
+                d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+              />
+            </svg>
+          </button>
+          <button class="icon" aria-label="Settings">
+            <svg class="i" viewBox="0 0 24 24">
+              <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1" />
+              <circle cx="15" cy="6" r="2" />
+              <circle cx="9" cy="12" r="2" />
+              <circle cx="17" cy="18" r="2" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="grid">
+        <div class="col col--1">
+          <section class="snoozed o-attn when-clear" aria-label="Snoozed">
+            <div class="snoozed__bar">
+              <svg class="i"><use href="#snooze" /></svg>
+              <span><b>1 snoozed</b> · Water filter</span>
+              <button class="linkish" aria-expanded="false" aria-controls="snz-strip">Show</button>
+            </div>
+            <div class="snoozed__list" id="snz-strip" hidden>
+              <div class="snz-row">
+                <div>
+                  <div class="snz-row__name">Water filter</div>
+                  <div class="snz-row__meta">4 days left · snoozed until Mon 9:00 am</div>
+                </div>
+                <button>Unsnooze</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="card attn o-attn when-busy" aria-labelledby="attn-h">
+            <div class="card__head">
+              <h2 class="attn__title" id="attn-h">Needs attention</h2>
+              <span class="chip chip--danger when-busy"
+                ><span class="dot"></span>2 urgent · 2 chores</span
+              >
+            </div>
+
+            <div class="items">
+              <div class="item item--urgent">
+                <div class="item__badge">
+                  <svg class="i" viewBox="0 0 24 24">
+                    <path d="M3 21V9l9-6 9 6v12" />
+                    <path d="M7 21v-8h10v8M7 17h10" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="item__name">Garage door</div>
+                  <div class="item__meta">Open for 25 min</div>
+                </div>
+                <div class="item__acts">
+                  <button
+                    class="act"
+                    aria-label="Close garage door"
+                    data-label="Close garage door"
+                    data-confirm
+                  >
+                    <svg class="i ic-do" viewBox="0 0 24 24">
+                      <path d="M3 21V9l9-6 9 6v12" />
+                      <path d="M12 9v7M9 13l3 3 3-3" /></svg
+                    ><svg class="i ic-done" viewBox="0 0 24 24">
+                      <path d="M5 12.5l4.5 4.5L19 7.5" /></svg
+                    ><span class="act__label">Confirm?</span>
+                  </button>
+                  <button class="icon" aria-label="Snooze">
+                    <svg class="i"><use href="#snooze" /></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="item item--urgent">
+                <div class="item__badge">
+                  <svg class="i" viewBox="0 0 24 24">
+                    <path
+                      d="M12 3c2 3 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-8z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <div class="item__name">Space heater</div>
+                  <div class="item__meta">On for 2 h</div>
+                </div>
+                <div class="item__acts">
+                  <button
+                    class="act"
+                    aria-label="Turn off space heater"
+                    data-label="Turn off space heater"
+                  >
+                    <svg class="i ic-do" viewBox="0 0 24 24">
+                      <path d="M12 3v8" />
+                      <path d="M6.3 6.8a8 8 0 1 0 11.4 0" /></svg
+                    ><svg class="i ic-done" viewBox="0 0 24 24">
+                      <path d="M5 12.5l4.5 4.5L19 7.5" /></svg
+                    ><span class="act__label">Confirm?</span>
+                  </button>
+                  <button class="icon" aria-label="Snooze">
+                    <svg class="i"><use href="#snooze" /></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="item item--chore">
+                <div class="item__badge">
+                  <svg class="i" viewBox="0 0 24 24">
+                    <rect x="2" y="7" width="17" height="10" rx="2" />
+                    <path d="M22 11v2M6 10v4" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="item__name">Hallway sensor battery</div>
+                  <div class="item__meta num">12%</div>
+                </div>
+                <div class="item__acts">
+                  <button class="icon" aria-label="Snooze">
+                    <svg class="i"><use href="#snooze" /></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="item item--chore">
+                <div class="item__badge">
+                  <svg class="i" viewBox="0 0 24 24">
+                    <rect x="4" y="3" width="16" height="18" rx="2" />
+                    <path d="M4 8h16M4 13h16M4 18h16M9 3v18M15 3v18" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="item__name">Furnace filter</div>
+                  <div class="item__meta">3 days left</div>
+                </div>
+                <div class="item__acts">
+                  <button
+                    class="act"
+                    aria-label="Mark furnace filter replaced"
+                    data-label="Mark furnace filter replaced"
+                    data-confirm
+                  >
+                    <svg class="i ic-do" viewBox="0 0 24 24">
+                      <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                      <path d="M3 3v5h5" />
+                      <path d="M9 12l2 2 4-4" /></svg
+                    ><svg class="i ic-done" viewBox="0 0 24 24">
+                      <path d="M5 12.5l4.5 4.5L19 7.5" /></svg
+                    ><span class="act__label">Confirm?</span>
+                  </button>
+                  <button class="icon" aria-label="Snooze">
+                    <svg class="i"><use href="#snooze" /></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="attn__foot">
+              <span class="muted small">1 snoozed</span>
+              <button class="linkish" aria-expanded="false" aria-controls="snz-card">Show</button>
+            </div>
+            <div class="snoozed__list" id="snz-card" hidden>
+              <div class="snz-row">
+                <div>
+                  <div class="snz-row__name">Water filter</div>
+                  <div class="snz-row__meta">4 days left · snoozed until Mon 9:00 am</div>
+                </div>
+                <button>Unsnooze</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="card o-sugg" aria-labelledby="sugg-h">
+            <div class="card__head">
+              <h2 class="label" id="sugg-h">
+                <svg class="i" viewBox="0 0 24 24">
+                  <path
+                    d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"
+                  /></svg
+                >Suggested
+              </h2>
+              <span class="chip">TV is on</span>
+            </div>
+            <div class="suggest">
+              <p class="muted small">Dim the living room for a movie.</p>
+              <button>Media viewing mood</button>
+            </div>
+          </section>
+
+          <section class="card o-coin" aria-labelledby="coin-h">
+            <div class="card__head">
+              <h2 class="label" id="coin-h">
+                <svg class="i" viewBox="0 0 24 24">
+                  <path d="M3 17l6-6 4 4 8-8" />
+                  <path d="M14 7h7v7" /></svg
+                >Crypto
+              </h2>
+              <span class="muted small">24 h</span>
+            </div>
+            <div class="coins num">
+              <div class="coin">
+                <b>BTC</b><span>$64,000</span><span class="chip chip--ok">+4.2%</span>
+                <svg viewBox="0 0 72 24" preserveAspectRatio="none" aria-hidden="true">
+                  <path class="spark-area" d="M2 18 12 15 22 17 32 12 42 13 52 8 62 9 70 4V24H2z" />
+                  <path class="spark" d="M2 18 12 15 22 17 32 12 42 13 52 8 62 9 70 4" />
+                </svg>
+              </div>
+              <div class="coin">
+                <b>ETH</b><span>$3,200</span><span class="chip chip--ok">+1.8%</span>
+                <svg viewBox="0 0 72 24" preserveAspectRatio="none" aria-hidden="true">
+                  <path
+                    class="spark-area"
+                    d="M2 15 12 16 22 13 32 14 42 11 52 12 62 9 70 8V24H2z"
+                  />
+                  <path class="spark" d="M2 15 12 16 22 13 32 14 42 11 52 12 62 9 70 8" />
+                </svg>
+              </div>
+              <div class="coin">
+                <b>SOL</b><span>$150.00</span><span class="chip chip--danger">−2.6%</span>
+                <svg viewBox="0 0 72 24" preserveAspectRatio="none" aria-hidden="true">
+                  <path
+                    class="spark-area spark-area-down"
+                    d="M2 6 12 8 22 7 32 11 42 10 52 14 62 13 70 17V24H2z"
+                  />
+                  <path class="spark spark-down" d="M2 6 12 8 22 7 32 11 42 10 52 14 62 13 70 17" />
+                </svg>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="col col--2">
+          <section class="card o-fav" aria-labelledby="fav-h">
+            <div class="card__head">
+              <h2 class="label" id="fav-h">
+                <svg class="i" viewBox="0 0 24 24">
+                  <path
+                    d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"
+                  /></svg
+                >Favorites
+              </h2>
+              <button class="linkish">Edit</button>
+            </div>
+            <div class="tiles">
+              <button class="tile tile--on">
+                <span class="tile__icon"
+                  ><svg class="i" viewBox="0 0 24 24">
+                    <path
+                      d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"
+                    /></svg></span
+                ><span>Living room lamp<span class="tile__state">On</span></span>
+              </button>
+              <button class="tile">
+                <span class="tile__icon"
+                  ><svg class="i" viewBox="0 0 24 24">
+                    <path d="M9 3v5M15 3v5M6 8h12v4a6 6 0 0 1-12 0zM12 18v3" /></svg></span
+                ><span>Porch plug<span class="tile__state">Off</span></span>
+              </button>
+              <button class="tile">
+                <span class="tile__icon"
+                  ><svg class="i" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="2" />
+                    <path
+                      d="M12 10c0-4 1-7 4-7 2 0 2 3-1 5M14 12c4 0 7 1 7 4 0 2-3 2-5-1M12 14c0 4-1 7-4 7-2 0-2-3 1-5M10 12c-4 0-7-1-7-4 0-2 3-2 5 1"
+                    /></svg></span
+                ><span>Bedroom fan<span class="tile__state">Off</span></span>
+              </button>
+              <button class="tile">
+                <span class="tile__icon"
+                  ><svg class="i" viewBox="0 0 24 24">
+                    <path
+                      d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"
+                    /></svg></span
+                ><span>Living room bright<span class="tile__state">Activate</span></span>
+              </button>
+              <button class="tile">
+                <span class="tile__icon"
+                  ><svg class="i" viewBox="0 0 24 24">
+                    <path d="M18 15.5A7.5 7.5 0 0 1 9.5 6a7.5 7.5 0 1 0 8.5 9.5z" /></svg></span
+                ><span>Good night<span class="tile__state">Run</span></span>
+              </button>
+              <button class="tile">
+                <span class="tile__icon"
+                  ><svg class="i" viewBox="0 0 24 24">
+                    <path d="M3 21V9l9-6 9 6v12" />
+                    <path d="M7 21v-8h10v8" /></svg></span
+                ><span>Garage light<span class="tile__state">Off</span></span>
+              </button>
+            </div>
+          </section>
+
+          <section class="card o-today" aria-labelledby="today-h">
+            <div class="card__head">
+              <h2 class="label" id="today-h">
+                <svg class="i" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="4" />
+                  <path
+                    d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+                  /></svg
+                >Today
+              </h2>
+              <span class="muted small num">Sunset 6:52 pm</span>
+            </div>
+            <div class="wx__main">
+              <svg class="wx__icon" aria-hidden="true"><use href="#cloud" /></svg>
+              <div class="wx__temp num">54<sup>°</sup></div>
+              <div>
+                <div class="wx__cond">Partly cloudy</div>
+                <div class="wx__hilo num">High 61° · Low 44°</div>
+              </div>
+            </div>
+            <div class="stats num">
+              <div><span>Feels</span><b>51°</b></div>
+              <div><span>Wind</span><b>8 mph</b></div>
+              <div><span>Hum.</span><b>62%</b></div>
+            </div>
+            <div class="hourly num">
+              <div>
+                <span class="t">Now</span><svg aria-hidden="true"><use href="#cloud" /></svg
+                ><b>54°</b>
+              </div>
+              <div>
+                <span class="t">8p</span><svg aria-hidden="true"><use href="#cloud-only" /></svg
+                ><b>52°</b>
+              </div>
+              <div>
+                <span class="t">9p</span><svg aria-hidden="true"><use href="#cloud-only" /></svg
+                ><b>50°</b>
+              </div>
+              <div>
+                <span class="t">10p</span><svg aria-hidden="true"><use href="#moon-wx" /></svg
+                ><b>49°</b>
+              </div>
+              <div>
+                <span class="t">11p</span><svg aria-hidden="true"><use href="#moon-wx" /></svg
+                ><b>47°</b>
+              </div>
+              <div>
+                <span class="t">12a</span><svg aria-hidden="true"><use href="#moon-wx" /></svg
+                ><b>46°</b>
+              </div>
+              <div>
+                <span class="t">1a</span><svg aria-hidden="true"><use href="#cloud-only" /></svg
+                ><b>45°</b>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="col col--3">
+          <section class="card o-sys" aria-labelledby="sys-h">
+            <div class="card__head">
+              <h2 class="label" id="sys-h">
+                <svg class="i" viewBox="0 0 24 24">
+                  <path
+                    d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01"
+                  /></svg
+                >Systems
+              </h2>
+              <span class="chip chip--ok"><span class="dot"></span>Internet up</span>
+            </div>
+            <div class="stat-tiles num">
+              <div class="stat">
+                <span class="stat__k">Uptime</span><span class="stat__v">19<small>d</small></span
+                ><span class="stat__s">Gateway</span>
+              </div>
+              <div class="stat">
+                <span class="stat__k">Access points</span
+                ><span class="stat__v">4<small>/4</small></span
+                ><span class="stat__s">Online</span>
+              </div>
+              <div class="stat">
+                <span class="stat__k">Last backup</span><span class="stat__v">Today</span
+                ><span class="stat__s">3:10 am</span>
+              </div>
+              <div class="stat">
+                <span class="stat__k">Updates</span><span class="stat__v">3</span
+                ><span class="stat__s">Ready to install</span>
+              </div>
+            </div>
+            <div class="bars num">
+              <div class="barrow">
+                <span>Gateway CPU</span
+                ><span class="track"><span class="fill" style="width: 14%"></span></span
+                ><span>14%</span>
+              </div>
+              <div class="barrow">
+                <span>Hallway AP</span
+                ><span class="track"><span class="fill" style="width: 9%"></span></span
+                ><span>9%</span>
+              </div>
+              <div class="barrow">
+                <span>Office AP</span
+                ><span class="track"><span class="fill" style="width: 22%"></span></span
+                ><span>22%</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="card o-media" aria-labelledby="media-h">
+            <div class="card__head">
+              <h2 class="label" id="media-h">
+                <svg class="i" viewBox="0 0 24 24">
+                  <path d="M9 18V5l12-2v13" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" /></svg
+                >Media
+              </h2>
+              <span class="chip chip--leaf"><span class="dot"></span>1 playing</span>
+            </div>
+            <div class="np">
+              <div class="art">
+                <svg class="i" viewBox="0 0 24 24">
+                  <path d="M9 18V5l12-2v13" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" />
+                </svg>
+              </div>
+              <div style="min-width: 0">
+                <div class="np__title">Harvest Moon</div>
+                <div class="muted small">Neil Young</div>
+                <div class="np__room">
+                  <svg class="i" viewBox="0 0 24 24">
+                    <path d="M11 5 6 9H3v6h3l5 4zM15.5 8.5a5 5 0 0 1 0 7" /></svg
+                  >Living room speaker
+                </div>
+              </div>
+              <div class="transport">
+                <button aria-label="Previous">
+                  <svg class="i" viewBox="0 0 24 24"><path d="M19 5 9 12l10 7zM5 5v14" /></svg>
+                </button>
+                <button class="play" aria-label="Pause">
+                  <svg class="i" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14" /></svg>
+                </button>
+                <button aria-label="Next">
+                  <svg class="i" viewBox="0 0 24 24"><path d="M5 5l10 7-10 7zM19 5v14" /></svg>
+                </button>
+              </div>
+            </div>
+            <div class="volrow">
+              <svg class="i" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z" /></svg>
+              <div class="vol" aria-label="Volume 38%"><span></span></div>
+              <span class="small num">38</span>
+            </div>
+            <div class="players">
+              <span class="chip">Family room TV · Off</span>
+              <span class="chip">Receiver · Off</span>
+              <span class="chip">Basement TV · Idle</span>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<script>
+  const stage = document.getElementById('stage')
+  const screen = document.getElementById('screen')
+  const themeBtn = document.getElementById('theme-btn')
+  const prefersDark = matchMedia('(prefers-color-scheme: dark)')
+  const currentMode = () =>
+    document.documentElement.dataset.theme || (prefersDark.matches ? 'dark' : 'light')
+  const syncThemeBtn = () => {
+    const mode = currentMode()
+    themeBtn.dataset.mode = mode
+    themeBtn.setAttribute(
+      'aria-label',
+      mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode',
+    )
+  }
+  themeBtn.addEventListener('click', () => {
+    document.documentElement.dataset.theme = currentMode() === 'dark' ? 'light' : 'dark'
+    syncThemeBtn()
+  })
+  prefersDark.addEventListener('change', syncThemeBtn)
+  syncThemeBtn()
+  // Two-tap confirm: the first tap arms (icon slides left, "Confirm?" appears), the second sends.
+  // Disarms after 4 s or on a tap anywhere else. Actions without data-confirm send on the first tap.
+  let armed = null,
+    timer = null
+  const disarm = () => {
+    if (!armed) return
+    armed.classList.remove('armed')
+    armed.setAttribute('aria-label', armed.dataset.label)
+    armed = null
+    clearTimeout(timer)
+  }
+  const send = (btn) => {
+    btn.classList.add('sent')
+    btn.setAttribute('aria-label', 'Sent')
+    setTimeout(() => {
+      btn.classList.remove('sent')
+      btn.setAttribute('aria-label', btn.dataset.label)
+    }, 1400)
+  }
+  document.querySelectorAll('.act').forEach((btn) =>
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      if (!('confirm' in btn.dataset)) return send(btn)
+      if (armed === btn) {
+        disarm()
+        return send(btn)
+      }
+      disarm()
+      armed = btn
+      btn.classList.add('armed')
+      btn.setAttribute('aria-label', 'Confirm: ' + btn.dataset.label)
+      timer = setTimeout(disarm, 4000)
+    }),
+  )
+  document.addEventListener('click', disarm)
+  document.querySelectorAll('[aria-controls^="snz-"]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const list = document.getElementById(btn.getAttribute('aria-controls'))
+      const open = btn.getAttribute('aria-expanded') !== 'true'
+      btn.setAttribute('aria-expanded', String(open))
+      btn.textContent = open ? 'Hide' : 'Show'
+      list.hidden = !open
+    }),
+  )
+  document.querySelectorAll('input[name="view"]').forEach((el) =>
+    el.addEventListener('change', () => {
+      stage.dataset.view = el.value
+    }),
+  )
+  document.querySelectorAll('input[name="state"]').forEach((el) =>
+    el.addEventListener('change', () => {
+      screen.dataset.state = el.value
+    }),
+  )
+</script>

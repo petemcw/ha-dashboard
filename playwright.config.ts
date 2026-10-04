@@ -7,7 +7,8 @@ import { defineConfig } from '@playwright/test'
 // The server runs on its own port with VITE_HA_URL blanked: direnv exports it, and the
 // app prefers it over /config.json, which would send mock specs to the real house.
 // Each fixture serves /config.json instead (the mock URL, or HA_URL for @live).
-const PORT = 5174
+// E2E_PORT lets parallel runs (e.g. several agents in one checkout) each own a server.
+const PORT = Number(process.env.E2E_PORT ?? 5174)
 export default defineConfig({
   testDir: './e2e',
   outputDir: './test-results',

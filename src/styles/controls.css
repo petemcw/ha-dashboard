@@ -1,0 +1,139 @@
+/* Controls: buttons, inputs, and form errors shared by every screen. */
+
+/* Buttons look 34 px tall, like the mock-up, but are still 44 px touch targets: an
+   invisible ::after reaches 5 px past every border edge. Buttons never shrink or break their
+   label; rows wrap whole buttons instead. Components don't need to repeat this. */
+button,
+.button-link {
+  position: relative;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  flex: none;
+  min-height: 34px;
+  min-width: 34px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+}
+
+button::after,
+.button-link::after {
+  content: '';
+  position: absolute;
+  /* The overlay is sized from the padding box, inside the 1 px border. */
+  inset: -6px;
+}
+
+/* Two compact buttons side by side need at least 10 px between them, or the later one's
+   overlay covers the earlier one's edge. */
+.attention-item__actions,
+.snooze-choices,
+.suggestions__list {
+  gap: var(--space-3);
+}
+
+/* An ancestor with overflow other than visible clips the overlay, so the settings sheet
+   (which scrolls) keeps full-size buttons instead. */
+.sheet button,
+.sheet .button-link {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--space-4);
+}
+
+.sheet button::after,
+.sheet .button-link::after,
+.favorite-button::after {
+  content: none;
+}
+
+button:active:not(:disabled),
+.button-link:active {
+  transform: scale(0.97);
+  background: var(--surface-sunken);
+}
+
+@media (hover: hover) {
+  button:hover:not(:disabled),
+  .button-link:hover {
+    background: var(--surface-sunken);
+  }
+}
+
+/* v1 shows most device actions disabled: make that obvious, not tappable-looking. */
+button:disabled {
+  cursor: not-allowed;
+  border-style: dashed;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.button--primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+@media (hover: hover) {
+  .button--primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent) 85%, var(--text));
+  }
+}
+
+.button--quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0 var(--space-3);
+}
+
+.button-link {
+  border-color: transparent;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.icon-button {
+  padding: 0;
+  width: 34px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--text);
+}
+
+input[type='text'],
+input[type='search'],
+input[type='password'],
+input:not([type]) {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+input[type='radio'],
+input[type='checkbox'] {
+  accent-color: var(--accent);
+}
+
+.form-error {
+  margin: 0;
+  color: var(--danger);
+  font-weight: 600;
+}

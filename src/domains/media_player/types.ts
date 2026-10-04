@@ -12,4 +12,10 @@ export type MediaPlayerPlayback =
 export type MediaPlayerViewModel = {
   entity_id: string
   playback: MediaPlayerPlayback
+  friendlyName?: string
+  title?: string
+  artist?: string
+  artworkUrl?: string
+  volumePercent?: number
+  muted?: boolean
 }

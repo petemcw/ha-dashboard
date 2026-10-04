@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { HomeConfigProvider } from '../config/HomeConfigProvider'
 import type { HomeConfigState } from '../config/useLoadedHomeConfig'
+import './HomeConfigGate.css'
 
 // Holds the app back until home.json is in hand: every home screen section reads it.
 export function HomeConfigGate({

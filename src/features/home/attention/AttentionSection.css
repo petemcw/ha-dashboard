@@ -1,0 +1,235 @@
+/* Needs attention is the primary card: a slab title and a stronger border. */
+.card.attention {
+  border-color: var(--border-strong);
+}
+
+.card.attention .card__title {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.urgent-list,
+.chore-row,
+.snoozed__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Flex, not grid: a row folding away pulls the gap after it shut with a negative margin,
+   which a grid track ignores. */
+.urgent-list,
+.chore-row {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Attention rows: badge, text, actions on one line, the failure under them.
+   Actions never wrap beneath the text; a long title wraps inside its own column. */
+.urgent-list,
+.chore-row {
+  gap: var(--space-2);
+}
+
+.urgent-list + .chore-row {
+  margin-top: var(--space-2);
+}
+
+.attention-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 var(--space-3);
+  padding: 10px 10px 10px 12px;
+  border-radius: var(--radius-sm);
+  /* A variable, so the snooze choices laid over the row can match it. */
+  --row-bg: var(--surface);
+  background: var(--row-bg);
+}
+
+.attention-item--urgent {
+  --row-bg: var(--danger-soft);
+}
+
+/* A chore is quieter than an urgent item: a sunken row and a soft ochre badge. */
+.attention-item--chore {
+  --row-bg: var(--surface-sunken);
+}
+
+.attention-item > * {
+  /* Grid children default to min-width: auto, which lets one long word widen the page. */
+  min-width: 0;
+}
+
+.attention-item__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+
+.attention-item--chore .attention-item__badge {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.attention-item--urgent .attention-item__badge {
+  background: var(--danger);
+  color: #fff;
+}
+
+.attention-item__text {
+  display: flex;
+  flex-direction: column;
+  transition:
+    filter 0.22s ease-out,
+    opacity 0.22s ease-out;
+}
+
+/* An armed confirm or open snooze choices reach over the text instead of reflowing it, and
+   the text blurs back under them: the row is waiting on the controls now. The badge stays
+   sharp, so it's still clear which item they act on. */
+.attention-item:has(.button--confirm-armed, .snooze-choices--open) .attention-item__text {
+  filter: blur(2px);
+  opacity: 0.45;
+}
+
+/* Titles can be raw entity IDs with no break points. */
+.attention-item__title {
+  overflow-wrap: anywhere;
+}
+
+.attention-item__detail {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The gap between compact buttons is set with the button overlay (controls.css). */
+.attention-item__actions {
+  /* Anchors the snooze choices. */
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* The failure takes its own line under the row, so it never widens the actions column. */
+.attention-item > .action-error {
+  grid-column: 1 / -1;
+  padding: 0;
+}
+
+/* More specific than ActionError's own :not(:empty) padding, so stylesheet order can't
+   change it. */
+.attention-item > .action-error:not(:empty) {
+  padding-block: var(--space-2);
+}
+
+/* Snooze choices: laid over the right end of the row, covering the other actions and
+   reaching over the text, so opening them never reflows the row. They always render, so
+   closing can slide them away the way they came; closed, they're hidden and inert. The
+   shadow in the row's colour softens their leading edge over the blurred text. */
+.snooze-choices {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: 0;
+  display: inline-flex;
+  flex-wrap: nowrap;
+  padding-inline-start: var(--space-2);
+  background: var(--row-bg);
+  box-shadow: calc(-1 * var(--space-3)) 0 var(--space-3) calc(-1 * var(--space-1)) var(--row-bg);
+  translate: var(--space-3) -50%;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    translate 0.2s ease-out,
+    opacity 0.15s ease-out,
+    visibility 0s linear 0.2s;
+}
+
+.snooze-choices--open {
+  translate: 0 -50%;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    translate 0.2s ease-out,
+    opacity 0.15s ease-out,
+    visibility 0s;
+}
+
+/* Snoozed strip and card footer */
+
+/* The grid display above would otherwise beat the hidden attribute. */
+.snoozed__list[hidden] {
+  display: none;
+}
+
+.snoozed {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+}
+
+.snoozed__bar,
+.snoozed__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  font-size: var(--text-sm);
+}
+
+.snoozed__bar svg {
+  flex: none;
+}
+
+.snoozed__bar b {
+  color: var(--text);
+}
+
+.snoozed__toggle {
+  margin-left: auto;
+}
+
+.snoozed__foot {
+  justify-content: space-between;
+  padding: 0 var(--space-1);
+}
+
+.snoozed__list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.snoozed__list strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--text);
+}
+
+.snoozed__list span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Folding away (see foldAway): height and padding animate to zero, so the content must be
+   clipped and the height must include the padding. */
+.attention-item--leaving,
+.card--leaving {
+  box-sizing: border-box;
+  overflow: hidden;
+}

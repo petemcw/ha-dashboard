@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import { renderWithHome as render } from '../../../test/renderWithHome'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { entityStore } from '../../../infrastructure/entities/entityStore'
@@ -38,6 +38,12 @@ describe('crypto row', () => {
     expect(screen.getByText('−25.0%')).toBeInTheDocument()
     expect(screen.getByText('$142.50')).toBeInTheDocument()
     expect(screen.getAllByTestId('sparkline')).toHaveLength(2)
+  })
+
+  it('labels the change and sparkline period as 24 h in the card header', () => {
+    render(<CryptoRow />)
+    const header = screen.getByRole('heading', { name: 'Crypto' }).parentElement!
+    expect(within(header).getByText('24 h')).toBeInTheDocument()
   })
 
   it('updates the price when the entity changes without refetching statistics', async () => {

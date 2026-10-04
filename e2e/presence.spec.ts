@@ -39,9 +39,31 @@ test.describe('people from Home Assistant', () => {
     await expect(
       people.getByRole('listitem', { name: 'Alex Rivera, home' }).getByText('AR'),
     ).toBeVisible()
-    const box = await people.getByRole('listitem').first().boundingBox()
-    expect(box!.width).toBeGreaterThanOrEqual(44)
-    expect(box!.height).toBeGreaterThanOrEqual(44)
+    await expect(page.getByRole('banner').getByRole('region', { name: 'People' })).toBeVisible()
+  })
+
+  test('lays out the avatars side by side without overlapping', async ({ page }) => {
+    await page.goto('/')
+    const items = page.getByRole('region', { name: 'People' }).getByRole('listitem')
+    await expect(items).toHaveCount(4)
+    const boxes = await items.evaluateAll((els) =>
+      els.map((el) => {
+        const r = el.getBoundingClientRect()
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom }
+      }),
+    )
+    for (const box of boxes) expect(box.right - box.left).toBe(32)
+    // Neighbours in the same row sit 6 px apart.
+    const row = boxes.filter((b) => b.top === boxes[0].top).sort((a, b) => a.left - b.left)
+    expect(row.length).toBeGreaterThan(1)
+    for (let i = 1; i < row.length; i++) expect(row[i].left - row[i - 1].right).toBe(6)
+    for (const [i, a] of boxes.entries()) {
+      for (const b of boxes.slice(i + 1)) {
+        const apart =
+          a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top
+        expect(apart).toBe(true)
+      }
+    }
   })
 })
 

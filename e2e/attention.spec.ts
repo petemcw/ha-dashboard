@@ -38,11 +38,12 @@ test.describe('attention', () => {
     await page.screenshot({ path: `e2e/screenshots/attention-${test.info().project.name}.png` })
   })
 
-  test('shows that nothing needs attention when the house is calm', async ({ page }) => {
+  test('hides the Needs attention card when the house is calm', async ({ page }) => {
     await page.goto('/')
-    await expect(
-      page.getByRole('region', { name: 'Needs attention' }).getByText('Nothing needs attention'),
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Home' })).toBeAttached()
+    await expect(page.getByRole('region', { name: 'Favorites' })).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Needs attention' })).toHaveCount(0)
+    await expect(page.getByText('Nothing needs attention')).toHaveCount(0)
   })
 
   test('shows a low battery and a pending update as compact chores', async ({ page, mockHa }) => {

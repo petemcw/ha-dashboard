@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from 'react'
+import { createContext, use, type ReactNode } from 'react'
 import { webSocketGateway, type ServiceGateway } from './serviceGateway'
 
 // The default is the WebSocket gateway so components rendered without a provider still
@@ -17,5 +17,5 @@ export function ServiceGatewayProvider({
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useServiceGateway(): ServiceGateway {
-  return useContext(ServiceGatewayContext)
+  return use(ServiceGatewayContext)
 }

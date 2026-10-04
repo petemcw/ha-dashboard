@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { friendlyName } from '../../domains/entityStatus'
 import { useEntity } from '../../infrastructure/entities/useEntity'
 import { useEntityIds } from '../../infrastructure/entities/useEntityIds'
-import { UndoNotice } from '../shared/UndoNotice'
-import { MAX_RESULTS, matchesSearch } from './searchEntities'
+import { InlineUndoNotice } from '../shared/InlineUndoNotice'
+import { entitySearch, MAX_RESULTS } from './searchEntities'
 import { useFavoritesEditor } from './useFavoritesEditor'
+import './FavoritesEditor.css'
 
 function useName(entityId: string) {
   const entity = useEntity(entityId)
@@ -73,9 +74,12 @@ export function FavoritesEditor() {
   // Removing is one tap with no "are you sure?"; the notice offers the way back instead.
   const [removed, setRemoved] = useState<{ id: string; index: number; name: string }>()
   const { entityIds } = editor
+  // Each search scans every entity in the house, so it trails the input instead of
+  // holding up each keystroke on a slow tablet.
+  const deferredQuery = useDeferredValue(query)
   const predicate = useMemo(
-    () => (e: Parameters<typeof matchesSearch>[0]) => matchesSearch(e, query, entityIds),
-    [query, entityIds],
+    () => entitySearch(deferredQuery, entityIds),
+    [deferredQuery, entityIds],
   )
   const results = useEntityIds(predicate).slice(0, MAX_RESULTS)
 
@@ -87,9 +91,8 @@ export function FavoritesEditor() {
     <div className="favorites-editor">
       {editor.error && <p role="alert">{editor.error}</p>}
       {removed && !editor.error && (
-        <UndoNotice
+        <InlineUndoNotice
           key={removed.id}
-          inline
           message={`Removed ${removed.name}`}
           undoDisabled={!editor.canEdit}
           onUndo={() => {

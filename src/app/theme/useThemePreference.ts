@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { easeThemeChange } from '../../features/shared/motion'
 import { THEME_KEY } from '../../infrastructure/storageKeys'
 
 export type ThemePreference = 'system' | 'light' | 'dark'
@@ -50,6 +51,8 @@ export function useThemePreference() {
 
   const update = useCallback((pref: ThemePreference) => {
     writePreference(pref)
+    // Applied here, not left to the effect, so the change lands while the colours ease.
+    easeThemeChange(() => applyPreference(pref))
     setPreference(pref)
   }, [])
 

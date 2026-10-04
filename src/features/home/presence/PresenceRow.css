@@ -1,0 +1,13 @@
+/* Presence */
+
+/* Faces in the header, with a dot for whoever is home. Names and states are in each
+   item's label for assistive tech; on screen the faces carry them. Wraps instead of
+   scrolling, so nobody is hidden off the edge of a phone or kiosk. */
+.presence-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

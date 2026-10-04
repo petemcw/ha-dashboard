@@ -1,4 +1,5 @@
 import type { ActionFailure } from '../../infrastructure/serviceGateway/useAction'
+import './ActionError.css'
 
 const MESSAGES: Record<ActionFailure, string> = {
   rejected: "Didn't work, tap to retry",

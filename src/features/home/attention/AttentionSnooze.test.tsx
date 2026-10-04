@@ -83,15 +83,97 @@ const chore = () => {
 }
 
 describe('attention snoozes', () => {
-  it('hides an item snoozed until a time in the future and lists it as snoozed', async () => {
+  it('shows a snoozed strip in the card place when the card is hidden and items are snoozed', async () => {
     const ha = fakeHa(admin, stored({ [ID]: { until: FUTURE, by: 'admin-1' } }))
     seed('12')
     render(<AttentionHarness connect={ha.connect} />)
     await settle()
     expect(chore()).toBeFalsy()
-    const disclosure = screen.getByText('1 snoozed')
-    expect(within(disclosure.closest('details')!).getByText('Front door battery')).toBeTruthy()
-    expect(screen.getByText(/^until /)).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Needs attention' })).not.toBeInTheDocument()
+    const strip = screen.getByRole('region', { name: 'Snoozed' })
+    expect(within(strip).getByText('1 snoozed')).toBeInTheDocument()
+    // The collapsed list also names it, hidden.
+    expect(within(strip).getAllByText(/Front door battery/)[0]).toBeVisible()
+  })
+
+  it('expands the snoozed strip to list snoozed items with Unsnooze for admins', async () => {
+    const ha = fakeHa(admin, stored({ [ID]: { until: FUTURE, by: 'admin-1' } }))
+    seed('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    const show = screen.getByRole('button', { name: 'Show' })
+    expect(show).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(show)
+    expect(screen.getByRole('button', { name: 'Hide' })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText(/snoozed until /)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Unsnooze Front door battery' })).toBeInTheDocument()
+  })
+
+  it('opens the snoozed list from the attention card footer', async () => {
+    const other = batterySensorState({
+      entity_id: 'sensor.other_battery',
+      state: '9',
+      attributes: { friendly_name: 'Other battery' },
+    })
+    const ha = fakeHa(admin, stored({ [ID]: { until: FUTURE, by: 'admin-1' } }))
+    seed('12')
+    const entities = [
+      ...calmHouse(),
+      batterySensorState({
+        entity_id: BATTERY,
+        state: '12',
+        attributes: { friendly_name: 'Front door battery' },
+      }),
+      other,
+    ]
+    entityStore.setEntities(Object.fromEntries(entities.map((e) => [e.entity_id, e])))
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    const card = screen.getByRole('region', { name: 'Needs attention' })
+    expect(screen.queryByRole('region', { name: 'Snoozed' })).not.toBeInTheDocument()
+    expect(within(card).getByText('1 snoozed')).toBeInTheDocument()
+    fireEvent.click(within(card).getByRole('button', { name: 'Show' }))
+    expect(
+      within(card).getByRole('button', { name: 'Unsnooze Front door battery' }),
+    ).toBeInTheDocument()
+  })
+
+  it('does not show a snoozed footer when nothing is snoozed', async () => {
+    const ha = fakeHa(admin)
+    seed('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    expect(screen.queryByText(/snoozed$/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Show' })).not.toBeInTheDocument()
+  })
+
+  it('still shows the snoozed-until notice after snoozing the last item', async () => {
+    const ha = fakeHa(admin)
+    seed('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    fireEvent.click(screen.getByRole('button', { name: 'Snooze Front door battery' }))
+    fireEvent.click(screen.getByRole('button', { name: '1 week' }))
+    await settle()
+    // HA pushes the stored snoozes back to every subscriber, this device included.
+    act(() => ha.emit(ha.writes[0].value))
+    expect(screen.queryByRole('region', { name: 'Needs attention' })).not.toBeInTheDocument()
+    expect(screen.getByText(/^Snoozed until /)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument()
+  })
+
+  it('shows a failed unsnooze in the snoozed strip when the card is hidden', async () => {
+    const ha = fakeHa(admin, stored({ [ID]: { until: FUTURE, by: 'admin-1' } }))
+    seed('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    ha.failWrites()
+    fireEvent.click(screen.getByRole('button', { name: 'Show' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Unsnooze Front door battery' }))
+    await settle()
+    const strip = screen.getByRole('region', { name: 'Snoozed' })
+    expect(within(strip).getByRole('alert')).toBeInTheDocument()
+    expect(screen.getAllByRole('alert')).toHaveLength(1)
   })
 
   it('shows an item again once its snooze has expired', async () => {
@@ -172,7 +254,7 @@ describe('attention snoozes', () => {
     seed('12')
     render(<AttentionHarness connect={ha.connect} />)
     await settle()
-    fireEvent.click(screen.getByText('1 snoozed'))
+    fireEvent.click(screen.getByRole('button', { name: 'Show' }))
     fireEvent.click(screen.getByRole('button', { name: 'Unsnooze Front door battery' }))
     await settle()
     expect(ha.writes[0].value).toEqual(stored({}))
@@ -203,6 +285,32 @@ describe('attention snoozes', () => {
     expect(screen.queryByRole('button', { name: /snooze/i })).not.toBeInTheDocument()
   })
 
+  it("keeps the snoozed list's aria-controls target in the DOM while collapsed", async () => {
+    const ha = fakeHa(admin, stored({ [ID]: { until: FUTURE, by: 'admin-1' } }))
+    seed('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    const show = screen.getByRole('button', { name: 'Show' })
+    const list = document.getElementById(show.getAttribute('aria-controls')!)
+    expect(list).not.toBeNull()
+    expect(list).not.toBeVisible()
+    fireEvent.click(show)
+    expect(list).toBeVisible()
+  })
+
+  it('shows no Unsnooze button to a non-admin with the snoozed list expanded', async () => {
+    const ha = fakeHa(
+      { id: 'kiosk', is_admin: false },
+      stored({ [ID]: { until: FUTURE, by: 'admin-1' } }),
+    )
+    seed('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    fireEvent.click(screen.getByRole('button', { name: 'Show' }))
+    expect(screen.getByText(/snoozed until /)).toBeVisible()
+    expect(screen.queryByRole('button', { name: /^Unsnooze/ })).not.toBeInTheDocument()
+  })
+
   it('shows a snooze made on another device without a reload', async () => {
     const ha = fakeHa({ id: 'kiosk', is_admin: false })
     seed('12')
@@ -226,6 +334,42 @@ describe('attention snoozes', () => {
 })
 
 describe('snooze cleanup', () => {
+  it('keeps the snoozed list open when the card gives way to the snoozed strip', async () => {
+    const ha = fakeHa(admin, stored({ [ID]: { until: FUTURE, by: 'admin-1' } }))
+    const backDoor = (state: string) =>
+      batterySensorState({
+        entity_id: 'sensor.back_door_battery',
+        state,
+        attributes: { friendly_name: 'Back door battery' },
+      })
+    const house = (back: string) => [
+      ...calmHouse(),
+      batterySensorState({
+        entity_id: BATTERY,
+        state: '12',
+        attributes: { friendly_name: 'Front door battery' },
+      }),
+      backDoor(back),
+    ]
+    const load = (back: string) =>
+      entityStore.setEntities(Object.fromEntries(house(back).map((e) => [e.entity_id, e])))
+    load('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    const card = screen.getByRole('region', { name: 'Needs attention' })
+    fireEvent.click(within(card).getByRole('button', { name: 'Show' }))
+
+    act(() => load('90'))
+    await settle()
+    expect(screen.queryByRole('region', { name: 'Needs attention' })).not.toBeInTheDocument()
+    const strip = screen.getByRole('region', { name: 'Snoozed' })
+    expect(within(strip).getByRole('button', { name: 'Hide' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    expect(within(strip).getByRole('button', { name: 'Unsnooze Front door battery' })).toBeVisible()
+  })
+
   it('removes a stored snooze when its item has resolved', async () => {
     const ha = fakeHa(
       admin,

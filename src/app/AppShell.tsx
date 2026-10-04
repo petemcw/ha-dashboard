@@ -9,6 +9,7 @@ import { KioskTokenSection } from './settings/KioskTokenSection'
 import { SettingsSheet } from './settings/SettingsSheet'
 import { SignOutSection } from './settings/SignOutSection'
 import { ThemeSection } from './settings/ThemeSection'
+import { ThemeToggle } from './theme/ThemeToggle'
 import { useThemePreference } from './theme/useThemePreference'
 
 export function AppShell({ onTokenSaved = () => {} }: { onTokenSaved?: () => void }) {
@@ -28,7 +29,11 @@ export function AppShell({ onTokenSaved = () => {} }: { onTokenSaved?: () => voi
       {/* No aria-busy: some screen readers mute busy regions, and an outage can last a
           while. The banner says the values are stale. */}
       <div className="content" data-stale={stale ? '' : undefined}>
-        <HomeScreen onOpenSettings={openSettings} />
+        <HomeScreen
+          onOpenSettings={openSettings}
+          onEditFavorites={openSettings}
+          tools={<ThemeToggle preference={theme} onChange={setTheme} />}
+        />
       </div>
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)}>
         <ThemeSection preference={theme} onChange={setTheme} />

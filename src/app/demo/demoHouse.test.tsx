@@ -6,7 +6,9 @@ import { renderWithHome } from '../../test/renderWithHome'
 import { AttentionHarness } from '../../test/AttentionHarness'
 import { FakeHa } from '../../infrastructure/fakeHa/fakeHa'
 import { FAVORITES_KEY, parseFavorites } from '../../features/home/favorites/favoritesValue'
+import { MediaCard } from '../../features/home/media/MediaCard'
 import { SuggestionsStrip } from '../../features/home/suggestions/SuggestionsStrip'
+import { SystemsCard } from '../../features/home/systems/SystemsCard'
 import { demoEntities, demoHouse, FAVORITE_IDS } from './demoHouse'
 
 afterEach(() => {
@@ -102,9 +104,53 @@ describe('the demo house', () => {
     expect(Number(ha.getState(filter.entity_id)?.state)).toBeGreaterThan(filter.belowDays)
   })
 
-  it('has no pictures for the demo people', () => {
+  it('has no pictures for the demo people or media players', () => {
     const people = demoEntities().filter((e) => e.entity_id.startsWith('person.'))
+    const players = demoEntities().filter((e) => e.entity_id.startsWith('media_player.'))
     expect(people.length).toBeGreaterThanOrEqual(2)
-    for (const p of people) expect(p.attributes).not.toHaveProperty('entity_picture')
+    expect(players.length).toBeGreaterThanOrEqual(3)
+    for (const e of [...people, ...players])
+      expect(e.attributes).not.toHaveProperty('entity_picture')
+  })
+
+  it('starts the hourly forecast at the current hour, so the Today card leads with Now', () => {
+    const now = new Date(2026, 9, 4, 15, 30).getTime()
+    const { forecasts } = demoHouse(now)
+    const [first] = forecasts![testHomeConfig.weather!.entity_id].hourly as { datetime: string }[]
+    expect(new Date(first.datetime)).toEqual(new Date(2026, 9, 4, 15, 0))
+  })
+
+  it('sets the sun in the evening, tomorrow once this evening has passed', () => {
+    const sunset = (now: Date) =>
+      demoEntities(now.getTime()).find((e) => e.entity_id === testHomeConfig.weather!.sun)
+        ?.attributes.next_setting
+    expect(new Date(sunset(new Date(2026, 9, 4, 10, 0)))).toEqual(new Date(2026, 9, 4, 18, 50))
+    expect(new Date(sunset(new Date(2026, 9, 4, 21, 0)))).toEqual(new Date(2026, 9, 5, 18, 50))
+  })
+
+  it('backs up overnight, so the last backup reads as this morning', () => {
+    const backup = (now: Date) =>
+      demoEntities(now.getTime()).find((e) => e.entity_id === testHomeConfig.systems!.backup)?.state
+    expect(new Date(backup(new Date(2026, 9, 4, 15, 30))!)).toEqual(new Date(2026, 9, 4, 3, 10))
+    // Before tonight's backup has run, the last one is last night's.
+    expect(new Date(backup(new Date(2026, 9, 4, 1, 0))!)).toEqual(new Date(2026, 9, 3, 3, 10))
+  })
+
+  it('has one of four access points down, so the Systems card reads 3/4', () => {
+    seedDemo()
+    renderWithHome(<SystemsCard />)
+    expect(screen.getByRole('group', { name: 'Access points' })).toHaveTextContent('3/4')
+  })
+
+  it('lists the idle and off media players as chips next to the playing one', async () => {
+    seedDemo()
+    renderWithHome(<MediaCard />)
+    const chips = await screen.findAllByRole('listitem')
+    expect(chips.map((c) => c.textContent)).toEqual([
+      'Kitchen speaker · Off',
+      'Family room TV · Off',
+      'Receiver · Idle',
+    ])
+    expect(screen.getByText('1 playing')).toBeInTheDocument()
   })
 })

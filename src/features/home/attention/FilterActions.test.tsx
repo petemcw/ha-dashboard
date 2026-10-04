@@ -52,14 +52,14 @@ describe('filter chore actions', () => {
     show()
     fireEvent.click(screen.getByRole('button', { name: 'Mark replaced' }))
     expect(fake.calls).toEqual([])
-    expect(screen.getByRole('button', { name: 'Tap to confirm' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Confirm mark replaced' })).toBeInTheDocument()
   })
 
   it("sends script.turn_on for the filter's reset script on the confirming tap", () => {
     seed()
     show()
     arm()
-    fireEvent.click(screen.getByRole('button', { name: 'Tap to confirm' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm mark replaced' }))
     expect(fake.calls).toEqual([
       {
         domain: 'script',
@@ -74,12 +74,12 @@ describe('filter chore actions', () => {
     seed()
     show()
     arm()
-    fireEvent.click(screen.getByRole('button', { name: 'Tap to confirm' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm mark replaced' }))
     fake.reject(new ServiceCallError('rejected'))
     await flush()
     expect(screen.getByText("Didn't work, tap to retry")).toBeInTheDocument()
     arm()
-    fireEvent.click(screen.getByRole('button', { name: 'Tap to confirm' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm mark replaced' }))
     expect(fake.calls).toHaveLength(2)
   })
 

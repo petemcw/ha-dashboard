@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { lightState } from '../../../domains/light/factories'
@@ -29,6 +29,8 @@ import { FavoritesSection } from './FavoritesSection'
 
 const saved = (...entityIds: string[]) => ({ version: 1, entityIds })
 const arrive = (value: unknown) => act(async () => push({ value }))
+// The tiles' own buttons, not the card header's Edit.
+const tileButtons = () => within(screen.getByRole('list')).queryAllByRole('button')
 const seed = (...entities: ReturnType<typeof entityState>[]) =>
   act(() => entityStore.setEntities(Object.fromEntries(entities.map((e) => [e.entity_id, e]))))
 
@@ -40,10 +42,10 @@ afterEach(() => {
 
 async function renderLoaded(
   value: unknown,
-  onOpenSettings = () => {},
+  onEditFavorites = () => {},
   gateway = createFakeServiceGateway().gateway,
 ) {
-  renderWithHome(<FavoritesSection onOpenSettings={onOpenSettings} />, { gateway })
+  renderWithHome(<FavoritesSection onEditFavorites={onEditFavorites} />, { gateway })
   await screen.findByRole('region', { name: 'Favorites' })
   await act(async () => {})
   await arrive(value)
@@ -55,6 +57,17 @@ describe('favorites section', () => {
     await renderLoaded(null, open)
     expect(screen.getByText('No favorites yet')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Add favorites' }))
+    expect(open).toHaveBeenCalledOnce()
+  })
+
+  it("opens the favorites editor from the card header's Edit button", async () => {
+    const open = vi.fn()
+    seed(lightState({ entity_id: 'light.k', attributes: { friendly_name: 'Kitchen' } }))
+    await renderLoaded(saved('light.k'), open)
+    const region = screen.getByRole('region', { name: 'Favorites' })
+    const edit = within(region).getByRole('button', { name: 'Edit favorites' })
+    expect(edit).toHaveTextContent('Edit')
+    await userEvent.click(edit)
     expect(open).toHaveBeenCalledOnce()
   })
 
@@ -255,7 +268,7 @@ describe('favorite tile controls', () => {
     )
     setConnected()
     await renderLoaded(saved('fan.u', 'fan.gone', 'script.u', 'script.gone'))
-    const buttons = screen.getAllByRole('button')
+    const buttons = tileButtons()
     expect(buttons).toHaveLength(4)
     for (const b of buttons) expect(b).toBeDisabled()
   })
@@ -302,7 +315,7 @@ describe('favorite tile controls', () => {
     seed(lightState({ entity_id: 'light.u', state: 'unavailable' }))
     setConnected()
     await renderLoaded(saved('light.u', 'light.gone'))
-    const buttons = screen.getAllByRole('button')
+    const buttons = tileButtons()
     expect(buttons).toHaveLength(2)
     for (const b of buttons) expect(b).toBeDisabled()
   })
@@ -335,6 +348,62 @@ describe('favorite tile controls', () => {
     seed(entityState({ entity_id: 'lock.door', state: 'locked' }))
     setConnected()
     await renderLoaded(saved('lock.door'))
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(tileButtons()).toHaveLength(0)
+  })
+})
+
+describe('favorite tile icons', () => {
+  const iconOf = (name: string) =>
+    screen.getByRole('button', { name }).querySelector('svg.favorite-icon')
+
+  it('shows a lightbulb icon on a light tile', async () => {
+    seed(lightState({ entity_id: 'light.k', attributes: { friendly_name: 'Kitchen' } }))
+    await renderLoaded(saved('light.k'))
+    const icon = iconOf('Kitchen')
+    expect(icon).toHaveClass('lucide-lightbulb')
+    expect(icon).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('shows the matching icon for switch, fan, scene, and script tiles', async () => {
+    seed(
+      switchState({ entity_id: 'switch.s', attributes: { friendly_name: 'Sw' } }),
+      fanState({ entity_id: 'fan.f', attributes: { friendly_name: 'Fa' } }),
+      sceneState({ entity_id: 'scene.c', attributes: { friendly_name: 'Sc' } }),
+      scriptState({ entity_id: 'script.p', attributes: { friendly_name: 'Sp' } }),
+    )
+    await renderLoaded(saved('switch.s', 'fan.f', 'scene.c', 'script.p'))
+    expect(iconOf('Sw')).toHaveClass('lucide-plug')
+    expect(iconOf('Fa')).toHaveClass('lucide-fan')
+    expect(iconOf('Sc')).toHaveClass('lucide-sparkles')
+    expect(iconOf('Sp')).toHaveClass('lucide-play')
+  })
+
+  it.each([
+    ['media_player.tv', 'playing', 'lucide-speaker'],
+    ['cover.blind', 'open', 'lucide-blinds'],
+    ['climate.hall', 'heat', 'lucide-thermometer'],
+    ['lock.door', 'locked', 'lucide-lock'],
+  ])('shows its domain icon on a display-only %s tile', async (entity_id, state, icon) => {
+    seed(entityState({ entity_id, state, attributes: { friendly_name: 'Shown' } }))
+    await renderLoaded(saved(entity_id))
+    const tile = screen.getByText('Shown').closest('li')!
+    expect(tile.querySelector('svg.favorite-icon')).toHaveClass(icon)
+  })
+
+  it('shows a fallback icon on a display-only tile', async () => {
+    seed(entityState({ entity_id: 'sensor.x', state: '5', attributes: { friendly_name: 'Odd' } }))
+    await renderLoaded(saved('sensor.x'))
+    const tile = screen.getByText('Odd').closest('li')!
+    expect(tile.querySelector('svg.favorite-icon')).toHaveClass('lucide-circle-dot')
+  })
+
+  it('highlights the icon of a tile whose entity is on', async () => {
+    seed(
+      lightState({ entity_id: 'light.on', state: 'on', attributes: { friendly_name: 'Lit' } }),
+      lightState({ entity_id: 'light.off', attributes: { friendly_name: 'Dark' } }),
+    )
+    await renderLoaded(saved('light.on', 'light.off'))
+    expect(iconOf('Lit')?.closest('.favorite-tile')).toHaveAttribute('data-active')
+    expect(iconOf('Dark')?.closest('.favorite-tile')).not.toHaveAttribute('data-active')
   })
 })

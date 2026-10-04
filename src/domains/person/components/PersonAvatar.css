@@ -1,0 +1,75 @@
+/* A person's face: photo or initials, with a presence dot. Drawn for the heartwood header. */
+
+.person {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+/* Lime from the maple's leaf, bright enough to read on heartwood in both themes, ringed
+   in wood so it sits clear of the photo. */
+.person-home::after,
+.person-zone::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--wood);
+  border-radius: 50%;
+  background: #8fd16a;
+}
+
+/* Somewhere named, like work: a hollow dot. */
+.person-zone::after {
+  background: var(--wood);
+  box-shadow: inset 0 0 0 2px var(--on-wood-muted);
+}
+
+.person__avatar {
+  box-sizing: border-box;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgb(255 247 237 / 0.35);
+  background: rgb(255 247 237 / 0.12);
+}
+
+.person-home .person__avatar {
+  border-color: var(--on-wood);
+}
+
+/* Initials and photo share one grid cell; the photo covers the initials once it loads. */
+.person__avatar > * {
+  grid-area: 1 / 1;
+}
+
+.person__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.person__initials {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--on-wood);
+}
+
+.person__name,
+.person__presence {
+  display: none;
+}
+
+.person-away .person__avatar,
+.person-unknown .person__avatar,
+.person-unavailable .person__avatar,
+.person-missing .person__avatar {
+  opacity: 0.6;
+}

@@ -1,0 +1,60 @@
+/* Chip: a small pill. Each tone sets --chip-ink and --chip-fill; an outline's border is
+   the ink at 45% unless the tone sets --chip-line. */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--chip-fill);
+  color: var(--chip-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.chip--neutral {
+  --chip-ink: var(--text-muted);
+  --chip-fill: var(--surface-sunken);
+  --chip-line: var(--border-strong);
+}
+
+.chip--ok {
+  --chip-ink: var(--ok);
+  --chip-fill: color-mix(in srgb, var(--ok) 16%, transparent);
+}
+
+.chip--warn {
+  --chip-ink: var(--warn);
+  --chip-fill: var(--warn-soft);
+}
+
+.chip--danger {
+  --chip-ink: var(--danger);
+  --chip-fill: var(--danger-soft);
+}
+
+.chip--leaf {
+  --chip-ink: var(--leaf);
+  --chip-fill: var(--leaf-soft);
+}
+
+/* The border takes 1 px of the vertical padding, so both variants are the same height. */
+.chip--outline {
+  padding-block: 2px;
+  border: 1px solid var(--chip-line, color-mix(in srgb, var(--chip-ink) 45%, transparent));
+  font-weight: 600;
+}
+
+/* A neutral outline is a plain tag, with no fill. */
+.chip--outline.chip--neutral {
+  background-color: transparent;
+}
+
+.chip--dot::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}

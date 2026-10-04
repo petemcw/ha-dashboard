@@ -1,0 +1,122 @@
+/* Today card: current conditions, stats, the next hours, and sunset. */
+
+/* The mock-up's weather colours. Its icons use these same fixed colours in light and
+   dark, so there is no dark-mode override. */
+.today {
+  --wx-sun: #e0a030;
+  --wx-cloud: #d9cfc4;
+  --wx-cloud-edge: #b8a999;
+}
+
+/* Sun and moon: amber, filled like the mock-up's moon (a sun's rays are lines, so only
+   its disc takes the fill). */
+.wx-icon--sun {
+  color: var(--wx-sun);
+  fill: var(--wx-sun);
+}
+
+/* A pale cloud with a darker edge. */
+.wx-icon--cloud {
+  color: var(--wx-cloud-edge);
+  fill: var(--wx-cloud);
+}
+
+/* Partly cloudy: an amber sun behind the pale cloud. Lucide's cloud-sun draws the cloud
+   as its last path. */
+.wx-icon--partly {
+  color: var(--wx-sun);
+}
+
+.wx-icon--partly path:last-child {
+  stroke: var(--wx-cloud-edge);
+  fill: var(--wx-cloud);
+}
+
+.today__sunset {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.today__status {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.today__main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.today__icon {
+  flex: none;
+}
+
+.today__temp {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 3rem;
+  line-height: 0.9;
+  /* Large slab numerals read loose at default tracking. */
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.today__cond {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.today__hilo {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.today__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+
+.today__stats > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 9px 12px;
+  font-size: 0.8rem;
+}
+
+.today__stats > div + div {
+  border-left: 1px solid var(--border);
+}
+
+.today__stats > div > span:first-child {
+  color: var(--text-muted);
+}
+
+.today__hourly {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+
+.today__hourly li {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+}
+
+.today__hour {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}

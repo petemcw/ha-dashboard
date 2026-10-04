@@ -1,0 +1,9 @@
+/* Pending: the call is in flight. The button stays focusable (aria-disabled, not
+   disabled), so the dimmed icon and the progress cursor are what say "working". */
+.action-button[aria-disabled='true'] {
+  cursor: progress;
+}
+
+.action-button[aria-disabled='true'] > svg {
+  opacity: 0.45;
+}

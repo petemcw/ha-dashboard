@@ -1,0 +1,52 @@
+/* Armed state of the tap-twice confirm: loud enough to notice from across the room. */
+.button--confirm-armed:not(:disabled) {
+  border-color: transparent;
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+/* The global button hover swaps in the surface background, which would leave the light
+   armed text on a light fill. Keep the danger fill and just shift it. */
+@media (hover: hover) {
+  .button--confirm-armed:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--danger) 85%, var(--text));
+  }
+}
+
+/* Sliding confirm: arming widens the button toward its start side, over whatever sits
+   beside it (an attention row's text), instead of taking room from it. Its start margin
+   goes negative exactly as fast as the label grows, so the button's footprint, and the
+   layout around it, never change. Hence a fixed label width (it fits "Confirm?" in the
+   usual system faces and scales with text size). Transitions, not keyframes, so a disarm
+   halfway through reverses from wherever it is. The hit area stays at least 44 px. */
+.button--confirm {
+  --confirm-label: 4.75rem;
+  transition:
+    margin-inline-start 0.22s ease-out,
+    background-color 0.15s,
+    transform 0.1s;
+}
+
+.button--confirm-armed {
+  margin-inline-start: calc(-1 * (var(--confirm-label) + var(--space-2)));
+}
+
+/* Collapsed, the negative margin cancels the button's gap, so the button is just its icon. */
+.button__confirm-text {
+  overflow: hidden;
+  width: 0;
+  margin-inline-start: calc(-1 * var(--space-2));
+  opacity: 0;
+  white-space: nowrap;
+  text-align: start;
+  transition:
+    width 0.22s ease-out,
+    margin-inline-start 0.22s ease-out,
+    opacity 0.15s ease-out;
+}
+
+.button--confirm-armed .button__confirm-text {
+  width: var(--confirm-label);
+  margin-inline-start: 0;
+  opacity: 1;
+}

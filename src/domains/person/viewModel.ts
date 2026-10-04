@@ -1,4 +1,5 @@
 import type { HassEntity } from 'home-assistant-js-websocket'
+import { resolveEntityPicture } from '../entityPicture'
 import type { PersonViewModel, Presence } from './types'
 
 function initialsOf(name: string): string {
@@ -28,12 +29,6 @@ function presenceOf(state: string): Presence {
   return 'zone'
 }
 
-// entity_picture is a relative path and HA is a different origin from the app.
-function resolvePicture(path: unknown, haUrl: string): string | undefined {
-  if (typeof path !== 'string' || path === '') return undefined
-  return new URL(path, haUrl).toString()
-}
-
 export function personViewModel(
   entity: HassEntity | undefined,
   entityId: string,
@@ -59,6 +54,6 @@ export function personViewModel(
     initials: initialsOf(name),
     presence,
     zoneName: presence === 'zone' ? entity.state : undefined,
-    pictureUrl: resolvePicture(entity.attributes.entity_picture, haUrl),
+    pictureUrl: resolveEntityPicture(entity.attributes.entity_picture, haUrl),
   }
 }

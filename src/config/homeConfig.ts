@@ -9,6 +9,9 @@ export type HaAction = {
   entity_id: string
 }
 
+export const LEFT_ON_ICONS = ['garage', 'door', 'heater', 'light', 'fan', 'power'] as const
+export type LeftOnIcon = (typeof LEFT_ON_ICONS)[number]
+
 export type LeftOnRule = {
   id: string
   label: string
@@ -16,6 +19,8 @@ export type LeftOnRule = {
   // State that means "left on" (door: open).
   onState: 'on'
   minutes: number
+  // Badge glyph on the attention row; defaults from the action's domain.
+  icon?: LeftOnIcon
   // Wired up by a later task; the rule carries it so the card can show it disabled.
   action: HaAction
 }
@@ -54,6 +59,21 @@ export type SuggestionsConfig = {
 
 export type CryptoCoin = { symbol: string; entity_id: string }
 
+export type WeatherConfig = { entity_id: string; sun: string }
+
+export type SystemsConfig = {
+  // The chip reads "{label} online" / "{label} offline"; online when the state equals upState.
+  status: { entity_id: string; upState: string; label: string }
+  // Timestamp sensor holding the boot time; label sits under the value.
+  uptime?: { entity_id: string; label: string }
+  // Own upState on purpose: pointing `status` at a Ping sensor must not change these.
+  accessPoints?: { entity_ids: string[]; upState: string }
+  backup?: string
+  cpu?: { label: string; entity_id: string }[]
+}
+
+export type MediaConfig = { players: string[] }
+
 export type HomeConfig = {
   leftOnRules: LeftOnRule[]
   batteryRule: BatteryRule
@@ -64,6 +84,9 @@ export type HomeConfig = {
   crypto: CryptoCoin[]
   // Overrides the person.* entities Home Assistant knows about, in this order.
   people?: string[]
+  weather?: WeatherConfig
+  systems?: SystemsConfig
+  media?: MediaConfig
 }
 
 type Obj = Record<string, unknown>
@@ -92,21 +115,41 @@ const optional = <T>(
 const only = <T extends string>(o: Obj, key: string, path: string, value: T): T =>
   o[key] === value ? value : fail(`${path}.${key}`, `"${value}"`)
 
-const section = (o: Obj, key: string, path: string): Obj =>
-  object(o[key], path ? `${path}.${key}` : key)
+const oneOf =
+  <T extends string>(allowed: readonly T[]) =>
+  (o: Obj, key: string, path: string): T =>
+    allowed.includes(o[key] as T)
+      ? (o[key] as T)
+      : fail(`${path}.${key}`, `one of ${allowed.join(', ')}`)
+
+// The path of `key` inside `path`; the root's path is ''.
+const at = (path: string, key: string) => (path ? `${path}.${key}` : key)
+
+const section = (o: Obj, key: string, path: string): Obj => object(o[key], at(path, key))
+
+// An optional object: absent is undefined, present must parse (a typo is an error, not a
+// hidden card).
+const optionalSection = <T>(
+  o: Obj,
+  key: string,
+  path: string,
+  read: (s: Obj, path: string) => T,
+): T | undefined => (o[key] === undefined ? undefined : read(section(o, key, path), at(path, key)))
 
 const list = <T>(o: Obj, key: string, path: string, read: (item: Obj, path: string) => T): T[] => {
-  const at = path ? `${path}.${key}` : key
   const raw = o[key]
-  if (!Array.isArray(raw)) return fail(at, 'an array')
-  return raw.map((item, i) => read(object(item, `${at}[${i}]`), `${at}[${i}]`))
+  if (!Array.isArray(raw)) return fail(at(path, key), 'an array')
+  return raw.map((item, i) => {
+    const itemPath = `${at(path, key)}[${i}]`
+    return read(object(item, itemPath), itemPath)
+  })
 }
 
 const strings = (o: Obj, key: string, path: string): string[] => {
   const raw = o[key]
-  if (!Array.isArray(raw)) return fail(path ? `${path}.${key}` : key, 'an array')
+  if (!Array.isArray(raw)) return fail(at(path, key), 'an array')
   raw.forEach((v, i) => {
-    if (typeof v !== 'string') fail(`${key}[${i}]`, 'a string')
+    if (typeof v !== 'string') fail(`${at(path, key)}[${i}]`, 'a string')
   })
   return raw as string[]
 }
@@ -116,6 +159,39 @@ const action = (o: Obj, path: string): HaAction => ({
   service: string(o, 'service', path),
   entity_id: string(o, 'entity_id', path),
 })
+
+const weather = (w: Obj, p: string): WeatherConfig => ({
+  entity_id: string(w, 'entity_id', p),
+  sun: optional(w, 'sun', p, string) ?? 'sun.sun',
+})
+
+const systems = (s: Obj, p: string): SystemsConfig => {
+  const status = section(s, 'status', p)
+  return {
+    status: {
+      entity_id: string(status, 'entity_id', `${p}.status`),
+      upState: string(status, 'upState', `${p}.status`),
+      label: string(status, 'label', `${p}.status`),
+    },
+    uptime: optionalSection(s, 'uptime', p, (u, up) => ({
+      entity_id: string(u, 'entity_id', up),
+      label: string(u, 'label', up),
+    })),
+    accessPoints: optionalSection(s, 'accessPoints', p, (a, ap) => ({
+      entity_ids: strings(a, 'entity_ids', ap),
+      upState: string(a, 'upState', ap),
+    })),
+    backup: optional(s, 'backup', p, string),
+    cpu: optional(s, 'cpu', p, (o, key, path) =>
+      list(o, key, path, (c, cp) => ({
+        label: string(c, 'label', cp),
+        entity_id: string(c, 'entity_id', cp),
+      })),
+    ),
+  }
+}
+
+const media = (m: Obj, p: string): MediaConfig => ({ players: strings(m, 'players', p) })
 
 // Checks the shape of a parsed home.json and throws an Error naming the first bad field
 // path (e.g. "leftOnRules[1].minutes must be a number"), so the owner can fix the file.
@@ -134,6 +210,7 @@ export function parseHomeConfig(raw: unknown): HomeConfig {
       entity_id: string(r, 'entity_id', p),
       onState: only(r, 'onState', p, 'on'),
       minutes: number(r, 'minutes', p),
+      icon: optional(r, 'icon', p, oneOf(LEFT_ON_ICONS)),
       action: action(section(r, 'action', p), `${p}.action`),
     })),
     batteryRule: {
@@ -175,5 +252,8 @@ export function parseHomeConfig(raw: unknown): HomeConfig {
       entity_id: string(r, 'entity_id', p),
     })),
     people: optional(root, 'people', '', strings),
+    weather: optionalSection(root, 'weather', '', weather),
+    systems: optionalSection(root, 'systems', '', systems),
+    media: optionalSection(root, 'media', '', media),
   }
 }

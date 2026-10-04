@@ -35,10 +35,16 @@
   --on-danger: light-dark(#ffffff, #1c130e);
   --danger-soft: light-dark(#fbe4e0, #3b1512);
   --warn: light-dark(#a86a12, #e0a030);
+  --warn-soft: light-dark(#f6e6c8, #33240e);
   --on-warn: light-dark(#2a1a12, #1c130e);
   --ok: light-dark(#2f6b4f, #7cc49a);
   --up: var(--ok);
   --down: var(--danger);
+
+  /* A card lifts slightly off the light ground; on bark the border is enough. */
+  --shadow:
+    0 1px 0 light-dark(rgb(84 39 17 / 0.04), transparent),
+    0 8px 20px -16px light-dark(rgb(84 39 17 / 0.45), transparent);
 
   /* Shape and space. Radius grows with the size of the thing. */
   --radius-sm: 10px;

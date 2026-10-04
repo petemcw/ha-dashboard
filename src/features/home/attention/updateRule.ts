@@ -9,5 +9,11 @@ export function updateRule(rule: UpdateRule, vm: UpdateViewModel): RuleResult {
   if (!vm.isPending) return resolved(id)
   const versions =
     vm.installedVersion && vm.latestVersion ? `${vm.installedVersion} → ${vm.latestVersion}` : ''
-  return active({ id, tier: 'chore', title: rule.label ?? vm.friendlyName, detail: versions })
+  return active({
+    id,
+    tier: 'chore',
+    kind: 'update',
+    title: rule.label ?? vm.friendlyName,
+    detail: versions,
+  })
 }

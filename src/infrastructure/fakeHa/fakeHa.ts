@@ -19,6 +19,8 @@ export type FakeHaOptions = {
   failServices?: string[]
   // Per-user app data keyed like `frontend/get_user_data`.
   userData?: Record<string, unknown>
+  // Forecast entries per weather entity, served over `weather/subscribe_forecast`.
+  forecasts?: Record<string, Forecasts>
   // Wait this long before a `call_service` changes state and answers, so a pending UI is
   // visible. Unset (the Playwright mock) answers at once.
   responseDelayMs?: number
@@ -27,6 +29,7 @@ export type FakeHaOptions = {
   onServiceCall?: (call: ServiceCall, house: FakeHouse) => HassEntity[] | void
 }
 
+export type Forecasts = { hourly?: unknown[]; daily?: unknown[] }
 export type ServiceCall = { domain: string; service: string; entityIds: string[] }
 export type FakeHouse = { getState(entityId: string): HassEntity | undefined }
 
@@ -39,6 +42,8 @@ const DEFAULT_USER: FakeUser = { id: 'user-1', name: 'Test User', is_admin: true
 export type FakeHaClient = { send: Send; subs: Map<string, number[]>; stalled: boolean }
 
 const dataChannel = (type: string, key: string) => `${type} ${key}`
+const forecastChannel = (entityId: string, type: string) =>
+  `weather/subscribe_forecast ${entityId} ${type}`
 const toEpoch = (iso: string) => Date.parse(iso) / 1000
 
 function compress(e: HassEntity) {
@@ -65,6 +70,7 @@ export class FakeHa {
   readonly userData = new Map<string, unknown>()
   readonly systemData = new Map<string, unknown>()
   statistics: Record<string, StatisticPoint[]>
+  private forecasts: Record<string, Forecasts>
   private entities = new Map<string, HassEntity>()
   private messages: ClientMessage[] = []
   private clients = new Set<FakeHaClient>()
@@ -75,6 +81,7 @@ export class FakeHa {
   constructor(options: FakeHaOptions = {}) {
     this.user = { ...DEFAULT_USER, ...options.user }
     this.statistics = options.statistics ?? {}
+    this.forecasts = structuredClone(options.forecasts ?? {})
     this.failServices = options.failServices ?? []
     this.responseDelayMs = options.responseDelayMs ?? 0
     this.onServiceCall = options.onServiceCall
@@ -129,6 +136,16 @@ export class FakeHa {
     this.messages.push(msg)
     if (client.stalled) return
     this.handle(client, msg)
+  }
+
+  // Push a new forecast to everyone subscribed to it.
+  setForecast(entityId: string, type: 'hourly' | 'daily', forecast: unknown[]) {
+    this.forecasts[entityId] = { ...this.forecasts[entityId], [type]: forecast }
+    for (const c of this.clients) {
+      for (const id of c.subs.get(forecastChannel(entityId, type)) ?? []) {
+        c.send({ id, type: 'event', event: { type, forecast } })
+      }
+    }
   }
 
   private broadcastEntities(event: unknown) {
@@ -195,6 +212,16 @@ export class FakeHa {
         )
       case 'recorder/statistics_during_period':
         return ok(this.statisticsFor(msg.statistic_ids as string[] | undefined))
+      case 'weather/subscribe_forecast': {
+        const entityId = String(msg.entity_id)
+        const type = msg.forecast_type as 'hourly' | 'daily'
+        if (!this.entities.has(entityId)) {
+          return fail('invalid_entity_id', `Weather entity not found: ${entityId}`)
+        }
+        const forecast = this.forecasts[entityId]?.[type]
+        if (!forecast) return fail('forecast_not_supported', `Entity does not support ${type}`)
+        return subscribe(forecastChannel(entityId, type), { type, forecast })
+      }
       case 'unsubscribe_events':
         // The library unsubscribes every subscription this way, whatever command opened it.
         for (const [type, ids] of client.subs) {

@@ -40,11 +40,41 @@ describe('attention section', () => {
     expect(screen.getByText('Open for 10 min')).toBeInTheDocument()
   })
 
-  it('shows that nothing needs attention when no rule is active', () => {
+  it('hides the Needs attention card when nothing needs attention', () => {
     seed(binarySensorState({ entity_id: DOOR, state: 'off' }))
     render(<AttentionHarness />)
-    expect(screen.getByRole('region', { name: 'Needs attention' })).toBeInTheDocument()
-    expect(screen.getByText('Nothing needs attention')).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Needs attention' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Nothing needs attention')).not.toBeInTheDocument()
+  })
+
+  it('shows neither the card nor the strip when nothing needs attention and nothing is snoozed', () => {
+    seed(binarySensorState({ entity_id: DOOR, state: 'off' }))
+    render(<AttentionHarness />)
+    expect(screen.queryByRole('region')).not.toBeInTheDocument()
+  })
+
+  it('shows a count chip with the urgent and chore counts in the attention card header', () => {
+    seed(
+      binarySensorState({ entity_id: DOOR, state: 'on', last_changed: seconds(NOW) - 12 * 60 }),
+      batterySensorState({ entity_id: 'sensor.door_battery', state: '12' }),
+    )
+    render(<AttentionHarness />)
+    const chip = screen.getByText('1 urgent · 1 chore')
+    expect(chip).toHaveClass('chip--danger')
+  })
+
+  it('counts only chores in the warn style when nothing is urgent', () => {
+    seed(
+      binarySensorState({ entity_id: DOOR, state: 'off' }),
+      batterySensorState({ entity_id: 'sensor.door_battery', state: '12' }),
+      updateState({
+        entity_id: 'update.router_firmware',
+        state: 'on',
+        attributes: { installed_version: '4.3.5', latest_version: '4.3.10' },
+      }),
+    )
+    render(<AttentionHarness />)
+    expect(screen.getByText('2 chores')).toHaveClass('chip--warn')
   })
 
   it('renders chores in a compact row after urgent items', () => {

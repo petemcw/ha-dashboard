@@ -33,7 +33,8 @@ test.describe('snoozing attention items', () => {
     await page.getByRole('button', { name: 'Snooze Front door battery' }).click()
     await page.getByRole('button', { name: '1 week' }).click()
 
-    await expect(page.getByText('1 snoozed')).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Snoozed' })).toContainText('1 snoozed')
+    await expect(page.getByText(/^Snoozed until /)).toBeVisible()
     await expect(choreRow(page)).toHaveCount(0)
     const stored = mockHa.systemData.get(KEY) as {
       version: number

@@ -3,6 +3,22 @@
   "plugins": ["react", "typescript", "oxc"],
   "rules": {
     "react/rules-of-hooks": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "lucide-react",
+            "importNames": ["icons", "DynamicIcon"],
+            "message": "Import icons by name; `icons` and `DynamicIcon` bundle every icon."
+          },
+          {
+            "name": "lucide-react/dynamic",
+            "message": "DynamicIcon bundles every icon. Import icons by name."
+          }
+        ]
+      }
+    ],
     "react/only-export-components": [
       "warn",
       {

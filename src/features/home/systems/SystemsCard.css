@@ -1,0 +1,92 @@
+/* Systems card: stat tiles and CPU bars. */
+
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.stat {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+.stat__k {
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stat__v {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.stat__v small {
+  font-size: 0.8rem;
+}
+
+.stat__s {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+/* CPU bars */
+
+.cpu {
+  display: grid;
+  gap: 10px;
+  margin-top: var(--space-3);
+}
+
+.cpu__row {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+}
+
+.cpu__label {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cpu__track {
+  display: block;
+  height: 5px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+}
+
+.cpu__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ok);
+  /* Width, not a scaleX transform, which would squash the pill's rounded end. The bar is
+     5 px tall and updates every few seconds, so the layout cost is nothing. */
+  transition: width 0.4s ease-out;
+}
+
+.cpu__value,
+.cpu__note {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.cpu__note {
+  grid-column: 2 / -1;
+  color: var(--text-muted);
+}

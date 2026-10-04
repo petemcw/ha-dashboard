@@ -69,6 +69,16 @@ describe('favorites editor', () => {
     expect(lastSaved()).toEqual(saved('switch.fan'))
   })
 
+  it('puts a removed favorite back in its place when the removal is undone', async () => {
+    await renderLoaded(saved('switch.fan', 'light.kitchen'))
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Desk fan' }))
+    // HA pushes the saved list back, as it does after every set.
+    await arrive(saved('light.kitchen'))
+    expect(screen.getByRole('status')).toHaveTextContent('Removed Desk fan')
+    await userEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(lastSaved()).toEqual(saved('switch.fan', 'light.kitchen'))
+  })
+
   it('keeps the previous list and shows an error when saving fails', async () => {
     sent.mockRejectedValue(new Error('nope'))
     await renderLoaded(saved('switch.fan'))

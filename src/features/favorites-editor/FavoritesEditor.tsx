@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { friendlyName } from '../../domains/entityStatus'
 import { useEntity } from '../../infrastructure/entities/useEntity'
 import { useEntityIds } from '../../infrastructure/entities/useEntityIds'
+import { UndoNotice } from '../shared/UndoNotice'
 import { MAX_RESULTS, matchesSearch } from './searchEntities'
 import { useFavoritesEditor } from './useFavoritesEditor'
 
@@ -27,7 +28,7 @@ type ItemProps = {
   last: boolean
   disabled: boolean
   onMove: (by: -1 | 1) => void
-  onRemove: () => void
+  onRemove: (name: string) => void
 }
 
 function Item({ id, first, last, disabled, onMove, onRemove }: ItemProps) {
@@ -54,7 +55,12 @@ function Item({ id, first, last, disabled, onMove, onRemove }: ItemProps) {
       >
         Move down
       </button>
-      <button type="button" disabled={disabled} aria-label={`Remove ${name}`} onClick={onRemove}>
+      <button
+        type="button"
+        disabled={disabled}
+        aria-label={`Remove ${name}`}
+        onClick={() => onRemove(name)}
+      >
         Remove
       </button>
     </li>
@@ -64,6 +70,8 @@ function Item({ id, first, last, disabled, onMove, onRemove }: ItemProps) {
 export function FavoritesEditor() {
   const editor = useFavoritesEditor()
   const [query, setQuery] = useState('')
+  // Removing is one tap with no "are you sure?"; the notice offers the way back instead.
+  const [removed, setRemoved] = useState<{ id: string; index: number; name: string }>()
   const { entityIds } = editor
   const predicate = useMemo(
     () => (e: Parameters<typeof matchesSearch>[0]) => matchesSearch(e, query, entityIds),
@@ -78,6 +86,19 @@ export function FavoritesEditor() {
   return (
     <div className="favorites-editor">
       {editor.error && <p role="alert">{editor.error}</p>}
+      {removed && !editor.error && (
+        <UndoNotice
+          key={removed.id}
+          inline
+          message={`Removed ${removed.name}`}
+          undoDisabled={!editor.canEdit}
+          onUndo={() => {
+            editor.restore(removed.id, removed.index)
+            setRemoved(undefined)
+          }}
+          onDismiss={() => setRemoved(undefined)}
+        />
+      )}
       <ul className="favorites-editor__list" aria-label="Your favorites">
         {entityIds.map((id, i) => (
           <Item
@@ -87,7 +108,10 @@ export function FavoritesEditor() {
             last={i === entityIds.length - 1}
             disabled={!editor.canEdit}
             onMove={(by) => editor.move(id, by)}
-            onRemove={() => editor.remove(id)}
+            onRemove={(name) => {
+              editor.remove(id)
+              setRemoved({ id, index: i, name })
+            }}
           />
         ))}
       </ul>

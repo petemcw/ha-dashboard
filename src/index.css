@@ -922,3 +922,57 @@ input[type='checkbox'] {
   text-align: left;
   overflow-wrap: anywhere;
 }
+
+/* Undo notice */
+
+/* A small heartwood pill at the bottom, the sign's material in miniature. It rises a
+   few pixels as it appears; the Undo sits where a thumb rests. */
+.undo-notice {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + var(--space-4));
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: calc(100% - 2 * var(--space-4));
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--wood);
+  color: var(--on-wood);
+  font-weight: 600;
+  transform: translateX(-50%);
+  animation: notice-in 0.25s ease-out;
+}
+
+.undo-notice .button--quiet {
+  color: #f57520;
+}
+
+.undo-notice--inline {
+  position: static;
+  max-width: none;
+  margin-bottom: var(--space-3);
+  transform: none;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--text);
+  justify-content: space-between;
+}
+
+.undo-notice--inline .button--quiet {
+  color: var(--leaf);
+}
+
+@keyframes notice-in {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .undo-notice {
+    animation: none;
+  }
+}

@@ -1,13 +1,23 @@
+import { useState } from 'react'
+import { UndoNotice } from '../../shared/UndoNotice'
 import { SectionCard } from '../SectionCard'
 import { ChoreRow } from './ChoreRow'
-import { SnoozedList } from './SnoozedList'
+import { SnoozedList, formatUntil } from './SnoozedList'
 import { UrgentItem } from './UrgentItem'
 import type { Attention } from './useAttention'
 
 export function AttentionSection({ attention }: { attention: Attention }) {
   const { items, urgent, chores, snoozed, snoozing } = attention
+  // The item vanishes from the list when snoozed, so say where it went and offer Undo.
+  const [notice, setNotice] = useState<{ id: string; message: string; at: number }>()
   const snooze = snoozing.canSnooze
-    ? { disabled: snoozing.pending, onSnooze: snoozing.snooze }
+    ? {
+        disabled: snoozing.pending,
+        onSnooze: (id: string, duration: Parameters<typeof snoozing.snooze>[1]) => {
+          const until = snoozing.snooze(id, duration)
+          setNotice({ id, message: `Snoozed until ${formatUntil(until)}`, at: Date.now() })
+        },
+      }
     : undefined
   return (
     // No count here: the house sign above already says how many things are waiting.
@@ -29,6 +39,18 @@ export function AttentionSection({ attention }: { attention: Attention }) {
       />
       {!snoozing.readable && <p role="status">Snoozes are unavailable.</p>}
       {snoozing.error && <p role="alert">{snoozing.error}</p>}
+      {notice && !snoozing.error && (
+        <UndoNotice
+          key={notice.at}
+          message={notice.message}
+          undoDisabled={snoozing.pending}
+          onUndo={() => {
+            snoozing.unsnooze(notice.id)
+            setNotice(undefined)
+          }}
+          onDismiss={() => setNotice(undefined)}
+        />
+      )}
     </SectionCard>
   )
 }

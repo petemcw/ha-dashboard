@@ -139,6 +139,34 @@ describe('attention snoozes', () => {
     expect(chore()).toBeTruthy()
   })
 
+  it('confirms a snooze with an undo that takes it back', async () => {
+    const ha = fakeHa(admin)
+    seed('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    fireEvent.click(screen.getByRole('button', { name: 'Snooze Front door battery' }))
+    fireEvent.click(screen.getByRole('button', { name: '1 week' }))
+    await settle()
+    expect(screen.getByText(/^Snoozed until /)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    await settle()
+    expect(ha.writes[1].value).toEqual(stored({}))
+    expect(screen.queryByText(/^Snoozed until /)).not.toBeInTheDocument()
+  })
+
+  it('lets the snooze confirmation go on its own after a few seconds', async () => {
+    const ha = fakeHa(admin)
+    seed('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    fireEvent.click(screen.getByRole('button', { name: 'Snooze Front door battery' }))
+    fireEvent.click(screen.getByRole('button', { name: '1 day' }))
+    await settle()
+    expect(screen.getByText(/^Snoozed until /)).toBeInTheDocument()
+    await act(() => vi.advanceTimersByTimeAsync(10_000))
+    expect(screen.queryByText(/^Snoozed until /)).not.toBeInTheDocument()
+  })
+
   it('lets an admin unsnooze from the snoozed list', async () => {
     const ha = fakeHa(admin, stored({ [ID]: { until: FUTURE, by: 'admin-1' } }))
     seed('12')

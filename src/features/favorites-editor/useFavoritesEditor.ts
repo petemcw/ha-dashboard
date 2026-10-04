@@ -19,6 +19,9 @@ export function useFavoritesEditor() {
     canEdit: loaded && writable && !writer.pending,
     add: (id: string) => edit((ids) => (ids.includes(id) ? ids : [...ids, id])),
     remove: (id: string) => edit((ids) => ids.filter((i) => i !== id)),
+    // Undo for a removal: back where it was, or at the end if the list has shrunk since.
+    restore: (id: string, index: number) =>
+      edit((ids) => (ids.includes(id) ? ids : [...ids.slice(0, index), id, ...ids.slice(index)])),
     move: (id: string, by: -1 | 1) =>
       edit((ids) => {
         const from = ids.indexOf(id)

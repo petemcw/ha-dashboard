@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState, type RefObject } from 'react'
 import { useNow } from '../../../infrastructure/clock/clock'
 import type { AttentionItem } from '../attention/types'
 import { greetingFor } from './greeting'
@@ -14,19 +15,56 @@ type HouseSignProps = {
   onOpenSettings?: () => void
 }
 
+// True once `target` has scrolled up under the sticky bar. Without IntersectionObserver
+// (old browsers, jsdom) the bar simply never collapses.
+function useScrolledUnder(
+  target: RefObject<HTMLElement | null>,
+  bar: RefObject<HTMLElement | null>,
+) {
+  const [under, setUnder] = useState(false)
+  useEffect(() => {
+    const el = target.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(([entry]) => setUnder(!entry.isIntersecting), {
+      rootMargin: `-${bar.current?.offsetHeight ?? 0}px 0px 0px 0px`,
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [target, bar])
+  return under
+}
+
 // The timber sign at the top of the home screen: who we are, the time of day, and the
-// house's state in one sentence, big enough to read from across the room.
+// house's state in one sentence, big enough to read from across the room. Its top row
+// stays pinned as a bar; once the sentence scrolls under it, the bar carries a one-line
+// copy, like an iOS large title collapsing into the navigation bar.
 export function HouseSign({ loaded, urgent, chores, onOpenSettings }: HouseSignProps) {
   const now = useNow()
+  const barRef = useRef<HTMLElement>(null)
+  const statusRef = useRef<HTMLParagraphElement>(null)
+  const collapsed = useScrolledUnder(statusRef, barRef)
+  const status = loaded ? houseStatus(urgent, chores) : 'Connecting to the house…'
+  const isUrgent = urgent.length > 0
+
   return (
-    <header className="sign">
-      <div className="sign__bar">
+    <>
+      <header ref={barRef} className="sign-bar" data-collapsed={collapsed ? '' : undefined}>
         <span className="sign__brand">
           <span className="sign__badge">
             <img src="/maple_frontier_logo.svg" alt="" width={28} height={28} />
           </span>
-          Maple Frontier
+          <span className="sign__name">Maple Frontier</span>
         </span>
+        {collapsed && (
+          // A copy for the eye only: the full sentence below is what assistive tech reads.
+          <span
+            className="sign-bar__status"
+            aria-hidden="true"
+            data-urgent={isUrgent ? '' : undefined}
+          >
+            {status}
+          </span>
+        )}
         <button
           type="button"
           className="icon-button sign__settings"
@@ -45,12 +83,14 @@ export function HouseSign({ loaded, urgent, chores, onOpenSettings }: HouseSignP
             />
           </svg>
         </button>
+      </header>
+      <div className="sign">
+        <p className="sign__greeting">{greetingFor(now)}</p>
+        <p ref={statusRef} className="sign__status" data-urgent={isUrgent ? '' : undefined}>
+          {status}
+        </p>
+        <p className="sign__date">{formatDate(now)}</p>
       </div>
-      <p className="sign__greeting">{greetingFor(now)}</p>
-      <p className="sign__status" data-urgent={urgent.length > 0 ? '' : undefined}>
-        {loaded ? houseStatus(urgent, chores) : 'Connecting to the house…'}
-      </p>
-      <p className="sign__date">{formatDate(now)}</p>
-    </header>
+    </>
   )
 }

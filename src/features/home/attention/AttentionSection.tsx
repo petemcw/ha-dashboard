@@ -1,27 +1,17 @@
-import { getConnection } from '../../../infrastructure/ha/connection'
 import { SectionCard } from '../SectionCard'
 import { ChoreRow } from './ChoreRow'
 import { SnoozedList } from './SnoozedList'
 import { UrgentItem } from './UrgentItem'
-import { useAttentionItems } from './useAttentionItems'
-import { useSnoozes } from './useSnoozes'
+import type { Attention } from './useAttention'
 
-export function AttentionSection({ connect = getConnection }: { connect?: typeof getConnection }) {
-  const { items: all, resolvedIds } = useAttentionItems()
-  const snoozing = useSnoozes(resolvedIds, connect)
-  const items = all.filter((i) => !snoozing.isSnoozed(i.id))
-  const snoozed = all.filter((i) => snoozing.isSnoozed(i.id))
-  const urgent = items.filter((i) => i.tier === 'urgent')
-  const chores = items.filter((i) => i.tier === 'chore')
+export function AttentionSection({ attention }: { attention: Attention }) {
+  const { items, urgent, chores, snoozed, snoozing } = attention
   const snooze = snoozing.canSnooze
     ? { disabled: snoozing.pending, onSnooze: snoozing.snooze }
     : undefined
   return (
-    <SectionCard
-      title="Needs attention"
-      className="attention"
-      aside={items.length > 0 && <span className="count">{items.length}</span>}
-    >
+    // No count here: the house sign above already says how many things are waiting.
+    <SectionCard title="Needs attention" className="attention">
       {items.length === 0 && <p className="all-clear">Nothing needs attention</p>}
       {urgent.length > 0 && (
         <ul className="urgent-list">

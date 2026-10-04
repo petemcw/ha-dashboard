@@ -17,7 +17,7 @@ export function KioskTokenForm({ error, onSubmit }: KioskTokenFormProps) {
 
   return (
     <main className="kiosk-token">
-      <form className="card kiosk-token__form" onSubmit={submit}>
+      <form className="panel kiosk-token__form" onSubmit={submit}>
         <img src="/maple_frontier_logo.svg" alt="" width={56} height={56} />
         <h1>Set up this screen</h1>
         <label htmlFor="kiosk-token-input">Long-lived access token</label>

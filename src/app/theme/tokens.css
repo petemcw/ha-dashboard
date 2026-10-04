@@ -1,40 +1,49 @@
-/* Maple Frontier tokens. Colors come from the icon: warm ivory, maple brown, and the
-   leaf's orange. Each color is defined once with light-dark(); `color-scheme` picks the
-   side, so the System / Light / Dark override only has to set color-scheme. */
+/* Maple Frontier tokens, taken from the icon: birch-ivory ground, heartwood and bark
+   browns from the timber house, and the maple's red-orange as the one live accent.
+   Each color is defined once with light-dark(); `color-scheme` picks the side, so the
+   System / Light / Dark override only has to set color-scheme. */
 :root {
   color-scheme: light dark;
 
-  /* Surfaces */
-  --surface: light-dark(#fff7ed, #1a1411);
-  --surface-raised: light-dark(#fffdf9, #241c18);
-  --surface-sunken: light-dark(#f6ebdd, #140f0d);
-  --border: light-dark(#eadbc8, #3a2e27);
-  --border-strong: light-dark(#cdb79f, #574437);
+  /* Ground */
+  --surface: light-dark(#fff7ed, #1c130e);
+  --surface-raised: light-dark(#fffdf9, #271b14);
+  --surface-sunken: light-dark(#f5e9da, #140d0a);
+  --border: light-dark(#e9d8c4, #3a2a20);
+  --border-strong: light-dark(#cdb49a, #5a4232);
 
-  /* Text */
-  --text: light-dark(#2a1a12, #f5ede6);
-  --text-muted: light-dark(#6f5a4a, #bdaea2);
+  /* Text: bark brown, not a tinted black. */
+  --text: light-dark(#3e1c0d, #f6ede3);
+  --text-muted: light-dark(#6e5243, #c2ae9e);
 
-  /* Brand */
-  --accent: light-dark(#542711, #e08a4f);
-  --on-accent: light-dark(#fff7ed, #1a1411);
+  /* The sign: heartwood with birch lettering, in both themes. */
+  --wood: light-dark(#542711, #3e1c0d);
+  --on-wood: #fff7ed;
+  --on-wood-muted: #e9cdb5;
+
+  /* Primary actions: heartwood in light, the leaf in dark (heartwood vanishes on bark). */
+  --accent: light-dark(#542711, #f57520);
+  --on-accent: light-dark(#fff7ed, #1c130e);
   --accent-soft: light-dark(#f3e1d0, #3a2418);
-  --leaf: light-dark(#c2410c, #f08a4b);
 
-  /* Status. `--warn` and `--danger` are for fills and bars; text on them uses --on-*. */
-  --warn: light-dark(#b7791f, #e0a030);
-  --on-warn: light-dark(#2a1a12, #1a1411);
-  --warn-soft: light-dark(#fbefd6, #3a2c14);
-  --danger: light-dark(#b42318, #f07060);
-  --on-danger: light-dark(#ffffff, #1a1411);
-  --danger-soft: light-dark(#fde8e4, #3d1d18);
-  --ok: light-dark(#2f7d4a, #6cc08b);
-  --up: light-dark(#2f7d4a, #6cc08b);
-  --down: light-dark(#b42318, #f07060);
+  /* The maple: things that are on or live. Darkened in light mode to read as text. */
+  --leaf: light-dark(#b9300c, #f57520);
+  --leaf-soft: light-dark(#fbe3d6, #3a1a0e);
 
-  /* Shape and space */
+  /* Status. Urgent is the icon's deepest leaf red; chores are ochre; home is spruce. */
+  --danger: light-dark(#991b13, #f0705f);
+  --on-danger: light-dark(#ffffff, #1c130e);
+  --danger-soft: light-dark(#fbe4e0, #3b1512);
+  --warn: light-dark(#a86a12, #e0a030);
+  --on-warn: light-dark(#2a1a12, #1c130e);
+  --ok: light-dark(#2f6b4f, #7cc49a);
+  --up: var(--ok);
+  --down: var(--danger);
+
+  /* Shape and space. Radius grows with the size of the thing. */
   --radius-sm: 10px;
-  --radius: 16px;
+  --radius: 14px;
+  --radius-lg: 24px;
   --radius-pill: 999px;
   --space-1: 4px;
   --space-2: 8px;
@@ -42,17 +51,15 @@
   --space-4: 16px;
   --space-5: 24px;
   --space-6: 32px;
-  --shadow:
-    0 1px 2px light-dark(rgb(84 39 17 / 0.06), rgb(0 0 0 / 0.3)),
-    0 4px 16px light-dark(rgb(84 39 17 / 0.06), rgb(0 0 0 / 0.25));
 
-  /* Type */
+  /* Type: a slab like a routed cedar trail sign for headings, the system face for body. */
   --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  --font-display: 'Zilla Slab', Rockwell, 'Roboto Slab', Georgia, serif;
   --text-sm: 0.875rem;
   --text-base: 1rem;
   --text-lg: 1.25rem;
   --text-xl: 1.75rem;
+  --text-sign: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem);
 
   /* While the connection is down, content stays readable but clearly not live. */
   --stale-opacity: 0.7;

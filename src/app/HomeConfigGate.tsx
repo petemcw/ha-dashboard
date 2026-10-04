@@ -20,7 +20,7 @@ export function HomeConfigGate({
   if (state.kind === 'failed') {
     return (
       <main className="home">
-        <p role="alert" className="card setup-error">
+        <p role="alert" className="panel setup-error">
           This dashboard needs a home.json that lists your entities. Copy home.example.json to
           home.json, edit it, and serve it as /home.json (see deploy/compose.yml). {state.message}
         </p>

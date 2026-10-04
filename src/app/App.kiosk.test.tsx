@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ERR_INVALID_AUTH } from 'home-assistant-js-websocket'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -38,6 +38,9 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  // Unmount before resetting the connection: a still-mounted screen can otherwise open a
+  // new one from this test's storage, and the next test would inherit it.
+  cleanup()
   resetConnection()
   entityStore.reset()
   connectionStatus.set({ kind: 'connecting' })

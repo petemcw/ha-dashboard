@@ -21,8 +21,9 @@ function writePreference(pref: ThemePreference) {
   }
 }
 
-// Browser chrome (status bar, address bar) colors, matching --surface in tokens.css.
-const THEME_COLORS = { light: '#fff7ed', dark: '#1a1411' } as const
+// Browser chrome (status bar, address bar) colors, matching --wood in tokens.css so the
+// sign runs up under the status bar.
+const THEME_COLORS = { light: '#542711', dark: '#3e1c0d' } as const
 
 // `system` removes data-theme so the prefers-color-scheme rules in tokens.css apply.
 function applyPreference(pref: ThemePreference) {

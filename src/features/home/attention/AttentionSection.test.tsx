@@ -6,7 +6,7 @@ import { binarySensorState } from '../../../domains/binary_sensor/factories'
 import { batterySensorState, sensorState } from '../../../domains/sensor/factories'
 import { updateState } from '../../../domains/update/factories'
 import { entityStore } from '../../../infrastructure/entities/entityStore'
-import { AttentionSection } from './AttentionSection'
+import { AttentionHarness } from '../../../test/AttentionHarness'
 import { calmHouse } from './factories'
 
 const NOW = new Date('2026-10-03T12:00:00Z')
@@ -32,7 +32,7 @@ describe('attention section', () => {
   it('shows a left-on item when the clock passes the threshold without a reload', () => {
     // Opened 9 minutes ago: under the 10 minute threshold.
     seed(binarySensorState({ entity_id: DOOR, state: 'on', last_changed: seconds(NOW) - 9 * 60 }))
-    render(<AttentionSection />)
+    render(<AttentionHarness />)
     expect(screen.queryByText('Garage door')).not.toBeInTheDocument()
 
     act(() => vi.advanceTimersByTime(60_000))
@@ -42,7 +42,7 @@ describe('attention section', () => {
 
   it("renders the item's action as disabled with an explanation", () => {
     seed(binarySensorState({ entity_id: DOOR, state: 'on', last_changed: seconds(NOW) - 12 * 60 }))
-    render(<AttentionSection />)
+    render(<AttentionHarness />)
     const button = screen.getByRole('button', { name: 'Close garage door' })
     expect(button).toBeDisabled()
     expect(button).toHaveAccessibleDescription('Available when controls are enabled')
@@ -50,7 +50,7 @@ describe('attention section', () => {
 
   it('shows that nothing needs attention when no rule is active', () => {
     seed(binarySensorState({ entity_id: DOOR, state: 'off' }))
-    render(<AttentionSection />)
+    render(<AttentionHarness />)
     expect(screen.getByRole('region', { name: 'Needs attention' })).toBeInTheDocument()
     expect(screen.getByText('Nothing needs attention')).toBeInTheDocument()
   })
@@ -69,7 +69,7 @@ describe('attention section', () => {
         attributes: { installed_version: '4.3.5', latest_version: '4.3.10' },
       }),
     )
-    render(<AttentionSection />)
+    render(<AttentionHarness />)
     const chores = screen.getByRole('list', { name: 'Chores' })
     expect(within(chores).getByText('Front door battery')).toBeInTheDocument()
     expect(within(chores).getByText('12%')).toBeInTheDocument()
@@ -85,7 +85,7 @@ describe('attention section', () => {
       sensorState({ entity_id: 'sensor.printer_ink', state: '9' }),
       sensorState({ entity_id: 'sensor.furnace_filter_days_remaining', state: '-4' }),
     )
-    render(<AttentionSection />)
+    render(<AttentionHarness />)
     const link = screen.getByRole('link', { name: 'Reorder toner' })
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')

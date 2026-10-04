@@ -37,7 +37,7 @@ test('closing the garage door takes two taps and sends one switch.toggle', async
   await close.click()
   expect(toggles(mockHa)).toHaveLength(0)
 
-  const confirm = region.getByRole('button', { name: 'Tap again to close' })
+  const confirm = region.getByRole('button', { name: 'Tap to close' })
   await expect(confirm).toBeVisible()
   await page.waitForTimeout(600)
   await confirm.click()
@@ -57,7 +57,7 @@ test('sends nothing when the door closed between the two taps', async ({ page, m
   await page.goto('/')
   const region = page.getByRole('region', { name: 'Needs attention' })
   await region.getByRole('button', { name: 'Close garage door' }).click()
-  await expect(region.getByRole('button', { name: 'Tap again to close' })).toBeVisible()
+  await expect(region.getByRole('button', { name: 'Tap to close' })).toBeVisible()
   mockHa.setState(binarySensorState({ entity_id: 'binary_sensor.garage_door', state: 'off' }))
   await expect(region.getByText('Garage door', { exact: true })).toBeHidden()
   await page.waitForTimeout(600)

@@ -39,7 +39,7 @@ describe('left-on rule', () => {
         action: {
           label: 'Close garage door',
           pendingLabel: 'Closing…',
-          confirmLabel: 'Tap again to close',
+          confirmLabel: 'Tap to close',
           ha: doorRule.action,
           sensorId: 'binary_sensor.garage_door',
           onState: 'on',

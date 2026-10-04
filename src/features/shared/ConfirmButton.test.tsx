@@ -9,7 +9,7 @@ function setup(props: Props = {}) {
   const ui = (p: Props) => (
     <ConfirmButton
       label="Close garage door"
-      confirmLabel="Tap again to close"
+      confirmLabel="Tap to close"
       pendingLabel="Closing…"
       onConfirm={onConfirm}
       {...p}
@@ -35,14 +35,14 @@ describe('ConfirmButton', () => {
   it('shows the confirm label after the first tap', async () => {
     setup()
     tap('Close garage door')
-    expect(screen.getByRole('button', { name: 'Tap again to close' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tap to close' })).toBeInTheDocument()
   })
 
   it('calls onConfirm when tapped again while armed', async () => {
     const { onConfirm } = setup()
     tap('Close garage door')
     await act(() => vi.advanceTimersByTimeAsync(600))
-    tap('Tap again to close')
+    tap('Tap to close')
     expect(onConfirm).toHaveBeenCalledTimes(1)
     expect(screen.getByRole('button', { name: 'Close garage door' })).toBeInTheDocument()
   })
@@ -66,16 +66,16 @@ describe('ConfirmButton', () => {
   it('announces the armed state to screen readers', async () => {
     setup()
     tap('Close garage door')
-    expect(screen.getByRole('status')).toHaveTextContent('Tap again to close')
+    expect(screen.getByRole('status')).toHaveTextContent('Tap to close')
   })
 
   it('ignores a second tap that comes within half a second of arming', async () => {
     const { onConfirm } = setup()
     tap('Close garage door')
     await act(() => vi.advanceTimersByTimeAsync(200))
-    tap('Tap again to close')
+    tap('Tap to close')
     expect(onConfirm).not.toHaveBeenCalled()
-    expect(screen.getByRole('button', { name: 'Tap again to close' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tap to close' })).toBeInTheDocument()
   })
 
   it('shows the pending label and ignores taps while pending', async () => {

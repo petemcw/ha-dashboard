@@ -64,14 +64,14 @@ describe('left-on attention actions', () => {
     show()
     fireEvent.click(screen.getByRole('button', { name: 'Close garage door' }))
     expect(fake.calls).toEqual([])
-    expect(screen.getByRole('button', { name: 'Tap again to close' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tap to close' })).toBeInTheDocument()
   })
 
   it('sends switch.toggle for the garage opener on the confirming tap', () => {
     seed(doorOpen())
     show()
     arm('Close garage door')
-    fireEvent.click(screen.getByRole('button', { name: 'Tap again to close' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tap to close' }))
     expect(fake.calls).toEqual([
       { domain: 'switch', service: 'toggle', data: undefined, target: { entity_id: OPENER } },
     ])
@@ -81,7 +81,7 @@ describe('left-on attention actions', () => {
     seed(doorOpen())
     show()
     arm('Close garage door')
-    const confirm = screen.getByRole('button', { name: 'Tap again to close' })
+    const confirm = screen.getByRole('button', { name: 'Tap to close' })
     // The store moves between the last render and the tap.
     seed(doorOpen('off'))
     fireEvent.click(confirm)
@@ -152,14 +152,14 @@ describe('left-on attention actions', () => {
     seed(doorOpen())
     show()
     arm('Close garage door')
-    fireEvent.click(screen.getByRole('button', { name: 'Tap again to close' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tap to close' }))
     fake.reject(new ServiceCallError('rejected'))
     await flush()
     expect(screen.getByText("Didn't work, tap to retry")).toBeInTheDocument()
 
     arm('Close garage door')
     expect(fake.calls).toHaveLength(1)
-    fireEvent.click(screen.getByRole('button', { name: 'Tap again to close' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tap to close' }))
     expect(fake.calls).toHaveLength(2)
   })
 })

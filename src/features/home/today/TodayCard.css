@@ -59,6 +59,9 @@
   font-weight: 600;
   font-size: 3rem;
   line-height: 0.9;
+  /* Large slab numerals read loose at default tracking. */
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 .today__cond {
@@ -70,6 +73,7 @@
 .today__hilo {
   color: var(--text-muted);
   font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .today__stats {

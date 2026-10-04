@@ -1,11 +1,14 @@
 import { Clock } from 'lucide-react'
-import { useId, useState } from 'react'
+import { useId, useLayoutEffect, useRef, useState } from 'react'
 import { Chip } from '../../shared/Chip'
+import { canAnimate, foldAway } from '../../shared/motion'
 import { UndoNotice } from '../../shared/UndoNotice'
+import { LEAVE_MS, useLeavingItems } from '../../shared/useLeavingItems'
 import { SectionCard } from '../SectionCard'
 import { AttentionRow } from './AttentionRow'
 import { SnoozedList } from './SnoozedList'
 import { formatUntil } from './snoozes'
+import type { AttentionItem } from './types'
 import type { Attention } from './useAttention'
 import './AttentionSection.css'
 
@@ -45,6 +48,12 @@ export function AttentionSection({ attention }: { attention: Attention }) {
       hidden={!expanded}
     />
   )
+  // A resolved or snoozed item folds out of the list rather than vanishing; when the last
+  // one goes, the whole card folds away with it.
+  const animate = canAnimate()
+  const shownUrgent = useLeavingItems(urgent, itemKey, animate)
+  const shownChores = useLeavingItems(chores, itemKey, animate)
+  const card = useRef<HTMLElement>(null)
   // The card and the strip never both show, so they never both show the failure.
   const status = (
     <>
@@ -52,28 +61,37 @@ export function AttentionSection({ attention }: { attention: Attention }) {
       {snoozing.error && <p role="alert">{snoozing.error}</p>}
     </>
   )
-  const showCard = items.length > 0
+  const showCard = shownUrgent.length + shownChores.length > 0
+  const cardLeaving = showCard && items.length === 0
+  useLayoutEffect(() => {
+    if (cardLeaving && card.current) foldAway(card.current, LEAVE_MS)
+  }, [cardLeaving])
   const showStrip = !showCard && snoozed.length > 0
+  // While the card folds away, its chip keeps the counts it had.
+  const counted = (shown: typeof shownUrgent) =>
+    cardLeaving ? shown.length : shown.filter((s) => !s.leaving).length
   return (
     <>
       {showCard && (
         <SectionCard
+          ref={card}
+          inert={cardLeaving}
           title="Needs attention"
-          className="attention"
-          chip={countChip(urgent.length, chores.length)}
+          className={cardLeaving ? 'attention card--leaving' : 'attention'}
+          chip={countChip(counted(shownUrgent), counted(shownChores))}
         >
           {/* Chores share the row layout with urgent items; the badge colour tells them apart. */}
-          {urgent.length > 0 && (
+          {shownUrgent.length > 0 && (
             <ul className="urgent-list">
-              {urgent.map((item) => (
-                <AttentionRow key={item.id} item={item} snooze={snooze} />
+              {shownUrgent.map(({ item, leaving }) => (
+                <AttentionRow key={item.id} item={item} snooze={snooze} leaving={leaving} />
               ))}
             </ul>
           )}
-          {chores.length > 0 && (
+          {shownChores.length > 0 && (
             <ul className="chore-row" aria-label="Chores">
-              {chores.map((item) => (
-                <AttentionRow key={item.id} item={item} snooze={snooze} />
+              {shownChores.map(({ item, leaving }) => (
+                <AttentionRow key={item.id} item={item} snooze={snooze} leaving={leaving} />
               ))}
             </ul>
           )}
@@ -116,6 +134,8 @@ export function AttentionSection({ attention }: { attention: Attention }) {
     </>
   )
 }
+
+const itemKey = (item: AttentionItem) => item.id
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 

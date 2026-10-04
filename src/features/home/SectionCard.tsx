@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { useId, type ReactNode } from 'react'
+import { useId, type ReactNode, type Ref } from 'react'
 
 type SectionCardProps = {
   title: string
@@ -8,14 +8,30 @@ type SectionCardProps = {
   chip?: ReactNode
   className?: string
   children?: ReactNode
+  ref?: Ref<HTMLElement>
+  // Set while the card animates out, so nothing in it can be tapped or focused.
+  inert?: boolean
 }
 
 // A home screen section: a boxed card named by its own visible heading, so the region a
 // screen reader lands on and the heading a person reads are the same words.
-export function SectionCard({ title, icon: Icon, chip, className, children }: SectionCardProps) {
+export function SectionCard({
+  title,
+  icon: Icon,
+  chip,
+  className,
+  children,
+  ref,
+  inert,
+}: SectionCardProps) {
   const headingId = useId()
   return (
-    <section aria-labelledby={headingId} className={['card', className].filter(Boolean).join(' ')}>
+    <section
+      ref={ref}
+      inert={inert}
+      aria-labelledby={headingId}
+      className={['card', className].filter(Boolean).join(' ')}
+    >
       <header className="card__header">
         <h2 id={headingId} className="card__title">
           {Icon && <Icon className="card__icon" size={14} aria-hidden="true" />}

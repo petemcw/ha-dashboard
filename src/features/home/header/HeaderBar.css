@@ -11,7 +11,9 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-3);
+  /* 8 px columns on a phone: "Good afternoon" needs 143 px beside the widest time
+     ("12:58 pm"), with nothing to spare at 393 px. */
+  gap: var(--space-2);
   padding: calc(env(safe-area-inset-top) + 10px) var(--bar-gutter) 10px;
   background: var(--wood);
   color: var(--on-wood);
@@ -69,7 +71,7 @@
 .header-bar__clock {
   display: grid;
   /* On a phone a single hairline sets the time apart from the tools. */
-  padding-inline-end: 14px;
+  padding-inline-end: var(--space-2);
   border-inline-end: 1px solid rgb(255 247 237 / 0.18);
   text-align: right;
   line-height: 1.05;
@@ -79,6 +81,9 @@
   font-family: var(--font-display);
   font-size: 1.3rem;
   font-weight: 600;
+  /* Proportional digits change the time's width every minute, which nudges the hairlines
+     beside it. */
+  font-variant-numeric: tabular-nums;
 }
 
 .header-bar__time small {

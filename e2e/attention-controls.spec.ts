@@ -1,4 +1,4 @@
-import type { Locator } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { scriptState } from '../src/domains/script/factories.ts'
 import { sensorState } from '../src/domains/sensor/factories.ts'
 import { binarySensorState } from '../src/domains/binary_sensor/factories.ts'
@@ -93,35 +93,40 @@ test('Mark replaced takes two taps and sends one script.turn_on for the reset sc
   await expect(region.getByText('Water filter', { exact: true })).toBeHidden()
 })
 
-test('the armed confirm animates its reveal without a motion preference and not with reduced motion', async ({
+test('the confirm label slides open when armed and closed when disarmed, unless motion is reduced', async ({
   page,
   mockHa,
 }) => {
   mockHa.setState(openDoor())
   await page.goto('/')
   const region = page.getByRole('region', { name: 'Needs attention' })
+  const label = region.locator('.button--confirm .button__confirm-text')
   const arm = async () => {
     await region.getByRole('button', { name: 'Close garage door' }).click()
     const armed = region.getByRole('button', { name: 'Confirm close garage door' })
-    await expect(armed).toContainText('Confirm?')
+    await expect(label).toBeVisible()
     return armed
   }
-  // The animation-name outlasts the 0.22 s run, so this isn't a race against it.
-  const reveal = (armed: Locator) =>
-    armed
-      .locator('.button__confirm-text')
-      .evaluate((el) => el.ownerDocument.defaultView!.getComputedStyle(el).animationName)
+  const duration = (el: Locator) =>
+    el.evaluate((node) =>
+      parseFloat(node.ownerDocument.defaultView!.getComputedStyle(node).transitionDuration),
+    )
 
   await page.emulateMedia({ reducedMotion: 'no-preference' })
-  const animated = await arm()
-  expect(await reveal(animated)).toBe('confirm-reveal')
-  // Disarm by tapping elsewhere, then arm again under reduced motion.
+  // Collapsed, not absent: a transition can only run back from where the label is.
+  await expect(label).toBeAttached()
+  await expect(label).toBeHidden()
+  expect(await duration(label)).toBeGreaterThan(0)
+  await arm()
+  // Disarming collapses the label again instead of dropping it in one frame.
   await page.mouse.click(5, 5)
   await expect(region.getByRole('button', { name: 'Close garage door' })).toBeVisible()
+  await expect(label).toBeAttached()
+  await expect(label).toBeHidden()
 
   await page.emulateMedia({ reducedMotion: 'reduce' })
+  expect(await duration(label)).toBe(0)
   const still = await arm()
-  expect(await reveal(still)).toBe('none')
   // The button and everything inside it, not just its children.
   const running = await still.evaluate((el) => el.getAnimations({ subtree: true }).length)
   expect(running).toBe(0)
@@ -136,4 +141,49 @@ test('tapping elsewhere disarms the confirm without sending', async ({ page, moc
   await page.mouse.click(5, 5)
   await expect(region.getByRole('button', { name: 'Close garage door' })).toBeVisible()
   expect(toggles(mockHa)).toHaveLength(0)
+})
+
+// Records every attention row or card that was ever marked leaving, and whether it was
+// inert by then, since a leave lasts a quarter of a second.
+const recordLeaving = (page: Page) =>
+  page.addInitScript(`
+    window.leaving = []
+    new MutationObserver((records) => {
+      for (const { target } of records)
+        for (const name of ['attention-item--leaving', 'card--leaving'])
+          if (target.classList.contains(name)) window.leaving.push(name + ' inert=' + target.inert)
+    }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] })
+  `)
+const leaving = (page: Page) => page.evaluate('window.leaving') as Promise<string[]>
+const closedDoor = () => binarySensorState({ entity_id: 'binary_sensor.garage_door', state: 'off' })
+
+test('a resolved row and the emptied card fold away instead of vanishing', async ({
+  page,
+  mockHa,
+}) => {
+  await recordLeaving(page)
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  mockHa.setState(openDoor())
+  await page.goto('/')
+  const region = page.getByRole('region', { name: 'Needs attention' })
+  await expect(region.getByText('Garage door', { exact: true })).toBeVisible()
+
+  mockHa.setState(closedDoor())
+  await expect(region).toBeHidden()
+  expect(await leaving(page)).toEqual(
+    expect.arrayContaining(['attention-item--leaving inert=true', 'card--leaving inert=true']),
+  )
+})
+
+test('a resolved row goes at once with reduced motion', async ({ page, mockHa }) => {
+  await recordLeaving(page)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  mockHa.setState(openDoor())
+  await page.goto('/')
+  const region = page.getByRole('region', { name: 'Needs attention' })
+  await expect(region.getByText('Garage door', { exact: true })).toBeVisible()
+
+  mockHa.setState(closedDoor())
+  await expect(region).toBeHidden()
+  expect(await leaving(page)).toEqual([])
 })

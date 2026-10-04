@@ -1,3 +1,4 @@
+import type { Locator } from '@playwright/test'
 import { lightState } from '../src/domains/light/factories.ts'
 import { switchState } from '../src/domains/switch/factories.ts'
 import { FAVORITES_KEY as KEY } from '../src/features/home/favorites/favoritesValue.ts'
@@ -131,6 +132,29 @@ test.describe('favorite tiles', () => {
     await expect(icon('Kitchen')).toHaveCSS('background-color', leaf)
     await expect(tile('Desk fan')).not.toHaveCSS('background-color', leafSoft)
     await expect(icon('Desk fan')).not.toHaveCSS('background-color', leaf)
+  })
+
+  test('eases a tile and its icon between off and on, but not with reduced motion', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    const region = page.getByRole('region', { name: 'Favorites' })
+    await expect(region.getByRole('button', { name: 'Kitchen' })).toBeVisible()
+    const tile = region.getByRole('listitem').filter({ hasText: 'Kitchen' })
+    const easing = (el: Locator) =>
+      el.evaluate((node) => {
+        const s = node.ownerDocument.defaultView!.getComputedStyle(node)
+        return { property: s.transitionProperty, duration: parseFloat(s.transitionDuration) }
+      })
+
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    for (const el of [tile, tile.locator('svg')]) {
+      const { property, duration } = await easing(el)
+      expect(property).toContain('background-color')
+      expect(duration).toBeGreaterThan(0)
+    }
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    for (const el of [tile, tile.locator('svg')]) expect((await easing(el)).duration).toBe(0)
   })
 
   test.describe('in a phone-width card', () => {

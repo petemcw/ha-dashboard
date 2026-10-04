@@ -46,3 +46,23 @@ test('shows a CPU bar per configured device in the Systems card', async ({ page 
   await expect(card.getByRole('meter', { name: 'Gateway CPU' })).toBeVisible()
   await expect(card.getByText('47%')).toBeVisible()
 })
+
+test('eases a CPU bar to a new reading, but not with reduced motion', async ({ page }) => {
+  await page.goto('/')
+  const fill = page
+    .getByRole('region', { name: 'Systems' })
+    .getByRole('meter', { name: 'Gateway CPU' })
+    .locator('span')
+  const easing = () =>
+    fill.evaluate((node) => {
+      const s = node.ownerDocument.defaultView!.getComputedStyle(node)
+      return { property: s.transitionProperty, duration: parseFloat(s.transitionDuration) }
+    })
+
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  const { property, duration } = await easing()
+  expect(property).toContain('width')
+  expect(duration).toBeGreaterThan(0)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  expect((await easing()).duration).toBe(0)
+})

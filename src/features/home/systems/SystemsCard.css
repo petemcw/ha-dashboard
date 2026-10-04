@@ -75,6 +75,9 @@
   height: 100%;
   border-radius: inherit;
   background: var(--ok);
+  /* Width, not a scaleX transform, which would squash the pill's rounded end. The bar is
+     5 px tall and updates every few seconds, so the layout cost is nothing. */
+  transition: width 0.4s ease-out;
 }
 
 .cpu__value,

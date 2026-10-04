@@ -19,6 +19,10 @@
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: var(--surface-sunken);
+  /* HA's state change is the tap's result; easing it in ties the two together. */
+  transition:
+    background-color 0.2s ease-out,
+    border-color 0.2s ease-out;
 }
 
 .favorite-tile[data-active] {
@@ -47,6 +51,7 @@
 
 .favorite-state {
   color: var(--text-muted);
+  transition: color 0.2s ease-out;
   font-size: 0.75rem;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -116,6 +121,9 @@
   border-radius: 50%;
   background: var(--surface);
   color: var(--text-muted);
+  transition:
+    background-color 0.2s ease-out,
+    color 0.2s ease-out;
 }
 
 .favorite-tile[data-active] .favorite-icon {

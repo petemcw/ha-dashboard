@@ -20,6 +20,14 @@
   list-style: none;
 }
 
+/* Flex, not grid: a row folding away pulls the gap after it shut with a negative margin,
+   which a grid track ignores. */
+.urgent-list,
+.chore-row {
+  display: flex;
+  flex-direction: column;
+}
+
 /* Attention rows: badge, text, actions on one line, the failure under them.
    Actions never wrap beneath the text; a long title wraps inside its own column. */
 .urgent-list,
@@ -174,4 +182,12 @@
 .snoozed__list span {
   color: var(--text-muted);
   font-size: var(--text-sm);
+}
+
+/* Folding away (see foldAway): height and padding animate to zero, so the content must be
+   clipped and the height must include the padding. */
+.attention-item--leaving,
+.card--leaving {
+  box-sizing: border-box;
+  overflow: hidden;
 }

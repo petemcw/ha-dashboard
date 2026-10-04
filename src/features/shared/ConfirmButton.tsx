@@ -103,8 +103,12 @@ export function ConfirmButton({
         onPress={handleClick}
       >
         {icon}
-        {/* The accessible name is confirmLabel; the visible word stays short. */}
-        {armed && !pending && <span className="button__confirm-text">Confirm?</span>}
+        {/* The accessible name is confirmLabel; the visible word stays short. Always
+            rendered, collapsed while unarmed, so disarming slides it shut from wherever it
+            is instead of dropping it in one frame. */}
+        <span className="button__confirm-text" aria-hidden="true">
+          Confirm?
+        </span>
       </ActionButton>
       {/* A changing button name isn't announced on its own. */}
       <span className="visually-hidden" role="status">

@@ -90,3 +90,21 @@ test.describe('without forecasts', () => {
     await expect(today.getByText(/Sunset/)).toHaveCount(0)
   })
 })
+
+test('tightens the large temperature and sets the numbers in fixed-width digits', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const today = page.getByRole('region', { name: 'Today' })
+  const temp = today.getByText('54°')
+  await expect(temp).toBeVisible()
+  const tracking = await temp.evaluate((el) =>
+    parseFloat(el.ownerDocument.defaultView!.getComputedStyle(el).letterSpacing),
+  )
+  expect(tracking).toBeLessThan(0)
+  await expect(temp).toHaveCSS('font-variant-numeric', 'tabular-nums')
+  await expect(today.getByText('High 61° · Low 44°')).toHaveCSS(
+    'font-variant-numeric',
+    'tabular-nums',
+  )
+})

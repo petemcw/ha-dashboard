@@ -79,3 +79,29 @@ test('keeps the theme chosen in the header after a reload', async ({ page }) => 
   // --surface in dark: #1c130e.
   await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(28, 19, 14)')
 })
+
+// Colour transitions running on <body> right now. The page ground has no transition of its
+// own (buttons and tiles do), so one here means the whole page is easing.
+const colourTransitions = (page: Page) =>
+  page.evaluate(
+    `document.body.getAnimations().filter((a) => a.transitionProperty === 'background-color').length`,
+  ) as Promise<number>
+
+test('eases the page into the new theme instead of flipping it in one frame', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'no-preference' })
+  await page.goto('/')
+  await expect(toggle(page)).toBeVisible()
+  expect(await colourTransitions(page)).toBe(0)
+  await toggle(page).click()
+  expect(await colourTransitions(page)).toBeGreaterThan(0)
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+})
+
+test('switches the theme at once with reduced motion', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' })
+  await page.goto('/')
+  await toggle(page).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await expectShowsTarget(page, 'light')
+  expect(await colourTransitions(page)).toBe(0)
+})

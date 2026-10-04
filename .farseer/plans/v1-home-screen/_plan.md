@@ -88,7 +88,7 @@ GitHub issues created from this plan (issue numbers differ from task numbers):
   - Person pictures (`entity_picture: /api/image/serve/<id>/512x512`) load from HA without auth; a relative path must be resolved against the HA URL.
   - `last_changed` resets on HA restart.
 - Only one real HA user exists today (owner/admin). The other five `person` entities have no linked user. Favorites are keyed to the HA user, so family members get theirs once they have accounts; no app change needed.
-- `update.update_firmware` isn't in the entity registry and has no device; included as decided.
+- One of the configured `update` entities isn't in the entity registry and has no device; included as decided.
 - Kiosk (owner decisions after review): the kiosk's token belongs to a dedicated non-admin HA user, and kiosk mode is remembered per device so a revoked token returns to the token form, never the OAuth login.
 - Work happens on the `feature/v1-home-screen` branch.
 

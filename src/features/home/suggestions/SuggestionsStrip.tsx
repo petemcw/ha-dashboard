@@ -2,11 +2,10 @@ import { memo, useId } from 'react'
 import { useHomeConfig } from '../../../config/useHomeConfig'
 import { mediaPlayerViewModel } from '../../../domains/media_player/viewModel'
 import { useEntity } from '../../../infrastructure/entities/useEntity'
+import { SuggestionButton } from './SuggestionButton'
 import { suggestionsFor } from './suggestionRules'
 
-// Hidden entirely when nothing is suggested. In v1 the buttons stay disabled:
-// running a scene changes devices. The scene id and transition stay in config
-// for the controls phase.
+// Hidden entirely when nothing is suggested.
 function SuggestionsStripContent() {
   const { suggestions } = useHomeConfig()
   const entity = useEntity(suggestions.player)
@@ -25,15 +24,10 @@ function SuggestionsStripContent() {
       <ul className="suggestions__list">
         {items.map((s) => (
           <li key={s.id}>
-            <button type="button" disabled aria-describedby={hintId} className="suggestion">
-              {s.label}
-            </button>
+            <SuggestionButton suggestion={s} />
           </li>
         ))}
       </ul>
-      <p id={hintId} className="suggestions-hint">
-        Available when controls are enabled
-      </p>
     </section>
   )
 }

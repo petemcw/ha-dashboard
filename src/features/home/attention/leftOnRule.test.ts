@@ -36,7 +36,14 @@ describe('left-on rule', () => {
         tier: 'urgent',
         title: 'Garage door',
         detail: 'Open for 10 min',
-        action: { label: 'Close garage door', enabled: false },
+        action: {
+          label: 'Close garage door',
+          pendingLabel: 'Closing…',
+          confirmLabel: 'Tap to close',
+          ha: doorRule.action,
+          sensorId: 'binary_sensor.garage_door',
+          onState: 'on',
+        },
       },
     ])
   })
@@ -45,8 +52,13 @@ describe('left-on rule', () => {
     expect(leftOnRule(heaterRule, heater('on', 59), NOW).items).toEqual([])
     const { items } = leftOnRule(heaterRule, heater('on', 60), NOW)
     expect(items).toMatchObject([
-      { id: 'space-heater', detail: 'On for 1 h', action: { label: 'Turn off' } },
+      {
+        id: 'space-heater',
+        detail: 'On for 1 h',
+        action: { label: 'Turn off', pendingLabel: 'Turning off…', ha: heaterRule.action },
+      },
     ])
+    expect(items[0].action).not.toHaveProperty('confirmLabel')
   })
 
   it('does not flag an entity that is unavailable or unknown', () => {

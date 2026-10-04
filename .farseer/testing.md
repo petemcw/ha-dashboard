@@ -44,11 +44,12 @@ The TDD loop runs `npm test` (Vitest). Playwright is slower; run it at the end o
 | View models, domain logic (`domains/*/viewModel.ts`) | Vitest, plain function calls           | None. Inputs come from domain factories.                        |
 | Domain actions (`domains/*/actions.ts`)      | Vitest                                 | Fake service gateway; assert the HA action and data it received |
 | Entity store, selector hooks, gateway        | Vitest                                 | Fake `Connection` at the library boundary                       |
-| Components and features                      | Testing Library                        | Fake store and gateway seeded with factories                    |
+| Demo mode, mocked e2e                        | Playwright / Vitest                    | Shared fake HA (`src/infrastructure/fakeHa/`) behind the socket |
+| Components and features                      | Testing Library                        | Fake service gateway (`src/test/fakeServiceGateway.ts`), seeded with factories              |
 | Critical user workflows, layouts             | Playwright                             | HA WebSocket mock (`page.routeWebSocket`) seeded with factories |
 | Auth and protocol against the real HA        | Playwright `@live`                     | None. Read-only.                                                |
 
-Never mock our own modules (view models, actions, hooks). Mock only at the edges: the HA connection, the service gateway, the WebSocket.
+Never mock our own modules (view models, actions, hooks). Mock only at the edges: the HA connection, the service gateway, the WebSocket. Unit and component tests fake the gateway; demo mode and Playwright run the real gateway over the shared fake HA.
 
 ## Safety: this is a real house
 

@@ -8,6 +8,12 @@ type EntityEvent = { a?: Record<string, unknown>; r?: string[] }
 export function createFakeConnection() {
   let onEvent: ((ev: EntityEvent) => void) | undefined
   const listeners = new Map<string, Set<Listener>>()
+  // Messages sent with sendMessagePromise, each left pending until the test answers it.
+  const sent: {
+    message: Record<string, unknown>
+    resolve: (v?: unknown) => void
+    reject: (e: unknown) => void
+  }[] = []
   const heartbeat = { pings: 0, reconnects: [] as boolean[], answerPings: true }
 
   const conn = {
@@ -25,6 +31,10 @@ export function createFakeConnection() {
     close: () => {
       ;(conn as { closeRequested: boolean }).closeRequested = true
     },
+    sendMessagePromise: (message: Record<string, unknown>) =>
+      new Promise((resolve, reject) => {
+        sent.push({ message, resolve, reject })
+      }),
     subscribeMessage: (cb: (ev: EntityEvent) => void) => {
       onEvent = cb
       return Promise.resolve(() => {})
@@ -39,6 +49,10 @@ export function createFakeConnection() {
   return {
     conn,
     heartbeat,
+    // Every message sent through sendMessagePromise, in order.
+    sent: () => sent.map((s) => s.message),
+    resolveSent: (index: number, result: unknown = null) => sent[index].resolve(result),
+    rejectSent: (index: number, error: unknown) => sent[index].reject(error),
     // Emit entities the way HA's subscribe_entities does: a full snapshot first,
     // and again after a reconnect.
     emit(entities: { entity_id: string; state: string; attributes?: Record<string, unknown> }[]) {

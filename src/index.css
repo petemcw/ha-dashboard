@@ -777,12 +777,6 @@ input[type='checkbox'] {
   list-style: none;
 }
 
-.suggestions-hint {
-  margin: var(--space-2) 0 0;
-  color: var(--text-muted);
-  font-size: var(--text-sm);
-}
-
 /* Presence */
 
 /* Faces on the sign, with a dot for whoever is home. Names and states are in each
@@ -1087,4 +1081,86 @@ input[type='checkbox'] {
   .undo-notice {
     animation: none;
   }
+}
+
+/* Armed state of the tap-twice confirm: loud enough to notice from across the room. */
+.button--confirm-armed:not(:disabled) {
+  border-color: transparent;
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+/* The global button hover swaps in the surface background, which would leave the light
+   armed text on a light fill. Keep the danger fill and just shift it. */
+@media (hover: hover) {
+  .button--confirm-armed:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--danger) 85%, var(--text));
+  }
+}
+
+/* Favorite tile controls */
+
+.favorite-tile[data-interactive] {
+  position: relative;
+  padding: 0;
+}
+
+.favorite-button {
+  box-sizing: border-box;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  /* The global button rule centers content; a tile reads top-left like the display-only ones. */
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: var(--space-1);
+  min-width: 44px;
+  min-height: 72px;
+  padding: var(--space-3);
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.favorite-button:disabled {
+  cursor: default;
+}
+
+.favorite-tile[data-pending] .favorite-button {
+  opacity: 0.6;
+}
+
+.action-error {
+  padding: 0 var(--space-3);
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+
+.action-error:not(:empty) {
+  padding-bottom: var(--space-2);
+}
+
+/* Demo mode badge */
+.demo-badge {
+  position: fixed;
+  top: env(safe-area-inset-top);
+  /* A tab hanging from the top edge, centered: the header has the logo on the left and
+     settings on the right, and the collapsed sign bar's text sits below the tab. */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  padding: 0.0625rem 0.625rem;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  /* --accent matches the header brown, so the pill would vanish against it. */
+  background: var(--warn);
+  color: var(--on-warn);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  pointer-events: none;
 }

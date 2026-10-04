@@ -209,4 +209,30 @@ describe('kiosk connection', () => {
     expect(localStorage.getItem(KIOSK_MODE_KEY)).toBeNull()
     expect(localStorage.getItem(LONG_LIVED_TOKEN_KEY)).toBeNull()
   })
+
+  describe('demo mode', () => {
+    beforeEach(() => {
+      vi.stubGlobal('location', { pathname: '/', search: '?demo', replace })
+    })
+
+    it('never runs the real connect in demo mode, even before the demo connection is installed', async () => {
+      const { getConnection } = await freshConnection()
+      await expect(getConnection()).rejects.toThrow(/demo/i)
+      expect(lib.getAuth).not.toHaveBeenCalled()
+      expect(lib.createLongLivedTokenAuth).not.toHaveBeenCalled()
+      expect(lib.createConnection).not.toHaveBeenCalled()
+    })
+
+    it('uses the installed demo connection, shares it, and keeps it through resetConnection', async () => {
+      const { getConnection, installDemoConnection, resetConnection } = await freshConnection()
+      const demoConnect = vi.fn(async () => ({ close: vi.fn() }) as never)
+      installDemoConnection(demoConnect)
+      expect(await getConnection()).toBe(await getConnection())
+      expect(demoConnect).toHaveBeenCalledTimes(1)
+      resetConnection()
+      await getConnection()
+      expect(demoConnect).toHaveBeenCalledTimes(2)
+      expect(lib.createConnection).not.toHaveBeenCalled()
+    })
+  })
 })

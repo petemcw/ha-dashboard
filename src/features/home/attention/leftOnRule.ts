@@ -27,7 +27,12 @@ export function leftOnRule(rule: LeftOnRule, vm: OnOffViewModel, now: Date): Rul
     detail: `${isDoor ? 'Open' : 'On'} for ${formatDuration(elapsed)}`,
     action: {
       label: isDoor ? `Close ${rule.label.toLowerCase()}` : 'Turn off',
-      enabled: false,
+      pendingLabel: isDoor ? 'Closing…' : 'Turning off…',
+      // A toggle is the one action that does the opposite on a double delivery.
+      ...(rule.action.service === 'toggle' && { confirmLabel: 'Tap to close' }),
+      ha: rule.action,
+      sensorId: rule.entity_id,
+      onState: rule.onState,
     },
   })
 }

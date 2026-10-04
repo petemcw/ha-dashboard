@@ -6,9 +6,10 @@ export type HomeConfigState =
   { kind: 'loading' } | { kind: 'ready'; config: HomeConfig } | { kind: 'failed'; message: string }
 
 // Loads /home.json once, when the app mounts, next to the other startup work.
-export function useLoadedHomeConfig(): HomeConfigState {
+export function useLoadedHomeConfig(enabled = true): HomeConfigState {
   const [state, setState] = useState<HomeConfigState>({ kind: 'loading' })
   useEffect(() => {
+    if (!enabled) return
     let cancelled = false
     loadHomeConfig().then(
       (config) => !cancelled && setState({ kind: 'ready', config }),
@@ -19,6 +20,6 @@ export function useLoadedHomeConfig(): HomeConfigState {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [enabled])
   return state
 }

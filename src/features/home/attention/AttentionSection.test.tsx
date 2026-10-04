@@ -40,14 +40,6 @@ describe('attention section', () => {
     expect(screen.getByText('Open for 10 min')).toBeInTheDocument()
   })
 
-  it("renders the item's action as disabled with an explanation", () => {
-    seed(binarySensorState({ entity_id: DOOR, state: 'on', last_changed: seconds(NOW) - 12 * 60 }))
-    render(<AttentionHarness />)
-    const button = screen.getByRole('button', { name: 'Close garage door' })
-    expect(button).toBeDisabled()
-    expect(button).toHaveAccessibleDescription('Available when controls are enabled')
-  })
-
   it('shows that nothing needs attention when no rule is active', () => {
     seed(binarySensorState({ entity_id: DOOR, state: 'off' }))
     render(<AttentionHarness />)
@@ -79,7 +71,7 @@ describe('attention section', () => {
     expect(within(chores).queryByText('Garage door')).not.toBeInTheDocument()
   })
 
-  it('renders toner reorder as an external link and Mark replaced as a disabled button', () => {
+  it('renders toner reorder as an external link and keeps it a link beside Mark replaced', () => {
     seed(
       binarySensorState({ entity_id: DOOR, state: 'off' }),
       sensorState({ entity_id: 'sensor.printer_ink', state: '9' }),
@@ -90,8 +82,7 @@ describe('attention section', () => {
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
     expect(screen.getByText('Overdue by 4 days')).toBeInTheDocument()
-    const button = screen.getByRole('button', { name: 'Mark replaced' })
-    expect(button).toBeDisabled()
-    expect(button).toHaveAccessibleDescription('Available when controls are enabled')
+    expect(screen.queryByRole('button', { name: 'Reorder toner' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Mark replaced' })).toBeInTheDocument()
   })
 })

@@ -33,7 +33,7 @@ If the concept you need isn't in the glossary yet, that's a signal: either you'r
 - **Area / Floor**: HA's room and level groupings. Use HA's area names as the room vocabulary in the UI and in feature names.
 - **HA action**: what HA now calls a service (`light.turn_on`). The WebSocket message is still `call_service`. In prose, say "HA action"; in code that wraps the wire call, "service" is fine (`ServiceGateway`, `callService`).
 - **Domain action**: our function in `domains/<ha-domain>/actions.ts` that performs an HA action (`turnOnLight`). UI code calls domain actions, never the gateway or the connection.
-- **Service gateway**: the single seam that sends HA actions. Real implementation over the WebSocket; fake for tests and demo mode.
+- **Service gateway**: the single seam that sends HA actions. One implementation over the WebSocket (`src/infrastructure/serviceGateway/`). It refuses to send unless the connection is `connected` and never queues. Demo mode fakes HA underneath it; unit tests fake the gateway itself.
 - **View model**: the plain, UI-ready object a pure function builds from a state object (`LightViewModel`). Components only see view models.
 - **Entity store**: the infrastructure store holding the live entity map from `subscribeEntities`. Read through selector hooks.
 - **Unavailable / unknown**: HA's special states when an integration can't reach a device (`unavailable`) or has no value yet (`unknown`). Every view model handles both.
@@ -42,7 +42,7 @@ If the concept you need isn't in the glossary yet, that's a signal: either you'r
 - **Tile**: the compact, tappable representation of one entity on a screen.
 - **Kiosk**: the wall tablet running the app full-screen for long periods, authenticated with a long-lived token.
 - **Live test**: a Playwright test tagged `@live` that runs against the real HA instance. Read-only.
-- **Demo mode**: the app running on factory data with a fake gateway (`?demo`), for exercising controls without touching the house.
+- **Demo mode**: the real app and the real gateway running over the shared fake HA (`?demo`), on placeholder-house data. It applies per page load and is never stored. For exercising controls without touching the house. See `.farseer/adr/0001-demo-mode-shared-fake-ha.md`.
 
 ## Business-Critical Paths
 

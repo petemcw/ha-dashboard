@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react'
 import { HomeScreen } from '../features/home/HomeScreen'
+import { isDemoMode } from '../infrastructure/ha/demoMode'
 import { useConnectionStatus } from '../infrastructure/ha/useConnectionStatus'
+import { DemoBadge } from './demo/DemoBadge'
 import { ConnectionBanner } from './ConnectionBanner'
 import { FavoritesSettingsSection } from './settings/FavoritesSettingsSection'
 import { KioskTokenSection } from './settings/KioskTokenSection'
@@ -11,6 +13,7 @@ import { useThemePreference } from './theme/useThemePreference'
 
 export function AppShell({ onTokenSaved = () => {} }: { onTokenSaved?: () => void }) {
   const status = useConnectionStatus()
+  const demo = isDemoMode()
   // Held here, not in the sheet, so a stored override applies while the sheet is closed.
   const [theme, setTheme] = useThemePreference()
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -20,6 +23,7 @@ export function AppShell({ onTokenSaved = () => {} }: { onTokenSaved?: () => voi
 
   return (
     <>
+      {demo && <DemoBadge />}
       <ConnectionBanner status={status} />
       {/* No aria-busy: some screen readers mute busy regions, and an outage can last a
           while. The banner says the values are stale. */}
@@ -29,8 +33,8 @@ export function AppShell({ onTokenSaved = () => {} }: { onTokenSaved?: () => voi
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)}>
         <ThemeSection preference={theme} onChange={setTheme} />
         <FavoritesSettingsSection />
-        <KioskTokenSection onSaved={onTokenSaved} />
-        <SignOutSection />
+        {!demo && <KioskTokenSection onSaved={onTokenSaved} />}
+        {!demo && <SignOutSection />}
       </SettingsSheet>
     </>
   )

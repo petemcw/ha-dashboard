@@ -12,7 +12,7 @@ Add the remaining threshold chores: printer toner below 15% with a working reord
 
 - Related files: `src/config/home.ts` (`tonerRule`, `filterRules`), `src/features/home/attention/` (types, `useAttentionItems.ts`), `src/domains/sensor/` (from task 006), `ChoreRow.tsx` (from task 006)
 - New: `src/features/home/attention/thresholdRule.ts` (generic "numeric state below N" rule used by both), wiring in `useAttentionItems.ts`.
-- Toner: active when the numeric state is below 15. Action is a link (`<a href target="_blank" rel="noopener noreferrer">`) labelled "Reorder toner"; links are allowed in v1 because they don't change devices. `sensor.family_room_printer_ink` is often `unavailable`, so it must not show then.
+- Toner: active when the numeric state is below 15. Action is a link (`<a href target="_blank" rel="noopener noreferrer">`) labelled "Reorder toner"; links are allowed in v1 because they don't change devices. The printer's ink sensor is often `unavailable`, so it must not show then.
 - Filters: active below 5. Detail "3 days left", "Due today" at 0, "Overdue by 117 days" when negative (the fridge water filter is at -117 today). Action: disabled button "Mark replaced" with the "Available when controls are enabled" description; its script ID comes from config for later.
 - Item ids: `toner-low`, `filter-due:<entity_id>`.
 - Both items render in the chore row from task 006.

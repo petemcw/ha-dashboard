@@ -2,9 +2,16 @@ import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { lightState } from '../../../domains/light/factories'
+import { fanState } from '../../../domains/fan/factories'
+import { sceneState } from '../../../domains/scene/factories'
+import { scriptState } from '../../../domains/script/factories'
 import { switchState } from '../../../domains/switch/factories'
 import { entityState } from '../../../domains/factories'
 import { entityStore } from '../../../infrastructure/entities/entityStore'
+import { ServiceCallError } from '../../../infrastructure/serviceGateway/serviceGateway'
+import { resetConnectionStatus, setConnected } from '../../../test/connectionStatus'
+import { createFakeServiceGateway } from '../../../test/fakeServiceGateway'
+import { renderWithHome } from '../../../test/renderWithHome'
 
 // The HA connection is the edge: subscribe_user_data pushes `{value}` like HA does.
 let push: (ev: { value: unknown }) => void
@@ -26,10 +33,17 @@ const seed = (...entities: ReturnType<typeof entityState>[]) =>
   act(() => entityStore.setEntities(Object.fromEntries(entities.map((e) => [e.entity_id, e]))))
 
 beforeEach(() => seed())
-afterEach(() => entityStore.reset())
+afterEach(() => {
+  entityStore.reset()
+  resetConnectionStatus()
+})
 
-async function renderLoaded(value: unknown, onOpenSettings = () => {}) {
-  render(<FavoritesSection onOpenSettings={onOpenSettings} />)
+async function renderLoaded(
+  value: unknown,
+  onOpenSettings = () => {},
+  gateway = createFakeServiceGateway().gateway,
+) {
+  renderWithHome(<FavoritesSection onOpenSettings={onOpenSettings} />, { gateway })
   await screen.findByRole('region', { name: 'Favorites' })
   await act(async () => {})
   await arrive(value)
@@ -126,5 +140,201 @@ describe('favorites section', () => {
     await renderLoaded({ version: 2, entityIds: ['switch.a'] })
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
     expect(screen.getByText('No favorites yet')).toBeInTheDocument()
+  })
+})
+
+describe('favorite tile controls', () => {
+  const kitchen = (state = 'off', attributes = {}) =>
+    lightState({
+      entity_id: 'light.k',
+      state,
+      attributes: { friendly_name: 'Kitchen', brightness: 128, ...attributes },
+    })
+
+  async function renderTile(entity: ReturnType<typeof entityState>) {
+    const fake = createFakeServiceGateway()
+    seed(entity)
+    setConnected()
+    await renderLoaded(saved(entity.entity_id), undefined, fake.gateway)
+    return fake
+  }
+
+  it('sends light.turn_on when an off light tile is tapped', async () => {
+    const fake = await renderTile(kitchen('off'))
+    await userEvent.click(screen.getByRole('button', { name: 'Kitchen' }))
+    expect(fake.calls).toEqual([
+      { domain: 'light', service: 'turn_on', data: undefined, target: { entity_id: 'light.k' } },
+    ])
+  })
+
+  it('sends switch.turn_off when an on switch tile is tapped', async () => {
+    const fake = await renderTile(
+      switchState({ entity_id: 'switch.a', state: 'on', attributes: { friendly_name: 'Alpha' } }),
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Alpha' }))
+    expect(fake.calls).toEqual([
+      { domain: 'switch', service: 'turn_off', data: undefined, target: { entity_id: 'switch.a' } },
+    ])
+  })
+
+  it('sends fan.turn_on when an off fan tile is tapped', async () => {
+    const fake = await renderTile(
+      fanState({ entity_id: 'fan.a', state: 'off', attributes: { friendly_name: 'Desk' } }),
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Desk' }))
+    expect(fake.calls).toEqual([
+      { domain: 'fan', service: 'turn_on', data: undefined, target: { entity_id: 'fan.a' } },
+    ])
+  })
+
+  it('sends script.turn_on with the script as the target when a script tile is tapped', async () => {
+    const fake = await renderTile(
+      scriptState({ entity_id: 'script.a', attributes: { friendly_name: 'Goodnight' } }),
+    )
+    const button = screen.getByRole('button', { name: 'Goodnight' })
+    expect(button).not.toHaveAttribute('aria-pressed')
+    await userEvent.click(button)
+    expect(fake.calls).toEqual([
+      {
+        domain: 'script',
+        service: 'turn_on',
+        data: undefined,
+        target: { entity_id: 'script.a' },
+      },
+    ])
+  })
+
+  it('sends scene.turn_on when a scene favorite tile is tapped', async () => {
+    const fake = await renderTile(
+      sceneState({ entity_id: 'scene.a', attributes: { friendly_name: 'Movie night' } }),
+    )
+    const button = screen.getByRole('button', { name: 'Movie night' })
+    expect(button).not.toHaveAttribute('aria-pressed')
+    await userEvent.click(button)
+    expect(fake.calls).toEqual([
+      { domain: 'scene', service: 'turn_on', data: undefined, target: { entity_id: 'scene.a' } },
+    ])
+  })
+
+  it('shows "Running" on a script tile while HA reports the script as on', async () => {
+    await renderTile(
+      scriptState({
+        entity_id: 'script.a',
+        state: 'on',
+        attributes: { friendly_name: 'Goodnight' },
+      }),
+    )
+    expect(screen.getByRole('button', { name: 'Goodnight' })).toHaveAccessibleDescription('Running')
+  })
+
+  it('disables a script tile while HA reports the script as running', async () => {
+    await renderTile(
+      scriptState({
+        entity_id: 'script.a',
+        state: 'on',
+        attributes: { friendly_name: 'Goodnight' },
+      }),
+    )
+    expect(screen.getByRole('button', { name: 'Goodnight' })).toBeDisabled()
+  })
+
+  it('shows "Didn\'t work, tap to retry" on a script tile when the run fails', async () => {
+    const fake = await renderTile(
+      scriptState({ entity_id: 'script.a', attributes: { friendly_name: 'Goodnight' } }),
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Goodnight' }))
+    await act(async () => fake.reject(new ServiceCallError('rejected')))
+    expect(screen.getByRole('status')).toHaveTextContent("Didn't work, tap to retry")
+    expect(screen.getByRole('button', { name: 'Goodnight' })).toBeEnabled()
+  })
+
+  it('disables a fan or script tile for an unavailable or missing entity', async () => {
+    seed(
+      fanState({ entity_id: 'fan.u', state: 'unavailable' }),
+      scriptState({ entity_id: 'script.u', state: 'unavailable' }),
+    )
+    setConnected()
+    await renderLoaded(saved('fan.u', 'fan.gone', 'script.u', 'script.gone'))
+    const buttons = screen.getAllByRole('button')
+    expect(buttons).toHaveLength(4)
+    for (const b of buttons) expect(b).toBeDisabled()
+  })
+
+  it('marks an on tile as pressed for assistive technology', async () => {
+    await renderTile(kitchen('on'))
+    expect(screen.getByRole('button', { name: 'Kitchen' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('marks an off tile as not pressed', async () => {
+    await renderTile(kitchen('off'))
+    expect(screen.getByRole('button', { name: 'Kitchen' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('disables the tile while the action is pending', async () => {
+    const fake = await renderTile(kitchen('off'))
+    await userEvent.click(screen.getByRole('button', { name: 'Kitchen' }))
+    const button = screen.getByRole('button', { name: 'Kitchen' })
+    // aria-disabled rather than disabled, so keyboard focus stays on the tile.
+    expect(button).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(button)
+    expect(fake.calls).toHaveLength(1)
+    await act(async () => fake.resolve())
+    expect(button).not.toHaveAttribute('aria-disabled')
+  })
+
+  it('shows "Didn\'t work, tap to retry" when the action fails', async () => {
+    const fake = await renderTile(kitchen('off'))
+    await userEvent.click(screen.getByRole('button', { name: 'Kitchen' }))
+    await act(async () => fake.reject(new ServiceCallError('rejected')))
+    expect(screen.getByRole('status')).toHaveTextContent("Didn't work, tap to retry")
+    expect(screen.getByRole('button', { name: 'Kitchen' })).toBeEnabled()
+  })
+
+  it('disables controls while the connection is not connected', async () => {
+    seed(kitchen('off'))
+    await renderLoaded(saved('light.k'))
+    resetConnectionStatus()
+    await act(async () => {})
+    expect(screen.getByRole('button', { name: 'Kitchen' })).toBeDisabled()
+  })
+
+  it('disables the tile for an unavailable or missing entity', async () => {
+    seed(lightState({ entity_id: 'light.u', state: 'unavailable' }))
+    setConnected()
+    await renderLoaded(saved('light.u', 'light.gone'))
+    const buttons = screen.getAllByRole('button')
+    expect(buttons).toHaveLength(2)
+    for (const b of buttons) expect(b).toBeDisabled()
+  })
+
+  it("names a tile's button by the entity's name and describes it with its state", async () => {
+    await renderTile(kitchen('on'))
+    const button = screen.getByRole('button', { name: 'Kitchen' })
+    expect(button).toHaveAccessibleDescription('On, 50%')
+  })
+
+  it('shows "Connection dropped, check before retrying" when the connection drops mid-call', async () => {
+    const fake = await renderTile(kitchen('off'))
+    await userEvent.click(screen.getByRole('button', { name: 'Kitchen' }))
+    await act(async () => fake.reject(new ServiceCallError('connection-lost')))
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Connection dropped, check before retrying',
+    )
+  })
+
+  it('clears the error when HA reports the entity changed', async () => {
+    const fake = await renderTile(kitchen('off'))
+    await userEvent.click(screen.getByRole('button', { name: 'Kitchen' }))
+    await act(async () => fake.reject(new ServiceCallError('rejected')))
+    expect(screen.getByRole('status')).not.toBeEmptyDOMElement()
+    seed(kitchen('on'))
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
+  })
+
+  it('keeps display-only tiles non-interactive', async () => {
+    seed(entityState({ entity_id: 'lock.door', state: 'locked' }))
+    setConnected()
+    await renderLoaded(saved('lock.door'))
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })

@@ -1,10 +1,8 @@
-import { useId } from 'react'
 import type { AttentionItem } from './types'
+import { AttentionAction } from './AttentionAction'
 
-// v1 sends no actions: buttons render disabled. Links are fine since they don't
-// change devices.
+// Links don't change devices; everything else goes through the gateway.
 export function ItemAction({ action }: { action: AttentionItem['action'] }) {
-  const helpId = useId()
   if (!action) return null
   if ('href' in action) {
     return (
@@ -13,14 +11,5 @@ export function ItemAction({ action }: { action: AttentionItem['action'] }) {
       </a>
     )
   }
-  return (
-    <>
-      <button type="button" disabled aria-describedby={helpId}>
-        {action.label}
-      </button>
-      <span id={helpId} hidden>
-        Available when controls are enabled
-      </span>
-    </>
-  )
+  return <AttentionAction action={action} />
 }

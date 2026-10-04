@@ -52,3 +52,7 @@ export function cleanup(snoozes: Snoozes, resolvedIds: string[], now: Date): Sno
   )
   return kept.length === Object.keys(snoozes).length ? null : toValue(Object.fromEntries(kept))
 }
+
+// "Sun 9:00 AM": a snooze is at most a week, so the weekday and time say when.
+export const formatUntil = (d: Date) =>
+  d.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' })

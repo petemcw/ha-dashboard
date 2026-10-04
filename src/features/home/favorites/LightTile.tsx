@@ -12,7 +12,7 @@ export function LightTile({ name, light }: { name: string; light: LightViewModel
           ? 'On'
           : `On, ${light.brightnessPercent}%`
   return (
-    <Tile name={name} status={light.status}>
+    <Tile name={name} status={light.status} active={light.status === 'ok' && light.isOn}>
       {text}
     </Tile>
   )

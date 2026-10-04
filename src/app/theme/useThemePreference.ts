@@ -21,11 +21,26 @@ function writePreference(pref: ThemePreference) {
   }
 }
 
+// Browser chrome (status bar, address bar) colors, matching --wood in tokens.css so the
+// sign runs up under the status bar.
+const THEME_COLORS = { light: '#542711', dark: '#3e1c0d' } as const
+
 // `system` removes data-theme so the prefers-color-scheme rules in tokens.css apply.
 function applyPreference(pref: ThemePreference) {
   const root = document.documentElement
   if (pref === 'system') root.removeAttribute('data-theme')
   else root.setAttribute('data-theme', pref)
+  // index.html has one theme-color per color scheme; an override pins both to its color.
+  for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
+    const scheme = meta.media.includes('dark') ? 'dark' : 'light'
+    meta.content = THEME_COLORS[pref === 'system' ? scheme : pref]
+  }
+}
+
+// Called from main.tsx before React renders, so a stored override paints in its own
+// theme from the first frame instead of flashing the system one.
+export function applyStoredTheme() {
+  applyPreference(readPreference())
 }
 
 export function useThemePreference() {

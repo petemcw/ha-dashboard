@@ -6,12 +6,12 @@ test('keeps retrying while Home Assistant is down at startup, then loads once it
 }) => {
   mockHa.setReachable(false)
   await page.goto('/')
-  await expect(page.getByText("Can't reach Home Assistant. Retrying…")).toBeVisible()
+  await expect(page.getByText('Can’t reach Home Assistant. Retrying…')).toBeVisible()
   expect(await page.getByRole('alert').count()).toBe(0)
 
   mockHa.setReachable(true)
   await expect(page.getByRole('region', { name: 'Favorites' })).toBeAttached({ timeout: 15_000 })
-  await expect(page.getByText("Can't reach Home Assistant. Retrying…")).toBeHidden()
+  await expect(page.getByText('Can’t reach Home Assistant. Retrying…')).toBeHidden()
 })
 
 test('notices a silently dead socket, shows the banner, and recovers on a fresh socket', async ({

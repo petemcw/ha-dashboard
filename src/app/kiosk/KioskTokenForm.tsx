@@ -17,18 +17,31 @@ export function KioskTokenForm({ error, onSubmit }: KioskTokenFormProps) {
 
   return (
     <main className="kiosk-token">
-      <form onSubmit={submit}>
+      <form className="panel kiosk-token__form" onSubmit={submit}>
+        <img src="/maple_frontier_logo.svg" alt="" width={56} height={56} />
         <h1>Set up this screen</h1>
         <label htmlFor="kiosk-token-input">Long-lived access token</label>
         <input
           id="kiosk-token-input"
+          name="token"
           type="password"
           autoComplete="off"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? 'kiosk-token-error' : undefined}
           value={token}
           onChange={(e) => setToken(e.target.value)}
         />
-        {error && <p role="alert">{error}</p>}
-        <button type="submit">Connect</button>
+        {error && (
+          <p id="kiosk-token-error" role="alert" className="form-error">
+            {error}
+          </p>
+        )}
+        <button type="submit" className="button--primary">
+          Connect
+        </button>
       </form>
     </main>
   )

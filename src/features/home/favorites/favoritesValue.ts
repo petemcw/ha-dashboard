@@ -7,8 +7,11 @@ export type Favorites = {
   writable: boolean
 }
 
+// Shared, so "nothing stored" keeps one identity: hooks memoized on the list don't rerun.
+const NONE: string[] = []
+
 export function parseFavorites(value: unknown): Favorites {
-  if (value === null || value === undefined) return { entityIds: [], writable: true }
+  if (value === null || value === undefined) return { entityIds: NONE, writable: true }
   if (typeof value === 'object') {
     const { version, entityIds } = value as { version?: unknown; entityIds?: unknown }
     if (
@@ -19,7 +22,7 @@ export function parseFavorites(value: unknown): Favorites {
       return { entityIds, writable: true }
     }
   }
-  return { entityIds: [], writable: false }
+  return { entityIds: NONE, writable: false }
 }
 
 export function serializeFavorites(entityIds: string[]) {

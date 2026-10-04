@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test'
 import { binarySensorState } from '../src/domains/binary_sensor/factories.ts'
 import { entityState } from '../src/domains/factories.ts'
 import { mediaPlayer } from '../src/domains/media_player/factories.ts'
+import { personState } from '../src/domains/person/factories.ts'
 import { batterySensorState } from '../src/domains/sensor/factories.ts'
 import { SNOOZES_KEY } from '../src/features/home/attention/snoozes.ts'
 import { expect, test } from './fixtures.ts'
@@ -98,6 +99,12 @@ const LONG = 'sensor_with_an_extremely_long_unbreakable_entity_identifier_that_w
 test.describe('home screen layout', () => {
   test.beforeEach(({ mockHa }) => {
     mockHa.setState(mediaPlayer('playing'))
+    for (const [id, name, state] of [
+      ['alex_rivera', 'Alex Rivera', 'home'],
+      ['blair_kim', 'Blair Kim', 'not_home'],
+      ['casey_lee', 'Casey Lee', 'Work'],
+    ])
+      mockHa.setState(personState({ entity_id: `person.${id}`, friendly_name: name, state }))
     mockHa.setState(
       binarySensorState({
         entity_id: 'binary_sensor.garage_door',
@@ -141,18 +148,32 @@ test.describe('home screen layout', () => {
     return box
   }
 
-  test('shows the sections in order: attention, suggestions, presence, favorites, crypto', async ({
+  const SECTIONS = ['Needs attention', 'Suggestions', 'Favorites', 'Crypto']
+
+  const layoutAt = async (page: Page) => {
+    await expect(page.getByRole('region', { name: 'Crypto' })).toBeAttached()
+    await expect(page.getByRole('region', { name: 'Suggestions' })).toBeVisible()
+    await expect(page.getByRole('listitem', { name: 'Alex Rivera, home' })).toBeVisible()
+    await expectNoHorizontalScroll(page)
+    const [attention, suggestions, favorites, crypto] = await Promise.all(
+      SECTIONS.map((n) => boxOf(page, n)),
+    )
+    return { attention, suggestions, favorites, crypto, people: await boxOf(page, 'People') }
+  }
+
+  test('reads people on the sign, then attention, suggestions, favorites, crypto', async ({
     page,
   }) => {
     await page.goto('/')
     await expect(page.getByRole('region', { name: 'Crypto' })).toBeAttached()
     await expect(page.getByRole('region', { name: 'Suggestions' })).toBeVisible()
+    await expect(page.getByRole('listitem', { name: 'Alex Rivera, home' })).toBeVisible()
     const names = await page
-      .locator('main section')
+      .locator('.sign section, main section')
       .evaluateAll((els) =>
         els.map((el) => el.getAttribute('aria-label') ?? el.querySelector('h2')?.textContent),
       )
-    expect(names).toEqual(['Needs attention', 'Suggestions', 'People', 'Favorites', 'Crypto'])
+    expect(names).toEqual(['People', ...SECTIONS])
   })
 
   test('lays the home screen out in one column at phone width without horizontal scroll', async ({
@@ -160,39 +181,56 @@ test.describe('home screen layout', () => {
   }) => {
     test.skip(test.info().project.name !== 'phone')
     await page.goto('/')
-    await expect(page.getByRole('region', { name: 'Crypto' })).toBeAttached()
+    await expect(page.getByRole('listitem', { name: 'Alex Rivera, home' })).toBeVisible()
+    await page.screenshot({ path: 'e2e/screenshots/home-sign-phone.png' })
     await expect(page.getByText('1 snoozed')).toBeVisible()
     await page.getByText('1 snoozed').click()
-    await expectNoHorizontalScroll(page)
-    const lefts = await Promise.all(
-      ['Needs attention', 'Suggestions', 'People', 'Favorites', 'Crypto'].map((n) =>
-        boxOf(page, n),
-      ),
-    )
-    expect(new Set(lefts.map((b) => b.x)).size).toBe(1)
-    for (let i = 1; i < lefts.length; i++) expect(lefts[i].y).toBeGreaterThan(lefts[i - 1].y)
+    const { people, ...sections } = await layoutAt(page)
+    const boxes = Object.values(sections)
+    expect(new Set(boxes.map((b) => b.x)).size).toBe(1)
+    for (let i = 1; i < boxes.length; i++) expect(boxes[i].y).toBeGreaterThan(boxes[i - 1].y)
+    // The faces sit under the sign's date, above the first section.
+    expect(people.x).toBe(sections.attention.x)
+    expect(people.y + people.height).toBeLessThan(sections.attention.y)
     await page.screenshot({ path: 'e2e/screenshots/home-layout-phone.png', fullPage: true })
   })
 
-  test('lays the home screen out in two columns at tablet width', async ({ page }) => {
+  for (const [label, width, height] of [
+    ['ipad-portrait', 820, 1180],
+    ['tablet', 1180, 820],
+  ] as const) {
+    test(`lays the home screen out in two columns at ${label} width`, async ({ page }) => {
+      test.skip(test.info().project.name !== 'tablet')
+      await page.setViewportSize({ width, height })
+      await page.goto('/')
+      const { attention, suggestions, favorites, crypto, people } = await layoutAt(page)
+      // Attention, suggestions, and crypto stack on the left; favorites has the right.
+      expect(suggestions.x).toBe(attention.x)
+      expect(crypto.x).toBe(attention.x)
+      expect(suggestions.y).toBeGreaterThanOrEqual(attention.y + attention.height)
+      expect(crypto.y).toBeGreaterThanOrEqual(suggestions.y + suggestions.height)
+      expect(favorites.x).toBeGreaterThan(attention.x + attention.width - 1)
+      expect(Math.abs(favorites.y - attention.y)).toBeLessThan(2)
+      expect(Math.abs(favorites.width - attention.width)).toBeLessThan(2)
+      // The faces sit top right on the sign, above the columns.
+      expect(people.x).toBeGreaterThan(width / 2)
+      expect(people.y + people.height).toBeLessThan(attention.y)
+      await page.screenshot({ path: `e2e/screenshots/home-layout-${label}.png`, fullPage: true })
+    })
+  }
+
+  test('lays the home screen out in three columns at desktop width', async ({ page }) => {
     test.skip(test.info().project.name !== 'tablet')
+    await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/')
-    await expect(page.getByRole('region', { name: 'Crypto' })).toBeAttached()
-    const [attention, suggestions, presence, favorites, crypto] = await Promise.all(
-      ['Needs attention', 'Suggestions', 'People', 'Favorites', 'Crypto'].map((n) =>
-        boxOf(page, n),
-      ),
-    )
-    // Attention and suggestions span the top; presence and crypto sit beside favorites.
-    expect(suggestions.y).toBeGreaterThanOrEqual(attention.y + attention.height)
-    expect(presence.y).toBeGreaterThanOrEqual(suggestions.y + suggestions.height)
-    expect(favorites.x).toBeGreaterThan(presence.x + presence.width - 1)
-    expect(crypto.x).toBe(presence.x)
-    expect(crypto.y).toBeGreaterThan(presence.y)
-    // Inner heading margins differ by a few px; the rows share a top.
-    expect(Math.abs(favorites.y - presence.y)).toBeLessThan(40)
-    expect(attention.width).toBeGreaterThan(presence.width * 1.5)
-    await expectNoHorizontalScroll(page)
-    await page.screenshot({ path: 'e2e/screenshots/home-layout-tablet.png', fullPage: true })
+    const { attention, suggestions, favorites, crypto } = await layoutAt(page)
+    expect(suggestions.x).toBe(attention.x)
+    expect(favorites.x).toBeGreaterThan(attention.x + attention.width - 1)
+    expect(crypto.x).toBeGreaterThan(favorites.x + favorites.width - 1)
+    for (const box of [favorites, crypto]) {
+      expect(Math.abs(box.y - attention.y)).toBeLessThan(2)
+      expect(Math.abs(box.width - attention.width)).toBeLessThan(2)
+    }
+    await page.screenshot({ path: 'e2e/screenshots/home-layout-desktop.png', fullPage: true })
   })
 })

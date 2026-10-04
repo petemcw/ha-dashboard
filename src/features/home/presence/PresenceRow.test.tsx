@@ -23,6 +23,13 @@ const names = async () =>
   (await screen.findAllByRole('listitem')).map((li) => li.getAttribute('aria-label')?.split(',')[0])
 
 describe('presence row', () => {
+  it('shows nothing when Home Assistant has no people', async () => {
+    load(entityState({ entity_id: 'light.porch', state: 'on' }))
+    const { container } = renderWithHome(<PresenceRow />)
+    await act(async () => {})
+    expect(container).toBeEmptyDOMElement()
+  })
+
   it('shows every person Home Assistant knows about, sorted by name', async () => {
     load(
       person('zed_zebra', 'Zed Zebra'),

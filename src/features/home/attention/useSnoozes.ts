@@ -27,7 +27,8 @@ export type Snoozing = {
   readable: boolean
   pending: boolean
   error?: string
-  snooze: (id: string, duration: SnoozeDuration) => void
+  // Returns when the snooze ends, for the confirmation.
+  snooze: (id: string, duration: SnoozeDuration) => Date
   unsnooze: (id: string) => void
 }
 
@@ -68,8 +69,11 @@ export function useSnoozes(resolvedIds: string[], connect = getConnection): Snoo
     readable: writable,
     pending: writer.pending,
     error: writer.failed ? "Couldn't save the snooze. Only admins can snooze." : undefined,
-    snooze: (id, duration) =>
-      writer.write((s) => addSnooze(s, id, new Date(Date.now() + DURATION_MS[duration]), user!.id)),
+    snooze: (id, duration) => {
+      const until = new Date(Date.now() + DURATION_MS[duration])
+      writer.write((s) => addSnooze(s, id, until, user!.id))
+      return until
+    },
     unsnooze: (id) => writer.write((s) => removeSnooze(s, id)),
   }
 }

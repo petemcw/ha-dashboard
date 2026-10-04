@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { memo, useId } from 'react'
 import { useHomeConfig } from '../../../config/useHomeConfig'
 import { mediaPlayerViewModel } from '../../../domains/media_player/viewModel'
 import { useEntity } from '../../../infrastructure/entities/useEntity'
@@ -7,7 +7,7 @@ import { suggestionsFor } from './suggestionRules'
 // Hidden entirely when nothing is suggested. In v1 the buttons stay disabled:
 // running a scene changes devices. The scene id and transition stay in config
 // for the controls phase.
-export function SuggestionsStrip() {
+function SuggestionsStripContent() {
   const { suggestions } = useHomeConfig()
   const entity = useEntity(suggestions.player)
   const hintId = useId()
@@ -16,9 +16,13 @@ export function SuggestionsStrip() {
   if (items.length === 0) return null
 
   return (
-    <section aria-labelledby={`${hintId}-heading`} className="suggestions">
-      <h2 id={`${hintId}-heading`}>Suggestions</h2>
-      <ul>
+    <section aria-labelledby={`${hintId}-heading`} className="card suggestions">
+      <header className="card__header">
+        <h2 id={`${hintId}-heading`} className="card__title">
+          Suggestions
+        </h2>
+      </header>
+      <ul className="suggestions__list">
         {items.map((s) => (
           <li key={s.id}>
             <button type="button" disabled aria-describedby={hintId} className="suggestion">
@@ -33,3 +37,7 @@ export function SuggestionsStrip() {
     </section>
   )
 }
+
+// HomeScreen re-renders on every clock tick and attention change; this section reads
+// neither, so it only re-renders for its own data.
+export const SuggestionsStrip = memo(SuggestionsStripContent)

@@ -1,29 +1,29 @@
 {
-    "enabledPlugins": {
-        "home-assistant-skills@home-assistant-skills": true,
-        "unifi-network@unifi-plugins": true,
-        "frontend-design@claude-plugins-official": true,
-        "ui-ux-pro-max@ui-ux-pro-max-skill": true
+  "enableAllProjectMcpServers": true,
+  "enabledPlugins": {
+    "home-assistant-skills@home-assistant-skills": true,
+    "unifi-network@unifi-plugins": true,
+    "frontend-design@claude-plugins-official": true,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true
+  },
+  "extraKnownMarketplaces": {
+    "home-assistant-skills": {
+      "source": {
+        "source": "github",
+        "repo": "homeassistant-ai/skills"
+      }
     },
-    "extraKnownMarketplaces": {
-        "home-assistant-skills": {
-            "source": {
-                "source": "github",
-                "repo": "homeassistant-ai/skills"
-            }
-        },
-        "unifi-plugins": {
-            "source": {
-                "source": "github",
-                "repo": "sirkirby/unifi-mcp"
-            }
-        },
-        "ui-ux-pro-max-skill": {
-            "source": {
-                "source": "github",
-                "repo": "nextlevelbuilder/ui-ux-pro-max-skill"
-            }
-        }
+    "unifi-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "sirkirby/unifi-mcp"
+      }
     },
-    "enableAllProjectMcpServers": true
+    "ui-ux-pro-max-skill": {
+      "source": {
+        "source": "github",
+        "repo": "nextlevelbuilder/ui-ux-pro-max-skill"
+      }
+    }
+  }
 }

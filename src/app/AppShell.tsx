@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { HomeScreen } from '../features/home/HomeScreen'
 import { useConnectionStatus } from '../infrastructure/ha/useConnectionStatus'
 import { ConnectionBanner } from './ConnectionBanner'
@@ -15,17 +15,15 @@ export function AppShell({ onTokenSaved = () => {} }: { onTokenSaved?: () => voi
   const [theme, setTheme] = useThemePreference()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const stale = status.kind !== 'connected'
-  const openSettings = () => setSettingsOpen(true)
+  // Stable, so the memoized favorites section doesn't re-render with the shell.
+  const openSettings = useCallback(() => setSettingsOpen(true), [])
 
   return (
     <>
-      <header className="app-header">
-        <button type="button" onClick={openSettings}>
-          Settings
-        </button>
-      </header>
       <ConnectionBanner status={status} />
-      <div className="content" data-stale={stale ? '' : undefined} aria-busy={stale}>
+      {/* No aria-busy: some screen readers mute busy regions, and an outage can last a
+          while. The banner says the values are stale. */}
+      <div className="content" data-stale={stale ? '' : undefined}>
         <HomeScreen onOpenSettings={openSettings} />
       </div>
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)}>

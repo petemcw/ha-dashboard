@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import type { HassEntity } from 'home-assistant-js-websocket'
 import { PersonAvatar } from '../../../domains/person/components/PersonAvatar'
 import { personViewModel } from '../../../domains/person/viewModel'
@@ -33,13 +33,14 @@ function usePeopleIds(): string[] {
   )
 }
 
-export function PresenceRow() {
+function PresenceRowContent() {
   const haUrl = useHaUrl()
   const people = usePeopleIds()
-  // Pictures can't be resolved until the runtime config loads, so wait for it.
-  if (!haUrl) return <section aria-label="People" />
+  // Pictures can't be resolved until the runtime config loads, so wait for it. A house
+  // with no people shows nothing: the sign has no room for an empty note.
+  if (!haUrl || people.length === 0) return null
   return (
-    <section aria-label="People">
+    <section aria-label="People" className="presence">
       <ul className="presence-row">
         {people.map((id) => (
           <Person key={id} entityId={id} haUrl={haUrl} />
@@ -48,3 +49,7 @@ export function PresenceRow() {
     </section>
   )
 }
+
+// HomeScreen re-renders on every clock tick and attention change; this section reads
+// neither, so it only re-renders for its own data.
+export const PresenceRow = memo(PresenceRowContent)

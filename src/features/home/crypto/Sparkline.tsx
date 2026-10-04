@@ -20,6 +20,8 @@ export function Sparkline({ points }: { points: number[] }) {
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       width={WIDTH}
       height={HEIGHT}
+      // The stroke straddles the top and bottom edges; don't clip half of it away.
+      overflow="visible"
     >
       <path d={path} fill="none" stroke="currentColor" strokeWidth="1.5" />
     </svg>

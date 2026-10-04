@@ -8,7 +8,7 @@ export function ItemAction({ action }: { action: AttentionItem['action'] }) {
   if (!action) return null
   if ('href' in action) {
     return (
-      <a href={action.href} target="_blank" rel="noopener noreferrer">
+      <a className="button-link" href={action.href} target="_blank" rel="noopener noreferrer">
         {action.label}
       </a>
     )

@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { batterySensorState } from '../../../domains/sensor/factories'
 import { entityStore } from '../../../infrastructure/entities/entityStore'
 import { connectionStatus } from '../../../infrastructure/ha/connectionStatus'
-import { AttentionSection } from './AttentionSection'
+import { AttentionHarness } from '../../../test/AttentionHarness'
 import { calmHouse } from './factories'
 import { CLEANUP_DEBOUNCE_MS } from './useSnoozes'
 
@@ -86,7 +86,7 @@ describe('attention snoozes', () => {
   it('hides an item snoozed until a time in the future and lists it as snoozed', async () => {
     const ha = fakeHa(admin, stored({ [ID]: { until: FUTURE, by: 'admin-1' } }))
     seed('12')
-    render(<AttentionSection connect={ha.connect} />)
+    render(<AttentionHarness connect={ha.connect} />)
     await settle()
     expect(chore()).toBeFalsy()
     const disclosure = screen.getByText('1 snoozed')
@@ -97,7 +97,7 @@ describe('attention snoozes', () => {
   it('shows an item again once its snooze has expired', async () => {
     const ha = fakeHa(admin, stored({ [ID]: { until: '2026-10-03T12:00:40Z', by: 'u' } }))
     seed('12')
-    render(<AttentionSection connect={ha.connect} />)
+    render(<AttentionHarness connect={ha.connect} />)
     await settle()
     expect(chore()).toBeFalsy()
     await act(() => vi.advanceTimersByTimeAsync(60_000))
@@ -107,7 +107,7 @@ describe('attention snoozes', () => {
   it('stores a one-week snooze in shared system data when an admin chooses 1 week', async () => {
     const ha = fakeHa(admin)
     seed('12')
-    render(<AttentionSection connect={ha.connect} />)
+    render(<AttentionHarness connect={ha.connect} />)
     await settle()
     fireEvent.click(screen.getByRole('button', { name: 'Snooze Front door battery' }))
     fireEvent.click(screen.getByRole('button', { name: '1 week' }))
@@ -130,7 +130,7 @@ describe('attention snoozes', () => {
     const ha = fakeHa(admin)
     ha.failWrites()
     seed('12')
-    render(<AttentionSection connect={ha.connect} />)
+    render(<AttentionHarness connect={ha.connect} />)
     await settle()
     fireEvent.click(screen.getByRole('button', { name: 'Snooze Front door battery' }))
     fireEvent.click(screen.getByRole('button', { name: '1 day' }))
@@ -139,10 +139,38 @@ describe('attention snoozes', () => {
     expect(chore()).toBeTruthy()
   })
 
+  it('confirms a snooze with an undo that takes it back', async () => {
+    const ha = fakeHa(admin)
+    seed('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    fireEvent.click(screen.getByRole('button', { name: 'Snooze Front door battery' }))
+    fireEvent.click(screen.getByRole('button', { name: '1 week' }))
+    await settle()
+    expect(screen.getByText(/^Snoozed until /)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    await settle()
+    expect(ha.writes[1].value).toEqual(stored({}))
+    expect(screen.queryByText(/^Snoozed until /)).not.toBeInTheDocument()
+  })
+
+  it('lets the snooze confirmation go on its own after a few seconds', async () => {
+    const ha = fakeHa(admin)
+    seed('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    fireEvent.click(screen.getByRole('button', { name: 'Snooze Front door battery' }))
+    fireEvent.click(screen.getByRole('button', { name: '1 day' }))
+    await settle()
+    expect(screen.getByText(/^Snoozed until /)).toBeInTheDocument()
+    await act(() => vi.advanceTimersByTimeAsync(10_000))
+    expect(screen.queryByText(/^Snoozed until /)).not.toBeInTheDocument()
+  })
+
   it('lets an admin unsnooze from the snoozed list', async () => {
     const ha = fakeHa(admin, stored({ [ID]: { until: FUTURE, by: 'admin-1' } }))
     seed('12')
-    render(<AttentionSection connect={ha.connect} />)
+    render(<AttentionHarness connect={ha.connect} />)
     await settle()
     fireEvent.click(screen.getByText('1 snoozed'))
     fireEvent.click(screen.getByRole('button', { name: 'Unsnooze Front door battery' }))
@@ -157,7 +185,7 @@ describe('attention snoozes', () => {
     ;(conn as unknown as { subscribeMessage: unknown }).subscribeMessage = () =>
       Promise.resolve(() => Promise.resolve())
     seed('12')
-    render(<AttentionSection connect={() => Promise.resolve(conn)} />)
+    render(<AttentionHarness connect={() => Promise.resolve(conn)} />)
     await settle()
     expect(chore()).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Snooze/ })).not.toBeInTheDocument()
@@ -169,7 +197,7 @@ describe('attention snoozes', () => {
       stored({ [ID]: { until: FUTURE, by: 'admin-1' } }),
     )
     seed('12')
-    render(<AttentionSection connect={ha.connect} />)
+    render(<AttentionHarness connect={ha.connect} />)
     await settle()
     expect(screen.getByText('1 snoozed')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /snooze/i })).not.toBeInTheDocument()
@@ -178,7 +206,7 @@ describe('attention snoozes', () => {
   it('shows a snooze made on another device without a reload', async () => {
     const ha = fakeHa({ id: 'kiosk', is_admin: false })
     seed('12')
-    render(<AttentionSection connect={ha.connect} />)
+    render(<AttentionHarness connect={ha.connect} />)
     await settle()
     expect(chore()).toBeTruthy()
     act(() => ha.emit(stored({ [ID]: { until: FUTURE, by: 'admin-1' } })))
@@ -188,7 +216,7 @@ describe('attention snoozes', () => {
   it('ignores a stored value with an unknown version and never overwrites it', async () => {
     const ha = fakeHa(admin, { version: 9, snoozes: { [ID]: { until: FUTURE, by: 'x' } } })
     seed('12')
-    render(<AttentionSection connect={ha.connect} />)
+    render(<AttentionHarness connect={ha.connect} />)
     await settle()
     expect(chore()).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Snooze/ })).not.toBeInTheDocument()
@@ -207,7 +235,7 @@ describe('snooze cleanup', () => {
       }),
     )
     seed('85') // battery recovered: present, available, above the threshold
-    render(<AttentionSection connect={ha.connect} />)
+    render(<AttentionHarness connect={ha.connect} />)
     await settle()
     await act(() => vi.advanceTimersByTimeAsync(CLEANUP_DEBOUNCE_MS + 100))
     expect(ha.writes).toEqual([
@@ -218,7 +246,7 @@ describe('snooze cleanup', () => {
   it('keeps a snooze while its entity is unavailable', async () => {
     const ha = fakeHa(admin, stored({ [ID]: { until: FUTURE, by: 'admin-1' } }))
     seed('unavailable')
-    render(<AttentionSection connect={ha.connect} />)
+    render(<AttentionHarness connect={ha.connect} />)
     await settle()
     await act(() => vi.advanceTimersByTimeAsync(CLEANUP_DEBOUNCE_MS * 3))
     expect(ha.writes).toEqual([])
@@ -226,7 +254,7 @@ describe('snooze cleanup', () => {
 
   it('does not remove snoozes before the first entity snapshot arrives', async () => {
     const ha = fakeHa(admin, stored({ [ID]: { until: PAST, by: 'admin-1' } }))
-    render(<AttentionSection connect={ha.connect} />)
+    render(<AttentionHarness connect={ha.connect} />)
     await settle()
     await act(() => vi.advanceTimersByTimeAsync(CLEANUP_DEBOUNCE_MS * 2))
     expect(ha.writes).toEqual([])
@@ -241,7 +269,7 @@ describe('snooze cleanup', () => {
     const offline = fakeHa(admin, value)
     connectionStatus.set({ kind: 'reconnecting' })
     seed('85')
-    const { unmount } = render(<AttentionSection connect={offline.connect} />)
+    const { unmount } = render(<AttentionHarness connect={offline.connect} />)
     await settle()
     await act(() => vi.advanceTimersByTimeAsync(CLEANUP_DEBOUNCE_MS * 2))
     expect(offline.writes).toEqual([])
@@ -249,7 +277,7 @@ describe('snooze cleanup', () => {
 
     connectionStatus.set({ kind: 'connected' })
     const viewer = fakeHa({ id: 'kiosk', is_admin: false }, value)
-    render(<AttentionSection connect={viewer.connect} />)
+    render(<AttentionHarness connect={viewer.connect} />)
     await settle()
     await act(() => vi.advanceTimersByTimeAsync(CLEANUP_DEBOUNCE_MS * 2))
     expect(viewer.writes).toEqual([])

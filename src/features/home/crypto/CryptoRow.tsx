@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { useHomeConfig } from '../../../config/useHomeConfig'
 import { useEntity } from '../../../infrastructure/entities/useEntity'
 import { useHourlyMeans } from '../../../infrastructure/ha/useHourlyMeans'
+import { SectionCard } from '../SectionCard'
 import { cryptoViewModel } from './cryptoViewModel'
 import { Sparkline } from './Sparkline'
 
@@ -19,17 +20,19 @@ function Coin({ symbol, entityId, means }: { symbol: string; entityId: string; m
           <span className="crypto-change">{vm.changeText}</span>
         </>
       )}
-      <Sparkline points={vm.points} />
+      <span className="crypto-spark">
+        <Sparkline points={vm.points} />
+      </span>
     </li>
   )
 }
 
-export function CryptoRow() {
+function CryptoRowContent() {
   const { crypto } = useHomeConfig()
   const statisticIds = useMemo(() => crypto.map((c) => c.entity_id), [crypto])
   const means = useHourlyMeans(statisticIds, HISTORY_HOURS)
   return (
-    <section aria-label="Crypto">
+    <SectionCard title="Crypto" className="crypto">
       <ul className="crypto-row">
         {crypto.map((c) => (
           <Coin
@@ -40,6 +43,10 @@ export function CryptoRow() {
           />
         ))}
       </ul>
-    </section>
+    </SectionCard>
   )
 }
+
+// HomeScreen re-renders on every clock tick and attention change; this section reads
+// neither, so it only re-renders for its own data.
+export const CryptoRow = memo(CryptoRowContent)

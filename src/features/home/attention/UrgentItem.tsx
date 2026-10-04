@@ -11,19 +11,21 @@ export type SnoozeControls = {
 // Undefined `snooze` means this user gets no snooze action.
 export function UrgentItem({ item, snooze }: { item: AttentionItem; snooze?: SnoozeControls }) {
   return (
-    <li className="urgent-item">
-      <div>
-        <strong>{item.title}</strong>
-        <p>{item.detail}</p>
+    <li className="attention-item urgent-item">
+      <div className="attention-item__text">
+        <strong className="attention-item__title">{item.title}</strong>
+        {item.detail && <span className="attention-item__detail">{item.detail}</span>}
       </div>
-      <ItemAction action={item.action} />
-      {snooze && (
-        <SnoozeMenu
-          title={item.title}
-          disabled={snooze.disabled}
-          onChoose={(d) => snooze.onSnooze(item.id, d)}
-        />
-      )}
+      <div className="attention-item__actions">
+        <ItemAction action={item.action} />
+        {snooze && (
+          <SnoozeMenu
+            title={item.title}
+            disabled={snooze.disabled}
+            onChoose={(d) => snooze.onSnooze(item.id, d)}
+          />
+        )}
+      </div>
     </li>
   )
 }

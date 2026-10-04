@@ -13,14 +13,14 @@ export function HomeConfigGate({
   if (state.kind === 'loading') {
     return (
       <main className="home">
-        <p>Connecting…</p>
+        <p className="home__connecting">Connecting…</p>
       </main>
     )
   }
   if (state.kind === 'failed') {
     return (
       <main className="home">
-        <p role="alert">
+        <p role="alert" className="panel setup-error">
           This dashboard needs a home.json that lists your entities. Copy home.example.json to
           home.json, edit it, and serve it as /home.json (see deploy/compose.yml). {state.message}
         </p>

@@ -1,7 +1,5 @@
+import { formatUntil } from './snoozes'
 import type { AttentionItem } from './types'
-
-export const formatUntil = (d: Date) =>
-  d.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' })
 
 type Props = {
   items: AttentionItem[]

@@ -1,5 +1,9 @@
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
+
+// The sheet positions itself with an inline translateY; read it back in pixels.
+const sheetOffset = (sheet: Locator) =>
+  sheet.evaluate((el) => Number(/translateY\((-?[\d.]+)px\)/.exec(el.style.transform)?.[1] ?? 0))
 
 async function openSheet(page: Page) {
   await page.goto('/')
@@ -7,9 +11,7 @@ async function openSheet(page: Page) {
   const sheet = page.getByRole('dialog', { name: 'Settings' })
   await expect(sheet).toBeVisible()
   // Let the opening spring settle before grabbing it.
-  await expect
-    .poll(() => sheet.evaluate((el) => getComputedStyle(el).transform))
-    .toMatch(/matrix\(1, 0, 0, 1, 0, 0\)|none/)
+  await expect.poll(() => sheetOffset(sheet)).toBeCloseTo(0, 0)
   return sheet
 }
 
@@ -41,9 +43,7 @@ test('springs back open after a short, slow drag', async ({ page }) => {
   await page.waitForTimeout(150)
   await page.mouse.up()
   await expect(sheet).toBeVisible()
-  await expect
-    .poll(() => sheet.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m42))
-    .toBeCloseTo(0, 0)
+  await expect.poll(() => sheetOffset(sheet)).toBeCloseTo(0, 0)
 })
 
 test('still closes with the Close button and Escape', async ({ page }) => {

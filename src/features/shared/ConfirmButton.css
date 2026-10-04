@@ -13,26 +13,40 @@
   }
 }
 
-/* Sliding confirm: the armed icon button grows leftward (it sits at the right end of the
-   actions, so the snooze icon beside it stays put) and "Confirm?" slides out after the icon.
-   A transition, not a keyframe animation: it runs back from wherever it is, so a disarm
-   halfway through the reveal reverses smoothly. The negative margin cancels the button's
-   gap while collapsed, so the unarmed button is just its icon. Only max-width, margin and
-   opacity change; the hit area stays at least 44 px in both states. */
+/* Sliding confirm: arming widens the button toward its start side, over whatever sits
+   beside it (an attention row's text), instead of taking room from it. Its start margin
+   goes negative exactly as fast as the label grows, so the button's footprint, and the
+   layout around it, never change. Hence a fixed label width (it fits "Confirm?" in the
+   usual system faces and scales with text size). Transitions, not keyframes, so a disarm
+   halfway through reverses from wherever it is. The hit area stays at least 44 px. */
+.button--confirm {
+  --confirm-label: 4.75rem;
+  transition:
+    margin-inline-start 0.22s ease-out,
+    background-color 0.15s,
+    transform 0.1s;
+}
+
+.button--confirm-armed {
+  margin-inline-start: calc(-1 * (var(--confirm-label) + var(--space-2)));
+}
+
+/* Collapsed, the negative margin cancels the button's gap, so the button is just its icon. */
 .button__confirm-text {
   overflow: hidden;
-  max-width: 0;
+  width: 0;
   margin-inline-start: calc(-1 * var(--space-2));
   opacity: 0;
   white-space: nowrap;
+  text-align: start;
   transition:
-    max-width 0.22s ease-out,
+    width 0.22s ease-out,
     margin-inline-start 0.22s ease-out,
     opacity 0.15s ease-out;
 }
 
 .button--confirm-armed .button__confirm-text {
-  max-width: 6rem;
+  width: var(--confirm-label);
   margin-inline-start: 0;
   opacity: 1;
 }

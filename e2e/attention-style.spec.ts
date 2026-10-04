@@ -127,7 +127,7 @@ test.describe('attention row layout on a phone', () => {
     const rowBox = (await row.boundingBox())!
     const textBox = (await title.boundingBox())!
     const actions = (await row.locator('.attention-item__actions').boundingBox())!
-    const buttons = row.locator('.attention-item__actions button')
+    const buttons = row.locator('.attention-item__actions').getByRole('button')
     expect(await buttons.count()).toBe(2)
     const first = (await buttons.nth(0).boundingBox())!
     const second = (await buttons.nth(1).boundingBox())!
@@ -139,5 +139,79 @@ test.describe('attention row layout on a phone', () => {
     // Flush right inside the row's padding.
     expect(rowBox.x + rowBox.width - (second.x + second.width)).toBeLessThanOrEqual(16)
     expect(rowBox.x + rowBox.width - (second.x + second.width)).toBeGreaterThanOrEqual(0)
+  })
+})
+
+test.describe('armed and snooze controls over the row text', () => {
+  test.use({ haOptions: { entities: house } })
+
+  // Where the row and its title sit, and how blurred the text is.
+  const measure = async (page: Page) => {
+    const row = region(page).locator('.attention-item--urgent')
+    const text = row.locator('.attention-item__text')
+    return {
+      row: (await row.boundingBox())!,
+      title: (await row.getByText('Garage door', { exact: true }).boundingBox())!,
+      text: (await text.boundingBox())!,
+      filter: await style(text, 'filter'),
+    }
+  }
+  const settle = (page: Page) => page.waitForTimeout(400)
+
+  test('the armed confirm slides over the text, blurring it, without reflowing the row', async ({
+    page,
+    mockHa,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    mockHa.setState(openDoor())
+    await page.goto('/')
+    await expect(region(page).getByRole('button', { name: 'Close garage door' })).toBeVisible()
+    const before = await measure(page)
+    expect(before.filter).toBe('none')
+
+    await region(page).getByRole('button', { name: 'Close garage door' }).click()
+    const armed = region(page).getByRole('button', { name: 'Confirm close garage door' })
+    await settle(page)
+    const after = await measure(page)
+    expect(after.row).toEqual(before.row)
+    expect(after.title).toEqual(before.title)
+    // It reaches into the text's column rather than pushing the text aside.
+    expect((await armed.boundingBox())!.x).toBeLessThan(before.text.x + before.text.width)
+    expect(after.filter).toContain('blur')
+
+    await page.mouse.click(5, 5)
+    await settle(page)
+    expect((await measure(page)).filter).toBe('none')
+  })
+
+  test('the snooze choices open over the text, blurring it, without reflowing the row', async ({
+    page,
+    mockHa,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    mockHa.setState(openDoor())
+    await page.goto('/')
+    await expect(region(page).getByRole('button', { name: 'Snooze Garage door' })).toBeVisible()
+    const before = await measure(page)
+
+    await region(page).getByRole('button', { name: 'Snooze Garage door' }).click()
+    const choices = region(page).getByRole('group', { name: 'Snooze Garage door' })
+    await expect(choices.getByRole('button', { name: '1 day' })).toBeFocused()
+    await settle(page)
+    const after = await measure(page)
+    expect(after.row).toEqual(before.row)
+    expect(after.title).toEqual(before.title)
+    const group = (await choices.boundingBox())!
+    expect(group.x).toBeLessThan(before.text.x + before.text.width)
+    // One line, inside the row.
+    expect(group.height).toBeLessThan(before.row.height)
+    expect(group.x).toBeGreaterThanOrEqual(before.row.x)
+    expect(after.filter).toContain('blur')
+
+    await choices.getByRole('button', { name: 'Cancel' }).click()
+    await expect(choices).toBeHidden()
+    await expect(region(page).getByRole('button', { name: 'Snooze Garage door' })).toBeFocused()
+    await settle(page)
+    expect((await measure(page)).filter).toBe('none')
   })
 })

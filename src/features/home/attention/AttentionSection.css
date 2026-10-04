@@ -46,16 +46,18 @@
   gap: 0 var(--space-3);
   padding: 10px 10px 10px 12px;
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  /* A variable, so the snooze choices laid over the row can match it. */
+  --row-bg: var(--surface);
+  background: var(--row-bg);
 }
 
 .attention-item--urgent {
-  background: var(--danger-soft);
+  --row-bg: var(--danger-soft);
 }
 
 /* A chore is quieter than an urgent item: a sunken row and a soft ochre badge. */
 .attention-item--chore {
-  background: var(--surface-sunken);
+  --row-bg: var(--surface-sunken);
 }
 
 .attention-item > * {
@@ -85,6 +87,17 @@
 .attention-item__text {
   display: flex;
   flex-direction: column;
+  transition:
+    filter 0.22s ease-out,
+    opacity 0.22s ease-out;
+}
+
+/* An armed confirm or open snooze choices reach over the text instead of reflowing it, and
+   the text blurs back under them: the row is waiting on the controls now. The badge stays
+   sharp, so it's still clear which item they act on. */
+.attention-item:has(.button--confirm-armed, .snooze-choices--open) .attention-item__text {
+  filter: blur(2px);
+  opacity: 0.45;
 }
 
 /* Titles can be raw entity IDs with no break points. */
@@ -100,6 +113,8 @@
 
 /* The gap between compact buttons is set with the button overlay (controls.css). */
 .attention-item__actions {
+  /* Anchors the snooze choices. */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -117,9 +132,36 @@
   padding-block: var(--space-2);
 }
 
+/* Snooze choices: laid over the right end of the row, covering the other actions and
+   reaching over the text, so opening them never reflows the row. They always render, so
+   closing can slide them away the way they came; closed, they're hidden and inert. The
+   shadow in the row's colour softens their leading edge over the blurred text. */
 .snooze-choices {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: 0;
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  padding-inline-start: var(--space-2);
+  background: var(--row-bg);
+  box-shadow: calc(-1 * var(--space-3)) 0 var(--space-3) calc(-1 * var(--space-1)) var(--row-bg);
+  translate: var(--space-3) -50%;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    translate 0.2s ease-out,
+    opacity 0.15s ease-out,
+    visibility 0s linear 0.2s;
+}
+
+.snooze-choices--open {
+  translate: 0 -50%;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    translate 0.2s ease-out,
+    opacity 0.15s ease-out,
+    visibility 0s;
 }
 
 /* Snoozed strip and card footer */

@@ -21,11 +21,19 @@ function writePreference(pref: ThemePreference) {
   }
 }
 
+// Browser chrome (status bar, address bar) colors, matching --surface in tokens.css.
+const THEME_COLORS = { light: '#fff7ed', dark: '#1a1411' } as const
+
 // `system` removes data-theme so the prefers-color-scheme rules in tokens.css apply.
 function applyPreference(pref: ThemePreference) {
   const root = document.documentElement
   if (pref === 'system') root.removeAttribute('data-theme')
   else root.setAttribute('data-theme', pref)
+  // index.html has one theme-color per color scheme; an override pins both to its color.
+  for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
+    const scheme = meta.media.includes('dark') ? 'dark' : 'light'
+    meta.content = THEME_COLORS[pref === 'system' ? scheme : pref]
+  }
 }
 
 export function useThemePreference() {

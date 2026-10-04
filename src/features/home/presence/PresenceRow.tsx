@@ -7,6 +7,7 @@ import { useEntitiesById } from '../../../infrastructure/entities/useEntitiesByI
 import { useEntity } from '../../../infrastructure/entities/useEntity'
 import { useEntityIds } from '../../../infrastructure/entities/useEntityIds'
 import { useHaUrl } from '../../../infrastructure/ha/useHaUrl'
+import { SectionCard } from '../SectionCard'
 
 const isPerson = (e: HassEntity) => e.entity_id.startsWith('person.')
 
@@ -37,14 +38,18 @@ export function PresenceRow() {
   const haUrl = useHaUrl()
   const people = usePeopleIds()
   // Pictures can't be resolved until the runtime config loads, so wait for it.
-  if (!haUrl) return <section aria-label="People" />
   return (
-    <section aria-label="People">
-      <ul className="presence-row">
-        {people.map((id) => (
-          <Person key={id} entityId={id} haUrl={haUrl} />
-        ))}
-      </ul>
-    </section>
+    <SectionCard title="People" className="presence">
+      {haUrl && people.length === 0 && (
+        <p className="empty-note">No people in Home Assistant yet</p>
+      )}
+      {haUrl && people.length > 0 && (
+        <ul className="presence-row">
+          {people.map((id) => (
+            <Person key={id} entityId={id} haUrl={haUrl} />
+          ))}
+        </ul>
+      )}
+    </SectionCard>
   )
 }

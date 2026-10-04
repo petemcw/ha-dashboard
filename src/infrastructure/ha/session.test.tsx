@@ -44,7 +44,7 @@ describe('connection status', () => {
     startSession(() => Promise.reject(ERR_CANNOT_CONNECT))
     const { result } = renderHook(() => useConnectionStatus())
     await act(async () => {})
-    expect(result.current).toEqual({ kind: 'error', message: "Can't reach Home Assistant." })
+    expect(result.current).toEqual({ kind: 'error', message: 'Can’t reach Home Assistant.' })
   })
 })
 

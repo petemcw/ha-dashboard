@@ -72,7 +72,7 @@ export function FavoritesEditor() {
   const results = useEntityIds(predicate).slice(0, MAX_RESULTS)
 
   if (editor.loaded && !editor.writable) {
-    return <p>Favorites were saved by a newer version of this app, so they can't be edited here.</p>
+    return <p>Favorites were saved by a newer version of this app, so they can’t be edited here.</p>
   }
 
   return (

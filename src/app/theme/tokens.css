@@ -1,44 +1,67 @@
-/* Neutral greys and one blue accent; the palette is still undecided. */
+/* Maple Frontier tokens. Colors come from the icon: warm ivory, maple brown, and the
+   leaf's orange. Each color is defined once with light-dark(); `color-scheme` picks the
+   side, so the System / Light / Dark override only has to set color-scheme. */
 :root {
-  --stale-opacity: 0.5;
-  --accent: #5b9dff;
-  --warn: #e0a030;
-  --danger: #ef5b5b;
-  --surface: #111418;
-  --surface-raised: #1c2128;
-  --text: #e6e8eb;
-  --text-muted: #9aa3ad;
-  color-scheme: dark;
-}
+  color-scheme: light dark;
 
-:root[data-theme='dark'] {
-  --surface: #111418;
-  --surface-raised: #1c2128;
-  --text: #e6e8eb;
-  --text-muted: #9aa3ad;
-  color-scheme: dark;
+  /* Surfaces */
+  --surface: light-dark(#fff7ed, #1a1411);
+  --surface-raised: light-dark(#fffdf9, #241c18);
+  --surface-sunken: light-dark(#f6ebdd, #140f0d);
+  --border: light-dark(#eadbc8, #3a2e27);
+  --border-strong: light-dark(#cdb79f, #574437);
+
+  /* Text */
+  --text: light-dark(#2a1a12, #f5ede6);
+  --text-muted: light-dark(#6f5a4a, #bdaea2);
+
+  /* Brand */
+  --accent: light-dark(#542711, #e08a4f);
+  --on-accent: light-dark(#fff7ed, #1a1411);
+  --accent-soft: light-dark(#f3e1d0, #3a2418);
+  --leaf: light-dark(#c2410c, #f08a4b);
+
+  /* Status. `--warn` and `--danger` are for fills and bars; text on them uses --on-*. */
+  --warn: light-dark(#b7791f, #e0a030);
+  --on-warn: light-dark(#2a1a12, #1a1411);
+  --warn-soft: light-dark(#fbefd6, #3a2c14);
+  --danger: light-dark(#b42318, #f07060);
+  --on-danger: light-dark(#ffffff, #1a1411);
+  --danger-soft: light-dark(#fde8e4, #3d1d18);
+  --ok: light-dark(#2f7d4a, #6cc08b);
+  --up: light-dark(#2f7d4a, #6cc08b);
+  --down: light-dark(#b42318, #f07060);
+
+  /* Shape and space */
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-pill: 999px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --shadow:
+    0 1px 2px light-dark(rgb(84 39 17 / 0.06), rgb(0 0 0 / 0.3)),
+    0 4px 16px light-dark(rgb(84 39 17 / 0.06), rgb(0 0 0 / 0.25));
+
+  /* Type */
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+
+  /* While the connection is down, content stays readable but clearly not live. */
+  --stale-opacity: 0.7;
 }
 
 :root[data-theme='light'] {
-  --accent: #1f6feb;
-  --warn: #9a6700;
-  --danger: #cf222e;
-  --surface: #f5f6f8;
-  --surface-raised: #ffffff;
-  --text: #1c2128;
-  --text-muted: #5b6570;
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme]) {
-    --accent: #1f6feb;
-    --warn: #9a6700;
-    --danger: #cf222e;
-    --surface: #f5f6f8;
-    --surface-raised: #ffffff;
-    --text: #1c2128;
-    --text-muted: #5b6570;
-    color-scheme: light;
-  }
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }

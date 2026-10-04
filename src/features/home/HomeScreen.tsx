@@ -14,7 +14,8 @@ export function HomeScreen({ onOpenSettings }: HomeScreenProps) {
   const loaded = useEntitiesLoaded()
   return (
     <main className="home">
-      <h1>Home</h1>
+      {/* The visible title is the greeting in the header; this names the page for assistive tech. */}
+      <h1 className="visually-hidden">Home</h1>
       {loaded ? (
         <div className="home__grid">
           <div className="home__attention">
@@ -34,7 +35,7 @@ export function HomeScreen({ onOpenSettings }: HomeScreenProps) {
           </div>
         </div>
       ) : (
-        <p>Connecting…</p>
+        <p className="home__connecting">Connecting…</p>
       )}
     </main>
   )

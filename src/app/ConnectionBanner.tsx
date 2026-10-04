@@ -12,7 +12,7 @@ export function ConnectionBanner({ status }: { status: ConnectionStatus }) {
     // A status, not an alert: this repeats every second until HA is back.
     return (
       <p className="banner banner--warn" role="status">
-        Can't reach Home Assistant. Retrying…
+        Can’t reach Home Assistant. Retrying…
       </p>
     )
   }

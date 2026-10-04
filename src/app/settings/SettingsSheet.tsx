@@ -2,7 +2,9 @@ import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react'
 
 type SettingsSheetProps = { open: boolean; onClose: () => void; children?: ReactNode }
 
-const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+// Disabled controls can't take focus, so a trap that counts them lets Tab escape.
+const FOCUSABLE =
+  'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
 
 // A modal dialog with sections as children, so later tasks add theirs in separate files.
 export function SettingsSheet({ open, onClose, children }: SettingsSheetProps) {
@@ -38,7 +40,14 @@ export function SettingsSheet({ open, onClose, children }: SettingsSheetProps) {
   }
 
   return (
-    <div className="sheet-backdrop">
+    <div
+      className="sheet-backdrop"
+      data-testid="sheet-backdrop"
+      // Only a tap on the dimmed area itself closes; taps inside the sheet bubble here too.
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
       <div
         ref={ref}
         className="sheet"

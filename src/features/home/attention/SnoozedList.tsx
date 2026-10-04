@@ -16,7 +16,7 @@ export function SnoozedList({ items, until, onUnsnooze, disabled }: Props) {
   return (
     <details className="snoozed">
       <summary>{`${items.length} snoozed`}</summary>
-      <ul>
+      <ul className="snoozed__list">
         {items.map((item) => {
           const end = until(item.id)
           return (
@@ -26,6 +26,7 @@ export function SnoozedList({ items, until, onUnsnooze, disabled }: Props) {
               {onUnsnooze && (
                 <button
                   type="button"
+                  className="button--quiet"
                   aria-label={`Unsnooze ${item.title}`}
                   disabled={disabled}
                   onClick={() => onUnsnooze(item.id)}

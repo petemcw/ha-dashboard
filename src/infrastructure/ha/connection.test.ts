@@ -110,7 +110,7 @@ describe('connection', () => {
 
   it('describes the library error codes in words', async () => {
     const { describeError } = await freshConnection()
-    expect(describeError(ERR_CANNOT_CONNECT)).toBe("Can't reach Home Assistant.")
+    expect(describeError(ERR_CANNOT_CONNECT)).toBe('Can’t reach Home Assistant.')
     expect(describeError(ERR_INVALID_AUTH)).toMatch(/Login expired/)
     expect(describeError(ERR_INVALID_HTTPS_TO_HTTP)).toMatch(/HTTPS/)
     expect(describeError(new Error('boom'))).toBe('boom')

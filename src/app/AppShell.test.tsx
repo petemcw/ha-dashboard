@@ -29,7 +29,6 @@ describe('connection banner', () => {
     render(<AppShell />)
     act(() => connectionStatus.set({ kind: 'reconnecting' }))
     expect(home()).toHaveAttribute('data-stale')
-    expect(home()).toHaveAttribute('aria-busy', 'true')
   })
 
   it('hides the banner and clears stale marking after reconnecting', () => {
@@ -38,7 +37,6 @@ describe('connection banner', () => {
     act(() => connectionStatus.set({ kind: 'connected' }))
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
     expect(home()).not.toHaveAttribute('data-stale')
-    expect(home()).toHaveAttribute('aria-busy', 'false')
   })
 })
 

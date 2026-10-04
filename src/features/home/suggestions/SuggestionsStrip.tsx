@@ -16,9 +16,13 @@ export function SuggestionsStrip() {
   if (items.length === 0) return null
 
   return (
-    <section aria-labelledby={`${hintId}-heading`} className="suggestions">
-      <h2 id={`${hintId}-heading`}>Suggestions</h2>
-      <ul>
+    <section aria-labelledby={`${hintId}-heading`} className="card suggestions">
+      <header className="card__header">
+        <h2 id={`${hintId}-heading`} className="card__title">
+          Suggestions
+        </h2>
+      </header>
+      <ul className="suggestions__list">
         {items.map((s) => (
           <li key={s.id}>
             <button type="button" disabled aria-describedby={hintId} className="suggestion">

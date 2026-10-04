@@ -170,7 +170,7 @@ export function getConnection(): Promise<Connection> {
 export function describeError(err: unknown): string {
   switch (err) {
     case ERR_CANNOT_CONNECT:
-      return "Can't reach Home Assistant."
+      return 'Can’t reach Home Assistant.'
     case ERR_INVALID_AUTH:
       return 'Login expired. Redirecting to Home Assistant…'
     case ERR_INVALID_HTTPS_TO_HTTP:

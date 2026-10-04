@@ -1,4 +1,5 @@
 import { getConnection } from '../../../infrastructure/ha/connection'
+import { SectionCard } from '../SectionCard'
 import { ChoreRow } from './ChoreRow'
 import { SnoozedList } from './SnoozedList'
 import { UrgentItem } from './UrgentItem'
@@ -16,10 +17,14 @@ export function AttentionSection({ connect = getConnection }: { connect?: typeof
     ? { disabled: snoozing.pending, onSnooze: snoozing.snooze }
     : undefined
   return (
-    <section aria-label="Needs attention">
-      {items.length === 0 && <p>Nothing needs attention</p>}
+    <SectionCard
+      title="Needs attention"
+      className="attention"
+      aside={items.length > 0 && <span className="count">{items.length}</span>}
+    >
+      {items.length === 0 && <p className="all-clear">Nothing needs attention</p>}
       {urgent.length > 0 && (
-        <ul>
+        <ul className="urgent-list">
           {urgent.map((item) => (
             <UrgentItem key={item.id} item={item} snooze={snooze} />
           ))}
@@ -34,6 +39,6 @@ export function AttentionSection({ connect = getConnection }: { connect?: typeof
       />
       {!snoozing.readable && <p role="status">Snoozes are unavailable.</p>}
       {snoozing.error && <p role="alert">{snoozing.error}</p>}
-    </section>
+    </SectionCard>
   )
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { HomeScreen } from '../features/home/HomeScreen'
 import { useConnectionStatus } from '../infrastructure/ha/useConnectionStatus'
 import { ConnectionBanner } from './ConnectionBanner'
+import { AppHeader } from './header/AppHeader'
 import { FavoritesSettingsSection } from './settings/FavoritesSettingsSection'
 import { KioskTokenSection } from './settings/KioskTokenSection'
 import { SettingsSheet } from './settings/SettingsSheet'
@@ -19,13 +20,11 @@ export function AppShell({ onTokenSaved = () => {} }: { onTokenSaved?: () => voi
 
   return (
     <>
-      <header className="app-header">
-        <button type="button" onClick={openSettings}>
-          Settings
-        </button>
-      </header>
       <ConnectionBanner status={status} />
-      <div className="content" data-stale={stale ? '' : undefined} aria-busy={stale}>
+      <AppHeader settingsOpen={settingsOpen} onOpenSettings={openSettings} />
+      {/* No aria-busy: some screen readers mute busy regions, and an outage can last a
+          while. The banner says the values are stale. */}
+      <div className="content" data-stale={stale ? '' : undefined}>
         <HomeScreen onOpenSettings={openSettings} />
       </div>
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)}>

@@ -1,6 +1,6 @@
 # Task 009: Demo Connection and ?demo Mode Shell
 
-**Status**: pending
+**Status**: completed
 **Issue**: #26
 **Depends on**: 001, 002
 **Retry count**: 0
@@ -37,16 +37,16 @@ Add `?demo` mode. When the URL has `?demo`, the app connects to an in-browser fa
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it runs createConnection, subscribeEntities, and the WebSocket gateway's callService over the demo socket`
-- [ ] `it reconnects over a new demo socket after a forced reconnect and resumes subscribe_entities`
-- [ ] `it never runs the real connect in demo mode, even before the demo connection is installed`
-- [ ] `it shows people in demo mode without fetching config.json`
-- [ ] `it connects to the fake HA without fetching config.json or reading stored tokens in demo mode`
-- [ ] `it uses the placeholder home config instead of loading home.json in demo mode`
-- [ ] `it shows a Demo badge in demo mode`
-- [ ] `it hides sign out and kiosk token settings in demo mode`
-- [ ] `it ignores ?kiosk when ?demo is present`
-- [ ] `it leaves demo mode on the next load without ?demo`
+- [x] `it runs createConnection, subscribeEntities, and the WebSocket gateway's callService over the demo socket`
+- [x] `it reconnects over a new demo socket after a forced reconnect and resumes subscribe_entities`
+- [x] `it never runs the real connect in demo mode, even before the demo connection is installed`
+- [x] `it shows people in demo mode without fetching config.json`
+- [x] `it connects to the fake HA without fetching config.json or reading stored tokens in demo mode`
+- [x] `it uses the placeholder home config instead of loading home.json in demo mode`
+- [x] `it shows a Demo badge in demo mode`
+- [x] `it hides sign out and kiosk token settings in demo mode`
+- [x] `it ignores ?kiosk when ?demo is present`
+- [x] `it leaves demo mode on the next load without ?demo`
 
 ## Acceptance Criteria
 
@@ -57,4 +57,9 @@ Add `?demo` mode. When the URL has `?demo`, the app connects to an in-browser fa
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `src/infrastructure/fakeHa/demoSocket.ts`: `createDemoSocket(ha)` returns the `createSocket` option; each call is a new core client, replies and `close` events are delivered via `setTimeout`. Tests in `demoSocket.test.ts` run the real library, `subscribeEntities`, and `createWebSocketGateway`.
+- `src/infrastructure/ha/demoMode.ts`: `isDemoMode()`, read once per page load, never stored. `connection.ts` gained `installDemoConnection`, fail-closed `getConnection` in demo, and `isKioskDevice()` returns false in demo.
+- `src/app/demo/`: `installDemo.ts` (FakeHa + `createConnection`), `demoHouse.ts` (minimal entities: two people without pictures, one light; task 010 replaces it), `DemoBadge.tsx`. `main.tsx` awaits a dynamic import and installs before the first render (separate `installDemo` chunk in the build).
+- `useHaUrl` returns `location.origin` at once in demo. `useLoadedHomeConfig(enabled)` skips the fetch in demo; `App` uses `testHomeConfig`. `AppShell` shows the badge and hides `KioskTokenSection`/`SignOutSection`.
+- Tests: `App.demo.test.tsx`, `connection.test.ts` (demo cases), `e2e/demo.spec.ts` (ignores Vite's HMR socket, filters on `/api/websocket`). Badge CSS is its own block at the end of `index.css`.
+- Full vitest (337), lint, format, build, tsc node, and the mock e2e suite pass.

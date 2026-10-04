@@ -1,6 +1,6 @@
 # Task 008: Filter "Mark Replaced" Runs the Reset Script
 
-**Status**: pending
+**Status**: completed
 **Issue**: #25
 **Depends on**: 001, 002, 003, 004, 005, 007
 **Retry count**: 0
@@ -24,11 +24,11 @@ Make the filter chore's "Mark replaced" action run the rule's `resetScript` thro
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it does not run the reset script on the first tap of Mark replaced`
-- [ ] `it sends script.turn_on for the filter's reset script on the confirming tap`
-- [ ] `it shows "Didn't work, tap to retry" on the chore when the script fails`
-- [ ] `it keeps the toner chore's reorder link as a link`
-- [ ] `it disables Mark replaced when the reset script is missing or unavailable`
+- [x] `it does not run the reset script on the first tap of Mark replaced`
+- [x] `it sends script.turn_on for the filter's reset script on the confirming tap`
+- [x] `it shows "Didn't work, tap to retry" on the chore when the script fails`
+- [x] `it keeps the toner chore's reorder link as a link`
+- [x] `it disables Mark replaced when the reset script is missing or unavailable`
 
 ## Acceptance Criteria
 
@@ -40,4 +40,6 @@ Make the filter chore's "Mark replaced" action run the rule's `resetScript` thro
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `RunnableAction` is now a union: `ha`+`onState` (recheck) or `script` (no recheck). `filterRule` emits Mark replaced with `script: resetScript`, confirm "Tap again to confirm", pending "Saving…". `AttentionAction` runs `runScript` and subscribes to the script entity for disabling.
+- Removed the disabled-action shape and hint from `types.ts`/`ItemAction.tsx`.
+- Tests: new `FilterActions.test.tsx`; rewrote assertions in `thresholdRule.test.ts`, `AttentionSection.test.tsx`, `e2e/attention.spec.ts`; added a mock e2e in `e2e/attention-controls.spec.ts`. Toner link test confirms it stays a link.

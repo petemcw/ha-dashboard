@@ -1,6 +1,6 @@
 # Task 005: Fan and Script Favorite Tiles
 
-**Status**: pending
+**Status**: completed
 **Issue**: #22
 **Depends on**: 001, 002, 004
 **Retry count**: 0
@@ -24,12 +24,12 @@ Add the fan and script HA domains: factories, view models, and domain actions. M
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it sends fan.turn_on when an off fan tile is tapped`
-- [ ] `it sends script.turn_on with the script as the target when a script tile is tapped`
-- [ ] `it shows "Running" on a script tile while HA reports the script as on`
-- [ ] `it disables a script tile while HA reports the script as running`
-- [ ] `it shows "Didn't work, tap to retry" on a script tile when the run fails`
-- [ ] `it disables a fan or script tile for an unavailable or missing entity`
+- [x] `it sends fan.turn_on when an off fan tile is tapped`
+- [x] `it sends script.turn_on with the script as the target when a script tile is tapped`
+- [x] `it shows "Running" on a script tile while HA reports the script as on`
+- [x] `it disables a script tile while HA reports the script as running`
+- [x] `it shows "Didn't work, tap to retry" on a script tile when the run fails`
+- [x] `it disables a fan or script tile for an unavailable or missing entity`
 
 ## Acceptance Criteria
 
@@ -40,4 +40,6 @@ Add the fan and script HA domains: factories, view models, and domain actions. M
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- Added `domains/fan` and `domains/script` (factories, view models, actions + tests). Fan reuses `onOffViewModel`/`setOnOff`; `scriptViewModel` exposes `isRunning`; `runScript(gateway, scriptId)` is ready for task 008.
+- `FanTile` uses Tile's toggle mode; `ScriptTile` uses run mode (no `aria-pressed`), shows "Run"/"Running", and is disabled while running. `FavoriteTile` has `fan` and `script` cases.
+- Component tests live in `FavoritesSection.test.tsx`; `e2e/controls.spec.ts` has a fan and script tap spec. The fake HA already treats `fan` as switchable; `script.turn_on` doesn't change state there.

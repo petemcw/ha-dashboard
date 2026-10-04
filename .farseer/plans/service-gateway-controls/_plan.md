@@ -6,7 +6,7 @@
 
 ## Status
 
-ready
+completed
 
 ## Objective
 
@@ -125,17 +125,17 @@ Add the service gateway, the single seam that sends HA actions, and use it to tu
 
 | Task | Description                                                  | Depends On         | Status  |
 | ---- | ------------------------------------------------------------ | ------------------ | ------- |
-| 001  | Service gateway and action state                             | -                  | pending |
-| 002  | Shared fake HA with `call_service`                           | -                  | pending |
-| 003  | Two-tap confirm button                                       | -                  | pending |
-| 004  | Light and switch favorite tiles toggle                       | 001, 002           | pending |
-| 005  | Fan and script favorite tiles                                | 001, 002, 004      | pending |
-| 006  | Scene tiles and suggestion buttons                           | 001, 002, 004, 005 | pending |
-| 007  | Left-on attention actions with recheck and confirm           | 001, 002, 003, 004 | pending |
-| 008  | Filter "Mark replaced" runs the reset script                 | 001, 002, 003, 004, 005, 007 | pending |
-| 009  | Demo connection and `?demo` mode shell                       | 001, 002           | pending |
-| 010  | Demo house seed and demo controls                            | 001, 002, 004, 005, 006, 009 | pending |
-| 011  | Docs: gateway, demo mode, status                             | 001–010            | pending |
+| 001  | Service gateway and action state                             | -                  | completed |
+| 002  | Shared fake HA with `call_service`                           | -                  | completed |
+| 003  | Two-tap confirm button                                       | -                  | completed |
+| 004  | Light and switch favorite tiles toggle                       | 001, 002           | completed |
+| 005  | Fan and script favorite tiles                                | 001, 002, 004      | completed |
+| 006  | Scene tiles and suggestion buttons                           | 001, 002, 004, 005 | completed |
+| 007  | Left-on attention actions with recheck and confirm           | 001, 002, 003, 004 | completed |
+| 008  | Filter "Mark replaced" runs the reset script                 | 001, 002, 003, 004, 005, 007 | completed |
+| 009  | Demo connection and `?demo` mode shell                       | 001, 002           | completed |
+| 010  | Demo house seed and demo controls                            | 001, 002, 004, 005, 006, 009 | completed |
+| 011  | Docs: gateway, demo mode, status                             | 001–010            | completed |
 
 ## Architecture Notes
 

@@ -1,6 +1,6 @@
 # Task 004: Light and Switch Favorite Tiles Toggle
 
-**Status**: pending
+**Status**: completed
 **Issue**: #21
 **Depends on**: 001, 002
 **Retry count**: 0
@@ -30,16 +30,16 @@ The first end-to-end control: tapping a light or switch tile in Favorites sends 
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it sends light.turn_on when an off light tile is tapped`
-- [ ] `it sends switch.turn_off when an on switch tile is tapped`
-- [ ] `it marks an on tile as pressed for assistive technology`
-- [ ] `it disables the tile while the action is pending`
-- [ ] `it shows "Didn't work, tap to retry" when the action fails`
-- [ ] `it disables controls while the connection is not connected`
-- [ ] `it disables the tile for an unavailable or missing entity`
-- [ ] `it names a tile's button by the entity's name and describes it with its state`
-- [ ] `it shows "Connection dropped, check before retrying" when the connection drops mid-call`
-- [ ] `it clears the error when HA reports the entity changed`
+- [x] `it sends light.turn_on when an off light tile is tapped`
+- [x] `it sends switch.turn_off when an on switch tile is tapped`
+- [x] `it marks an on tile as pressed for assistive technology`
+- [x] `it disables the tile while the action is pending`
+- [x] `it shows "Didn't work, tap to retry" when the action fails`
+- [x] `it disables controls while the connection is not connected`
+- [x] `it disables the tile for an unavailable or missing entity`
+- [x] `it names a tile's button by the entity's name and describes it with its state`
+- [x] `it shows "Connection dropped, check before retrying" when the connection drops mid-call`
+- [x] `it clears the error when HA reports the entity changed`
 
 ## Acceptance Criteria
 
@@ -51,4 +51,8 @@ The first end-to-end control: tapping a light or switch tile in Favorites sends 
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `src/domains/onOffActions.ts` `setOnOff` (explicit turn_on/turn_off), wrapped by `light/actions.ts` `setLight` and `switch/actions.ts` `setSwitch`.
+- `Tile` exports `TileControl` (onPress, pressed, pending, failure, disabled). Modes as specified; the button is labelled by the name span and described by the state span. Pending uses `aria-disabled` (keeps focus, ignores taps); unavailable/missing/offline use real `disabled`.
+- `ActionError` always renders an empty `role="status"`. `FavoriteTile` is the container (gateway, useAction with `clearKey: entity?.state`, controls-enabled).
+- CSS in a separate "Favorite tile controls" block at the end of `src/index.css`.
+- Tests: component tests in `FavoritesSection.test.tsx`, `e2e/controls.spec.ts` (phone+tablet, 44px targets checked). Full `npm run build` currently fails only on task 009's in-progress files (`demoSocket.ts`, `App.demo.test.tsx`).

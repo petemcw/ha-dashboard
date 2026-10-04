@@ -4,17 +4,18 @@ A standalone React SPA that renders live Home Assistant state and calls HA actio
 
 ## Directory Structure
 
-Target layout. Only `src/ha.ts`, `src/config.ts`, `src/storageKeys.ts`, `src/App.tsx` exist today; move them into `infrastructure/` and `app/` when the first feature lands (update the import in `e2e/fixtures.ts` too).
-
 - `src/app/` - App shell: providers, layout, navigation, connection status banner.
+  - `src/app/demo/` - Demo mode (`?demo`): `installDemo.ts`, `demoHouse.ts` (the seeded house), `DemoBadge.tsx`.
 - `src/features/<feature>/` - User-facing functionality (e.g. `home/`, `climate/`, `security/`). Composes domain components and selects which entities to show, using IDs from `src/config/`.
 - `src/domains/<ha-domain>/` - One folder per HA entity domain (`light/`, `climate/`, `cover/`, `lock/`, `media_player/`, `sensor/`…). Each holds:
   - `types.ts` - the domain's state and attribute shapes.
   - `viewModel.ts` - pure functions from HA state to a UI view model.
-  - `actions.ts` - domain actions (turn on, set temperature…) that go through the service gateway.
+  - `actions.ts` - domain actions (turn on, set temperature…) that go through the service gateway. Domains that share a model share it at the top of `src/domains/`: light, switch, and fan use `onOff.ts` (view model) and `onOffActions.ts` (`setOnOff`), and get their own `actions.ts` only once they need more than on/off.
   - `factories.ts` - test factories for representative entity states.
   - `components/` - presentational components that take view models (e.g. `LightTile.tsx`).
-- `src/infrastructure/` - Everything that touches HA or the browser platform: connection and auth (`ha/`), the entity store and selector hooks, the service gateway, runtime config (`config.json`), localStorage keys.
+- `src/infrastructure/` - Everything that touches HA or the browser platform: connection and auth (`ha/`), the entity store and selector hooks, the service gateway, the fake HA, runtime config (`config.json`), localStorage keys.
+  - `src/infrastructure/serviceGateway/` - The only code that calls `callService`. `webSocketGateway` (singleton) and `createWebSocketGateway`, `ServiceGatewayProvider`/`useServiceGateway`, `useAction` (the one hook a control uses: enabled while connected, pending and error state, and `run`, which hands the action the provided gateway), and `ServiceCallError` (`'connection-lost' | 'rejected'`). It refuses to send unless the connection is `connected`; it never queues.
+  - `src/infrastructure/fakeHa/` - One fake HA shared by tests, Playwright, and demo mode: `fakeHa.ts` (protocol core, `call_service`, `failServices`, `responseDelayMs`, `onServiceCall`) and `demoSocket.ts` (in-browser socket for the library).
 - `src/config/` - Types and `parseHomeConfig` for the runtime `/home.json` (which `entity_id`s each feature uses; template in `home.example.json`, the real file is the owner's and not in the repo), the `HomeConfigProvider`/`useHomeConfig()` context, `loadHomeConfig`, and `testHomeConfig.ts` (placeholder house for tests).
 - `src/test/` - Vitest setup and shared test helpers.
 - `e2e/` - Playwright tests, fixtures, and the HA WebSocket mock.
@@ -35,8 +36,8 @@ Target layout. Only `src/ha.ts`, `src/config.ts`, `src/storageKeys.ts`, `src/App
 6. React components receive view models, not arbitrary HA objects.
 7. WebSocket and entity synchronization belong in infrastructure.
 8. Do not duplicate HA entity state in React local state. Infrastructure holds the `subscribeEntities` map in one external store; components read it through per-entity selector hooks (`useSyncExternalStore` with a selector), so an update to one entity re-renders only the components that read it. Never pass the whole entity map down the tree.
-9. HA service calls go through domain actions, which call a service gateway. The gateway is the only code that calls `callService`. It has a real implementation (WebSocket) and a fake one (tests, demo mode).
-10. Pending feedback after a tap (spinner, disabled control) lives in the domain action's state, never as an optimistic copy of the entity. The entity changes when HA says it changed.
+9. HA service calls go through domain actions, which call a service gateway. The gateway is the only code that calls `callService`. There is one implementation, over the WebSocket. Demo mode and Playwright run it over the shared fake HA; unit and component tests pass a fake gateway (`src/test/fakeServiceGateway.ts`). It never queues: if the connection isn't `connected`, the call fails with `rejected` (nothing was sent, so a retry is safe); `connection-lost` means the socket dropped with the call in flight. `oneGateway.test.ts` enforces that only `src/infrastructure/serviceGateway/` imports `callService`. See `.farseer/adr/0001-demo-mode-shared-fake-ha.md`.
+10. Pending feedback after a tap (spinner, disabled control) lives in the action's state (`useAction`), never as an optimistic copy of the entity. The entity changes when HA says it changed.
 11. Entity IDs come from the runtime `home.json` (via `useHomeConfig()`) rather than being scattered through components.
 12. `unavailable` and `unknown` are first-class states in every view model. A configured entity that doesn't exist in HA renders a visible "missing" state; never crash, never guess.
 
@@ -47,7 +48,7 @@ Target layout. Only `src/ha.ts`, `src/config.ts`, `src/storageKeys.ts`, `src/App
 15. Critical user workflows get Playwright tests.
 16. Playwright mocks Home Assistant at the WebSocket boundary for most tests. A small set of `@live` tests runs against the real instance to catch auth and protocol drift; they only read, never call services.
 17. E2E tests use accessible, user-facing selectors rather than DOM structure.
-18. Every HA domain gets test factories for representative entity states. The same factories feed Vitest tests, the Playwright WebSocket mock, and the `?demo` mode, so there's one fake HA, not three.
+18. Every HA domain gets test factories for representative entity states. The same factories feed Vitest tests, the Playwright WebSocket mock, and the `?demo` mode, which all run on the shared fake HA in `src/infrastructure/fakeHa/`, so there's one fake HA, not three.
 
 ## Key Integrations
 

@@ -1,6 +1,6 @@
 # Task 001: Service Gateway and Action State
 
-**Status**: pending
+**Status**: completed
 **Issue**: #18
 **Depends on**: none
 **Retry count**: 0
@@ -32,19 +32,19 @@ Build the service gateway: the only code in the app that sends HA actions. It ha
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it sends call_service with the domain, service, data, and target through the connection`
-- [ ] `it rejects without sending anything when the connection status is not connected`
-- [ ] `it rejects when HA answers the call with an error`
-- [ ] `useControlsEnabled is true only while the connection status is connected`
-- [ ] `useAction is pending from run until the action settles`
-- [ ] `useAction ignores a second run while the first is still in flight`
-- [ ] `useAction marks failed when the action rejects and clears it on the next run`
-- [ ] `it rejects with a connection-lost error when the socket closes while the call is in flight`
-- [ ] `it rejects with a rejected error when HA answers with an error result`
-- [ ] `useAction clears the failure sixty seconds after it happened`
-- [ ] `useAction clears the failure when the clear key changes`
-- [ ] `useServiceGateway returns the WebSocket gateway when no provider is mounted`
-- [ ] `no module outside the service gateway imports callService from home-assistant-js-websocket`
+- [x] `it sends call_service with the domain, service, data, and target through the connection`
+- [x] `it rejects without sending anything when the connection status is not connected`
+- [x] `it rejects when HA answers the call with an error`
+- [x] `useControlsEnabled is true only while the connection status is connected`
+- [x] `useAction is pending from run until the action settles`
+- [x] `useAction ignores a second run while the first is still in flight`
+- [x] `useAction marks failed when the action rejects and clears it on the next run`
+- [x] `it rejects with a connection-lost error when the socket closes while the call is in flight`
+- [x] `it rejects with a rejected error when HA answers with an error result`
+- [x] `useAction clears the failure sixty seconds after it happened`
+- [x] `useAction clears the failure when the clear key changes`
+- [x] `useServiceGateway returns the WebSocket gateway when no provider is mounted`
+- [x] `no module outside the service gateway imports callService from home-assistant-js-websocket`
 
 ## Acceptance Criteria
 
@@ -59,7 +59,9 @@ Build the service gateway: the only code in the app that sends HA actions. It ha
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- Gateway singleton `webSocketGateway` in `src/infrastructure/serviceGateway/serviceGateway.ts`; the provider context defaults to it and `App.tsx` mounts it around `HomeConfigGate`.
+- `oneGateway.test.ts` scans source with `import.meta.glob` (`node:fs` does not type-check under the app tsconfig).
+- Test helpers: `src/test/connectionStatus.ts` (`setConnected`, `resetConnectionStatus`); `src/test/fakeServiceGateway.ts` (`createFakeServiceGateway()` records `{domain, service, data, target}`, `resolve(i?)`, `reject(err, i?)`); `src/test/fakeConnection.ts` gains `sendMessagePromise` with `sent()`, `resolveSent(i, result?)`, `rejectSent(i, err)`. `renderWithHome` takes an optional `gateway`.
 
 Shape from planning:
 

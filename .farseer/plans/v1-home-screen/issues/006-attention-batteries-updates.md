@@ -20,7 +20,7 @@ Add the chore tier: a compact row under the urgent items. Fill it with a general
 - Follow the rule result contract from 005: battery `resolvedIds` are the battery sensors that are present, numeric, and at or above the threshold; update `resolvedIds` are update entities present and not `on` (and the Docker image sensor when `off`). Unavailable/unknown are neither.
 - Factories follow the factory import rule in task 003. Playwright spec goes in `e2e/attention.spec.ts`.
 - Battery: active when the numeric state is below the threshold (20). Non-numeric (`unavailable`, `unknown`) → not active. Item id `battery-low:<entity_id>`, title from `friendly_name`, detail "12%".
-- Updates: `update.*` active when state `on` (detail "4.3.5 → 4.3.10" when versions exist); `binary_sensor.docker_hub_update_available` active when `on` with the label from config. Item ids `update:<entity_id>`.
+- Updates: `update.*` active when state `on` (detail "4.3.5 → 4.3.10" when versions exist); an update-available `binary_sensor` active when `on` with the label from config. Item ids `update:<entity_id>`.
 - Chores render compactly (one line each, still ≥ 44 px tall touch target), after urgent items.
 
 ## Requirements (Test Descriptions)

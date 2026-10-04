@@ -1,6 +1,6 @@
 # Task 006: Scene Tiles and Suggestion Buttons
 
-**Status**: pending
+**Status**: completed
 **Issue**: #23
 **Depends on**: 001, 002, 004, 005
 **Retry count**: 0
@@ -24,11 +24,11 @@ Add the scene HA domain (factory, view model, `activateScene` domain action) and
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it sends scene.turn_on with the transition when the playing suggestion is tapped`
-- [ ] `it sends scene.turn_on without a transition when the suggestion has none`
-- [ ] `it sends scene.turn_on when a scene favorite tile is tapped`
-- [ ] `it shows "Didn't work, tap to retry" on a suggestion when the scene fails`
-- [ ] `it disables suggestion buttons while the connection is not connected`
+- [x] `it sends scene.turn_on with the transition when the playing suggestion is tapped`
+- [x] `it sends scene.turn_on without a transition when the suggestion has none`
+- [x] `it sends scene.turn_on when a scene favorite tile is tapped`
+- [x] `it shows "Didn't work, tap to retry" on a suggestion when the scene fails`
+- [x] `it disables suggestion buttons while the connection is not connected`
 
 ## Acceptance Criteria
 
@@ -39,4 +39,8 @@ Add the scene HA domain (factory, view model, `activateScene` domain action) and
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- New `src/domains/scene/{actions,factories,viewModel}.ts` (+ tests), `SceneTile.tsx`, `SuggestionButton.tsx` (own `useAction` per suggestion), `e2e/scene-controls.spec.ts`.
+- `sceneViewModel` maps HA's `unknown` (never activated) to `ok`; otherwise a fresh scene tile would be disabled.
+- Suggestion carries `transition`; hint text and `.suggestions-hint` CSS removed; `clearKey` is the scene's state (its last-activated time).
+- Requirements 2, 4, 5 passed on first run (covered by the SuggestionButton implementation).
+- Existing assertions in SuggestionsStrip.test.tsx and e2e/suggestions.spec.ts rewritten to expect an enabled button; that e2e spec now seeds the scene entities.

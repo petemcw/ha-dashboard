@@ -1,7 +1,17 @@
 import { mediaPlayer } from '../src/domains/media_player/factories.ts'
+import { sceneState } from '../src/domains/scene/factories.ts'
 import { expect, test } from './fixtures.ts'
 
-test('suggests a scene for the Apple TV state, disabled, and follows live changes', async ({
+test.use({
+  haOptions: {
+    entities: [
+      sceneState({ entity_id: 'scene.living_room_movie' }),
+      sceneState({ entity_id: 'scene.living_room_bright' }),
+    ],
+  },
+})
+
+test('suggests a scene for the Apple TV state, enabled, and follows live changes', async ({
   page,
   mockHa,
 }) => {
@@ -9,8 +19,7 @@ test('suggests a scene for the Apple TV state, disabled, and follows live change
   await page.goto('/')
   const strip = page.getByRole('region', { name: 'Suggestions' })
   const mood = strip.getByRole('button', { name: 'Media viewing mood' })
-  await expect(mood).toBeDisabled()
-  await expect(mood).toHaveAccessibleDescription('Available when controls are enabled')
+  await expect(mood).toBeEnabled()
 
   mockHa.setState(mediaPlayer('paused'))
   await expect(strip.getByRole('button', { name: 'Bright up lights' })).toBeVisible()

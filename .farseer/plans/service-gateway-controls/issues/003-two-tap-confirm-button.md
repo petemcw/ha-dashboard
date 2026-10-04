@@ -1,6 +1,6 @@
 # Task 003: Two-Tap Confirm Button
 
-**Status**: pending
+**Status**: completed
 **Issue**: #20
 **Depends on**: none
 **Retry count**: 0
@@ -22,14 +22,14 @@ Build `ConfirmButton`, the inline tap-twice confirmation used by the garage door
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it does not call onConfirm on the first tap`
-- [ ] `it shows the confirm label after the first tap`
-- [ ] `it calls onConfirm when tapped again while armed`
-- [ ] `it reverts to the original label after four seconds without a second tap`
-- [ ] `it disarms when it becomes disabled while armed`
-- [ ] `it announces the armed state to screen readers`
-- [ ] `it ignores a second tap that comes within half a second of arming`
-- [ ] `it shows the pending label and ignores taps while pending`
+- [x] `it does not call onConfirm on the first tap`
+- [x] `it shows the confirm label after the first tap`
+- [x] `it calls onConfirm when tapped again while armed`
+- [x] `it reverts to the original label after four seconds without a second tap`
+- [x] `it disarms when it becomes disabled while armed`
+- [x] `it announces the armed state to screen readers`
+- [x] `it ignores a second tap that comes within half a second of arming`
+- [x] `it shows the pending label and ignores taps while pending`
 
 ## Acceptance Criteria
 
@@ -41,3 +41,5 @@ Build `ConfirmButton`, the inline tap-twice confirmation used by the garage door
 ## Implementation Notes
 
 (Left blank - filled in by programmer during implementation)
+
+Implemented `src/features/shared/ConfirmButton.tsx` (+ test, `.button--confirm-armed` style in `src/index.css`). Tests use `fireEvent` because user-event hangs under fake timers here. Disarm-on-disabled is done during render (lint forbids setState in effect). Armed state is announced via a visually-hidden `role="status"` span.

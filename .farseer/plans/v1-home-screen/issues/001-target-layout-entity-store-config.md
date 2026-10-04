@@ -25,15 +25,15 @@ Pre-factoring for every other task. Move the scaffold into the layout from `.far
 - **Settings hook-up.** `HomeScreen` takes `onOpenSettings?: () => void` and passes it to the `FavoritesSection` stub. Task 002 wires it from the shell; task 011 uses it for the "Add favorites" button. Features can't import from `src/app/`, so the callback is the only path.
 - **Connection start.** Start the connection from `App`'s effect through `getConnection()`, never as a side effect of importing a module. Task 004 needs to render the kiosk form before any connection or OAuth starts.
 - **Coverage.** Moving `src/ha.ts` and `src/config.ts` into `src/infrastructure/` puts them under the 80% gate in `vitest.config.ts`, and they have no tests today. Cover them with tests at the library and `fetch` boundaries. `loadConfig` branches on `import.meta.env.VITE_HA_URL`, which direnv sets locally but CI leaves unset, so stub it with `vi.stubEnv`/`vi.unstubAllEnvs`. Otherwise tests pass locally and fail in CI, or the other way round.
-- `src/config/home.ts` contents (all IDs verified live on 2026-10-03; see `docs/feature-decisions.md`):
-  - `leftOnRules`: garage door `binary_sensor.garage_door_status` (on = open, 10 min); garage work lights `switch.smart_plug_b725` (30 min); space heater `switch.space_heater` (60 min); bed lightstrip `light.master_bedroom_bed_lightstrip` (30 min). Each with an `id`, label, and the disabled action it will get later (door: `switch.toggle` on `switch.garage_door_switch_a0dd6c497c48`; others: turn off the same entity).
-  - `batteryRule`: threshold 20, ignore `sensor.iphizzle_battery_level`, `sensor.ipad_battery_level`.
-  - `updateRules`: `update.living_room_switch_a0dd6c2bcf74_firmware`, `update.update_firmware` (state `on`), `binary_sensor.docker_hub_update_available` (state `on`, label "Home Assistant Docker image").
-  - `tonerRule`: `sensor.family_room_printer_ink` below 15, reorder URL `https://www.amazon.com/dp/B00LJO8EQS`.
-  - `filterRules` (below 5 days): `sensor.hvac_filter_days_remaining` → `script.set_hvac_filter_replacement_date`; `sensor.refrigerator_water_filter_days_remaining` → `script.reset_refrigerator_water_filter_replacement_date`; `sensor.refrigerator_air_filter_days_remaining` → `script.reset_refrigerator_air_filter_replacement_date`.
-  - `suggestions`: player `media_player.family_room_apple_tv`; playing → `scene.family_room_off_during_tv` ("Media viewing mood", transition 5); paused → `scene.family_room_on_during_tv_paused` ("Bright up lights").
-  - `people`: `person.alex_rivera`, `person.sam_rivera`, `person.jordan_rivera`, `person.casey_rivera`, `person.taylor_rivera`, `person.morgan_rivera`.
-  - `crypto`: `sensor.btc_exchange_rate` (BTC), `sensor.eth_exchange_rate` (ETH), `sensor.sol_exchange_rate` (SOL).
+- `src/config/home.ts` contents (the real entity IDs were checked live on 2026-10-03 and now live in the runtime `home.json`, not the repo; see `docs/feature-decisions.md`):
+  - `leftOnRules`: the garage door sensor (on = open, 10 min), a work-lights smart plug (30 min), a space heater switch (60 min), and a bedroom lightstrip (30 min). Each has an `id`, a label, and the disabled action it will get later (door: `switch.toggle` on the opener switch, a different entity from the sensor; others: turn off the same entity).
+  - `batteryRule`: threshold 20, with an ignore list of phone and tablet battery sensors.
+  - `updateRules`: two `update` entities (state `on`) and an update-available `binary_sensor` (state `on`, label "Home Assistant Docker image").
+  - `tonerRule`: the printer's ink sensor below 15, with a reorder URL.
+  - `filterRules` (below 5 days): three filter days-remaining sensors (HVAC and two refrigerator filters), each mapped to its own reset script.
+  - `suggestions`: the TV media player; playing → a lights-down scene ("Media viewing mood", transition 5); paused → a lights-up scene ("Bright up lights").
+  - `people`: the household's `person` entities (placeholders in tests: `person.alex_rivera` and similar).
+  - `crypto`: three exchange-rate sensors (BTC, ETH, SOL).
   - `favoriteDomains`: `light`, `switch`, `fan`, `media_player`, `cover`, `climate`, `lock`, `scene`, `script`.
   - Config types live in `src/config/` (config must not import from features).
 

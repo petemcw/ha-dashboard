@@ -1,6 +1,6 @@
 # Task 002: Shared Fake HA with call_service
 
-**Status**: pending
+**Status**: completed
 **Issue**: #19
 **Depends on**: none
 **Retry count**: 0
@@ -34,16 +34,16 @@ Move the protocol logic out of `e2e/haMock.ts` into a pure-TS fake HA core under
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it turns a light on when it receives light.turn_on for that entity`
-- [ ] `it flips a switch when it receives switch.toggle`
-- [ ] `it broadcasts the changed entity to every subscribe_entities client`
-- [ ] `it sets a scene's state to the activation time on scene.turn_on`
-- [ ] `it answers not_found when call_service targets an entity it doesn't have`
-- [ ] `it answers with an error for an HA action listed in failServices`
-- [ ] `it records every call_service message it receives`
-- [ ] `it applies a call to every entity in a target entity_id list`
-- [ ] `it sends the state change before the call_service result`
-- [ ] `it stops sending to a client after it disconnects`
+- [x] `it turns a light on when it receives light.turn_on for that entity`
+- [x] `it flips a switch when it receives switch.toggle`
+- [x] `it broadcasts the changed entity to every subscribe_entities client`
+- [x] `it sets a scene's state to the activation time on scene.turn_on`
+- [x] `it answers not_found when call_service targets an entity it doesn't have`
+- [x] `it answers with an error for an HA action listed in failServices`
+- [x] `it records every call_service message it receives`
+- [x] `it applies a call to every entity in a target entity_id list`
+- [x] `it sends the state change before the call_service result`
+- [x] `it stops sending to a client after it disconnects`
 
 ## Acceptance Criteria
 
@@ -56,4 +56,7 @@ Move the protocol logic out of `e2e/haMock.ts` into a pure-TS fake HA core under
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- Core: `src/infrastructure/fakeHa/fakeHa.ts` (`FakeHa`: `connect(send)`, `disconnect(client)`, `receive(client, msg)`, `stall()`, `setState`, `removeEntity`, `getState`, `sent()`, `user`, `userData`, `systemData`, `statistics`; option `failServices`). Imports only library types.
+- `e2e/haMock.ts` is a thin `WebSocketRoute` adapter (auth handshake, `/home.json`, `/config.json` stay there); `drop()` disconnects each client.
+- Extra tests: `service_data.entity_id` fallback; `last_changed` moves only on a state value change.
+- Mock e2e suite: 75 passed, 5 skipped.

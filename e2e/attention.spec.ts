@@ -1,15 +1,23 @@
 import { binarySensorState } from '../src/domains/binary_sensor/factories.ts'
 import { batterySensorState, sensorState } from '../src/domains/sensor/factories.ts'
+import { switchState } from '../src/domains/switch/factories.ts'
 import { updateState } from '../src/domains/update/factories.ts'
 import { calmHouse } from '../src/features/home/attention/factories.ts'
 import { expect, test } from './fixtures.ts'
 
 const TWENTY_MIN_AGO = Math.floor(Date.now() / 1000) - 20 * 60
 
-test.use({ haOptions: { entities: calmHouse() } })
+test.use({
+  haOptions: {
+    entities: [
+      ...calmHouse(),
+      switchState({ entity_id: 'switch.garage_door_opener', state: 'off' }),
+    ],
+  },
+})
 
 test.describe('attention', () => {
-  test('shows an urgent item for a garage door open for 20 minutes, with a disabled action', async ({
+  test('shows an urgent item for a garage door open for 20 minutes, with an enabled action', async ({
     page,
     mockHa,
   }) => {
@@ -25,8 +33,7 @@ test.describe('attention', () => {
     await expect(region.getByText('Garage door', { exact: true })).toBeVisible()
     await expect(region.getByText('Open for 20 min')).toBeVisible()
     const action = region.getByRole('button', { name: 'Close garage door' })
-    await expect(action).toBeDisabled()
-    await expect(action).toHaveAccessibleDescription('Available when controls are enabled')
+    await expect(action).toBeEnabled()
     expect(mockHa.sent().some((m) => m.type === 'call_service')).toBe(false)
     await page.screenshot({ path: `e2e/screenshots/attention-${test.info().project.name}.png` })
   })
@@ -76,7 +83,7 @@ test.describe('attention', () => {
       /^https:\/\//,
     )
     await expect(chores.getByText('Overdue by 117 days')).toBeVisible()
-    await expect(chores.getByRole('button', { name: 'Mark replaced' })).toBeDisabled()
+    await expect(chores.getByRole('button', { name: 'Mark replaced' })).toBeVisible()
     await page.screenshot({ path: `e2e/screenshots/filters-${test.info().project.name}.png` })
   })
 })

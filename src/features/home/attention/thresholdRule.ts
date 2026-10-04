@@ -48,7 +48,13 @@ export const filterRule = (config: FilterRule, vm: SensorViewModel) =>
       describe: (days) => ({
         title: config.label,
         detail: filterDetail(days),
-        action: { label: 'Mark replaced', enabled: false },
+        action: {
+          label: 'Mark replaced',
+          pendingLabel: 'Saving…',
+          confirmLabel: 'Tap again to confirm',
+          script: config.resetScript,
+          sensorId: config.entity_id,
+        },
       }),
     },
     vm,

@@ -1,6 +1,6 @@
 # Task 007: Left-On Attention Actions with Recheck and Confirm
 
-**Status**: pending
+**Status**: completed
 **Issue**: #24
 **Depends on**: 001, 002, 003, 004
 **Retry count**: 0
@@ -28,16 +28,16 @@ Make the left-on attention actions work ("Turn off", "Close garage door"). Each 
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it sends switch.turn_off for the space heater when Turn off is tapped`
-- [ ] `it does not send the garage toggle on the first tap`
-- [ ] `it sends switch.toggle for the garage opener on the confirming tap`
-- [ ] `it sends nothing when the door sensor no longer reads open at the confirming tap`
-- [ ] `it sends nothing when a turn_off rule's entity already reads off at send time`
-- [ ] `it shows "Didn't work, tap to retry" on the item when the action fails`
-- [ ] `it keeps the item until HA reports the entity off`
-- [ ] `it sends nothing when the sensor is unavailable at send time`
-- [ ] `it disables the action when its target entity is missing or unavailable`
-- [ ] `it needs two taps again to retry the garage toggle after a failure`
+- [x] `it sends switch.turn_off for the space heater when Turn off is tapped`
+- [x] `it does not send the garage toggle on the first tap`
+- [x] `it sends switch.toggle for the garage opener on the confirming tap`
+- [x] `it sends nothing when the door sensor no longer reads open at the confirming tap`
+- [x] `it sends nothing when a turn_off rule's entity already reads off at send time`
+- [x] `it shows "Didn't work, tap to retry" on the item when the action fails`
+- [x] `it keeps the item until HA reports the entity off`
+- [x] `it sends nothing when the sensor is unavailable at send time`
+- [x] `it disables the action when its target entity is missing or unavailable`
+- [x] `it needs two taps again to retry the garage toggle after a failure`
 
 ## Acceptance Criteria
 
@@ -49,4 +49,9 @@ Make the left-on attention actions work ("Turn off", "Close garage door"). Each 
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- New: `domains/generic/actions.ts` (`runEntityAction`), `infrastructure/entities/readEntityNow.ts`, `features/home/attention/AttentionAction.tsx` (container), `AttentionActions.test.tsx`, `e2e/attention-controls.spec.ts`.
+- `types.ts` now has `RunnableAction` (carries `ha`, `sensorId`, `onState`, `pendingLabel`, optional `confirmLabel` when service is `toggle`); the `{ label, enabled: false }` shape stays for the filter "Mark replaced" (task 008). `ItemAction` dispatches: href link, runnable -> `AttentionAction`, else the disabled button (hint kept for 008). UrgentItem/ChoreRow unchanged (they render ItemAction).
+- Recheck runs inside `useAction.run`, via `readEntityNow`. Mutation-checked: removing it fails three tests.
+- Target availability: `AttentionAction` reads the target with `useEntity` (self-subscribing) instead of widening `useAttentionItems`' subscription, and disables when its status is not `ok`. Not verified on live HA whether a call to a missing target is acked (no HA access); the guard is built regardless.
+- Rewrote the disabled-action assertions in `AttentionSection.test.tsx` (removed), `leftOnRule.test.ts`, `e2e/attention.spec.ts` (now seeds the opener).
+- Pending ends on HA's ack, even for toggle (owner decision). The e2e "closed between taps" spec is partly covered by the unit test, since the item disappears when the door closes.

@@ -4,7 +4,14 @@ A custom web dashboard for my Home Assistant. It's a standalone React app, not a
 
 ## Status
 
-v1 home screen built: a read-mostly Home view (needs-attention with snoozes, suggestions, presence, favorites with an editor, crypto) over `subscribeEntities`, with an app shell, connection banner, settings sheet, and kiosk token entry. Controls are disabled (no `call_service` in `src/`); a service gateway comes later. Plus the deploy pipeline (`Dockerfile`, `deploy/`, `.github/workflows/image.yml`). Mocked e2e specs use the HA WebSocket mock; `@live` specs are read-only.
+v1 home screen built: a read-mostly Home view (needs-attention with snoozes, suggestions, presence, favorites with an editor, crypto) over `subscribeEntities`, with an app shell, connection banner, settings sheet, and kiosk token entry. Plus the deploy pipeline (`Dockerfile`, `deploy/`, `.github/workflows/image.yml`). Mocked e2e specs use the HA WebSocket mock; `@live` specs are read-only.
+
+Controls are live through the service gateway (`src/infrastructure/serviceGateway/`), the only code that calls `callService`. It refuses to send unless the connection is `connected` and never queues.
+
+- Live: light, switch, and fan favorites (toggle); scene favorites (activate); script favorites (run, disabled while running); suggestion buttons (activate a scene, with an optional transition); left-on attention actions (rechecked at send time; `toggle` actions use a two-tap confirm); filter "Mark replaced" (two-tap confirm, runs the reset script).
+- Display-only: media_player, cover, climate, and lock tiles.
+- Failures show inline on the control and clear on the next tap, after 60 s, or when HA reports the entity changed.
+- Demo mode: `?demo` runs the real app and gateway over a shared in-browser fake HA (`src/infrastructure/fakeHa/`, `src/app/demo/`) on placeholder data. Per page load, never stored, no real HA contact. See `.farseer/adr/0001-demo-mode-shared-fake-ha.md`.
 
 ## Environment
 
@@ -40,7 +47,7 @@ The HA config lives in a Docker volume on the HA host, so the add-on approaches 
 - `npm run test:e2e` runs Playwright (headless Chromium) against the Vite dev server and the **live** HA instance, at `phone` (393×852) and `tablet` (1180×820) viewports. It starts its own dev server on :5174 with `VITE_HA_URL` blanked, so mock specs never reach the real HA; each fixture serves `/config.json` (the mock URL, or `HA_URL` for `@live`). Mock specs also serve `/home.json` from the shared placeholder config `src/config/testHomeConfig.ts` (override per test with the `homeConfig` / `homeConfigMissing` mock options); `@live` specs use the real `public/home.json` and fail fast if it's missing.
 - Auth: `e2e/fixtures.ts` puts `HA_TOKEN` (from `.env.local` via direnv) into the browser's localStorage, so the app uses its long-lived token path (`LONG_LIVED_TOKEN_KEY` in `src/infrastructure/storageKeys.ts`) instead of the OAuth redirect. The token never goes into the bundle or into source.
 - Screenshots go to `e2e/screenshots/` (gitignored). Use them to check layouts visually after UI changes.
-- Tests run against the real house: reading state is fine, but tests must not call services that change devices. Use a demo/fixture mode for exercising controls (not built yet).
+- Tests run against the real house: reading state is fine, but tests must not call services that change devices. Mocked specs and `?demo` exercise `call_service` against the fake HA; `@live` specs still never call services.
 - Simulate network drops with `page.routeWebSocket` (see the reconnect test in `e2e/smoke.spec.ts`).
 - Tests against the real instance are tagged `@live`; filter with `--grep @live` / `--grep-invert @live`.
 

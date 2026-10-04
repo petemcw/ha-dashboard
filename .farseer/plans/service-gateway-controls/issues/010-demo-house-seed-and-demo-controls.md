@@ -1,6 +1,6 @@
 # Task 010: Demo House Seed and Demo Controls
 
-**Status**: pending
+**Status**: completed
 **Issue**: #27
 **Depends on**: 001, 002, 004, 005, 006, 009
 **Retry count**: 0
@@ -27,15 +27,15 @@ Fill demo mode with a house worth tapping: every Home section has something to s
 
 ## Requirements (Test Descriptions)
 
-- [ ] `the demo house shows at least one urgent attention item and one chore`
-- [ ] `the demo house seeds favorites with a light, a switch, a fan, a scene, and a script`
-- [ ] `the demo house plays the suggestion player so a suggestion shows`
-- [ ] `the fake HA delays the call_service result by the configured delay`
-- [ ] `a light tap in demo mode turns the demo light on after the delay`
-- [ ] `the demo house contains every entity a demo control targets`
-- [ ] `toggling the demo garage opener closes the demo garage door sensor`
-- [ ] `running a demo filter reset script clears that filter's chore`
-- [ ] `demo people have no pictures`
+- [x] `the demo house shows at least one urgent attention item and one chore`
+- [x] `the demo house seeds favorites with a light, a switch, a fan, a scene, and a script`
+- [x] `the demo house plays the suggestion player so a suggestion shows`
+- [x] `the fake HA delays the call_service result by the configured delay`
+- [x] `a light tap in demo mode turns the demo light on after the delay`
+- [x] `the demo house contains every entity a demo control targets`
+- [x] `toggling the demo garage opener closes the demo garage door sensor`
+- [x] `running a demo filter reset script clears that filter's chore`
+- [x] `demo people have no pictures`
 
 ## Acceptance Criteria
 
@@ -47,4 +47,8 @@ Fill demo mode with a house worth tapping: every Home section has something to s
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- `src/app/demo/demoHouse.ts`: `demoEntities(now)` (calmHouse plus demo overrides, timestamps relative to now), `demoStatistics`, `demoHouse()` (FakeHa options: entities, statistics, favorites user data, 600 ms delay, `demoServiceEffects`). Exports `FAVORITE_IDS`.
+- `fakeHa.ts`: new options `userData`, `responseDelayMs`, `onServiceCall(call, house)`; state change(s) then result, both after the delay.
+- `installDemo.ts` seeds the core with `demoHouse()`. `e2e/demo.spec.ts` taps the lamp in `/?demo`.
+- Some tests (suggestion, delay) passed immediately because the seed/option was written together with the first slices.
+- Full unit, lint, format, build, node tsc, coverage (94%) and mock e2e suites pass; phone/tablet screenshots checked.

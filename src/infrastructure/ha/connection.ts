@@ -11,6 +11,7 @@ import {
   type Connection,
 } from 'home-assistant-js-websocket'
 import { connectionStatus } from './connectionStatus'
+import { isDemoMode } from './demoMode'
 import { getConfig } from './runtimeConfig'
 import { KIOSK_MODE_KEY, LONG_LIVED_TOKEN_KEY, TOKENS_KEY } from '../storageKeys'
 
@@ -73,6 +74,8 @@ export const ERR_KIOSK_TOKEN_REQUIRED = 'kiosk_token_required'
 // parameter from the URL, but a rejected token must still return to the form.
 let kioskThisLoad = false
 export function isKioskDevice(): boolean {
+  // ?demo wins over ?kiosk: the demo has no token to ask for.
+  if (isDemoMode()) return false
   if (new URLSearchParams(location.search).has('kiosk')) kioskThisLoad = true
   return kioskThisLoad || isKioskMode()
 }
@@ -148,6 +151,14 @@ export function resetAuth() {
 }
 
 let pending: Promise<Connection> | undefined
+let demoConnect: (() => Promise<Connection>) | undefined
+
+// Demo mode's in-browser fake HA. It lives in src/app/demo and loads through a dynamic
+// import, so main.tsx installs it before the first render; App's effect would otherwise
+// get the real connect first. Resetting a connection keeps it installed.
+export function installDemoConnection(connect: () => Promise<Connection>) {
+  demoConnect = connect
+}
 
 // Drop the failed or outdated connection so the next getConnection starts over.
 export function resetConnection() {
@@ -162,7 +173,11 @@ export function resetConnection() {
 // One connection per page load. Creating it inside a React effect would run twice
 // under StrictMode and exchange the same auth code twice.
 export function getConnection(): Promise<Connection> {
-  pending ??= connect()
+  if (!pending) {
+    // Fail closed: a demo page must never reach the real HA, or its login redirect.
+    if (isDemoMode() && !demoConnect) return Promise.reject(new Error('Demo mode is not ready.'))
+    pending = (demoConnect ?? connect)()
+  }
   return pending
 }
 

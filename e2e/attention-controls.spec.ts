@@ -77,7 +77,7 @@ test('Mark replaced takes two taps and sends one script.turn_on for the reset sc
   await mark.click()
   expect(toggles(mockHa)).toHaveLength(0)
 
-  const confirm = region.getByRole('button', { name: 'Tap again to confirm' })
+  const confirm = region.getByRole('button', { name: 'Tap to confirm' })
   await expect(confirm).toBeVisible()
   await page.waitForTimeout(600)
   await confirm.click()

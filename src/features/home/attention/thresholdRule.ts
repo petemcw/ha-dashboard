@@ -51,7 +51,7 @@ export const filterRule = (config: FilterRule, vm: SensorViewModel) =>
         action: {
           label: 'Mark replaced',
           pendingLabel: 'Saving…',
-          confirmLabel: 'Tap again to confirm',
+          confirmLabel: 'Tap to confirm',
           script: config.resetScript,
           sensorId: config.entity_id,
         },

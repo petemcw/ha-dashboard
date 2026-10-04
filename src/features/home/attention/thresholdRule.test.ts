@@ -62,7 +62,7 @@ describe('filter rule', () => {
     expect(filter('2').items[0].action).toEqual({
       label: 'Mark replaced',
       pendingLabel: 'Saving…',
-      confirmLabel: 'Tap again to confirm',
+      confirmLabel: 'Tap to confirm',
       script: filterRules[1].resetScript,
       sensorId: filterRules[1].entity_id,
     })

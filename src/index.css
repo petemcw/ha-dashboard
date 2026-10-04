@@ -1090,6 +1090,14 @@ input[type='checkbox'] {
   color: var(--on-danger);
 }
 
+/* The global button hover swaps in the surface background, which would leave the light
+   armed text on a light fill. Keep the danger fill and just shift it. */
+@media (hover: hover) {
+  .button--confirm-armed:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--danger) 85%, var(--text));
+  }
+}
+
 /* Favorite tile controls */
 
 .favorite-tile[data-interactive] {

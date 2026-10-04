@@ -14,8 +14,9 @@ import type { RunnableAction } from './types'
 // pending ends on HA's ack, and the list updates from the entity store.
 export function AttentionAction({ action }: { action: RunnableAction }) {
   const sensor = useEntity(action.sensorId)
-  // HA acks a call whose target is missing or unavailable, so an offline opener would look
-  // like it worked. Disable instead of sending into the void.
+  // HA drops a missing or unavailable target, logs a warning, and still answers with success
+  // (entity_service_call in helpers/service.py), so an offline opener would look like it
+  // worked. Disable instead of sending into the void.
   const target = useEntity(action.script ?? action.ha.entity_id)
   const { enabled, pending, failure, run } = useAction({ clearKey: sensor?.state })
 

@@ -1,4 +1,5 @@
 import { activateScene } from '../../../domains/scene/actions'
+import { sceneViewModel } from '../../../domains/scene/viewModel'
 import { useEntity } from '../../../infrastructure/entities/useEntity'
 import { useAction } from '../../../infrastructure/serviceGateway/useAction'
 import { ActionButton } from '../../shared/ActionButton'
@@ -10,12 +11,15 @@ import type { Suggestion } from './suggestionRules'
 export function SuggestionButton({ suggestion }: { suggestion: Suggestion }) {
   // A scene's state is its last activation time, so a new state means HA ran it.
   const scene = useEntity(suggestion.id)
+  // HA acks a call to a scene it doesn't have without doing anything, so a missing or
+  // unavailable scene would look like it worked. Disable instead, as tiles do.
+  const { status } = sceneViewModel(suggestion.id, scene)
   const { enabled, pending, failure, run } = useAction({ clearKey: scene?.state })
   return (
     <>
       <ActionButton
         className="suggestion"
-        disabled={!enabled}
+        disabled={!enabled || status !== 'ok'}
         pending={pending}
         onPress={() =>
           run((gateway) =>

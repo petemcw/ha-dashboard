@@ -6,7 +6,9 @@ import { ServiceCallError } from '../../../infrastructure/serviceGateway/service
 import { renderWithHome as render } from '../../../test/renderWithHome'
 import { afterEach, describe, expect, it } from 'vitest'
 import { testHomeConfig } from '../../../config/testHomeConfig'
+import type { HassEntities, HassEntity } from 'home-assistant-js-websocket'
 import { mediaPlayer } from '../../../domains/media_player/factories'
+import { sceneState } from '../../../domains/scene/factories'
 import { entityStore } from '../../../infrastructure/entities/entityStore'
 import { SuggestionsStrip } from './SuggestionsStrip'
 
@@ -15,8 +17,14 @@ afterEach(() => {
   resetConnectionStatus()
 })
 
-function seed(state?: string) {
-  const entities = state ? { [testHomeConfig.suggestions.player]: mediaPlayer(state) } : {}
+const { playing, paused } = testHomeConfig.suggestions
+const SCENES = [playing.scene, paused.scene].map((entity_id) => sceneState({ entity_id }))
+
+// The suggestion scenes are seeded unless a test passes its own: a button whose scene HA
+// doesn't have is disabled.
+function seed(state?: string, scenes: HassEntity[] = SCENES) {
+  const entities: HassEntities = Object.fromEntries(scenes.map((s) => [s.entity_id, s]))
+  if (state) entities[testHomeConfig.suggestions.player] = mediaPlayer(state)
   act(() => entityStore.setEntities(entities))
 }
 
@@ -88,6 +96,23 @@ describe('suggestions strip', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Media viewing mood' }))
     await act(async () => fake.reject(new ServiceCallError('rejected')))
     expect(screen.getByRole('status')).toHaveTextContent("Didn't work, tap to retry")
+    expect(screen.getByRole('button', { name: 'Media viewing mood' })).toBeEnabled()
+  })
+
+  it.each([
+    ['missing', []],
+    ['unavailable', [sceneState({ entity_id: playing.scene, state: 'unavailable' })]],
+  ])('disables a suggestion whose scene is %s', (_, scenes) => {
+    seed('playing', scenes)
+    setConnected()
+    render(<SuggestionsStrip />, { gateway: createFakeServiceGateway().gateway })
+    expect(screen.getByRole('button', { name: 'Media viewing mood' })).toBeDisabled()
+  })
+
+  it('enables a suggestion whose scene has never been activated', () => {
+    seed('playing', [sceneState({ entity_id: playing.scene, state: 'unknown' })])
+    setConnected()
+    render(<SuggestionsStrip />, { gateway: createFakeServiceGateway().gateway })
     expect(screen.getByRole('button', { name: 'Media viewing mood' })).toBeEnabled()
   })
 

@@ -26,10 +26,10 @@ The HA config lives in a Docker volume on the HA host, so the add-on approaches 
 
 ## Deployment (decided)
 
-- Image: multi-stage Dockerfile (Node build, then `nginx:alpine`). The HA URL comes from a `config.json` written at container start from env, not baked into the bundle. The house's entity IDs and thresholds live in a runtime `/home.json`, never in the repo: nginx serves it from `/config/home.json` on a mounted host directory (`config/dashboard/`), so edits need a reload, not a rebuild. `home.example.json` is the generic template. People come from the `person.*` entities in HA unless `home.json` has a `people` list. `index.html` is `no-cache`; hashed assets are `immutable`.
+- Image: multi-stage Dockerfile (Node build, then `nginx:alpine`). The HA URL comes from a `config.json` written at container start from env, not baked into the bundle. The house's entity IDs and thresholds live in a runtime `/home.json`, never in the repo: nginx serves it from `/config/home.json` on a mounted host directory (`config/ha-dashboard/`), so edits need a reload, not a rebuild. `home.example.json` is the generic template. People come from the `person.*` entities in HA unless `home.json` has a `people` list. `index.html` is `no-cache`; hashed assets are `immutable`.
 - CI: GitHub Actions builds `linux/amd64` on push to `master` and pushes `ghcr.io/petemcw/ha-dashboard`. The repo is public, so the host pulls without credentials.
 - Exposure: a Tailscale sidecar container gives the dashboard its own tailnet name (`https://maplefrontier.alpine-ling.ts.net`). The nginx container shares its network namespace, so nothing is published on the host. It's a different origin from HA and is listed in HA's CORS allowed origins.
-- Deploy: `docker compose pull dashboard && docker compose up -d dashboard` in `/home/prm/iot`. `deploy/compose.yml` has the services and one-time setup; `deploy/serve.json` is the sidecar's serve config.
+- Deploy: `docker compose pull ha-dashboard && docker compose up -d ha-dashboard` in `/home/prm/iot`. `deploy/compose.yml` has the services and one-time setup; `deploy/serve.json` is the sidecar's serve config.
 - Dev: `npm run dev` reads `VITE_HA_URL` from `.envrc` instead of `config.json`, and Vite serves the gitignored `public/home.json` (copy `home.example.json` and edit it) as `/home.json`. The dev origin (`http://localhost:5173`) is also in CORS allowed origins.
 - Goal: eventually Funnel only the dashboard and make HA tailnet-only.
 

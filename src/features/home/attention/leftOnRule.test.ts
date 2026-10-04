@@ -77,7 +77,6 @@ describe('left-on rule', () => {
         id: `missing:${heaterRule.entity_id}`,
         tier: 'chore',
         kind: 'missing',
-        icon: 'missing',
         title: 'Missing entity',
         detail: heaterRule.entity_id,
       },
@@ -95,6 +94,14 @@ describe('left-on rule', () => {
   })
 })
 
+describe('left-on confirm', () => {
+  it("names the confirm for a toggle rule that isn't a door from its action", () => {
+    const rule = { ...heaterRule, action: { ...heaterRule.action, service: 'toggle' } }
+    const { action } = leftOnRule(rule, heater('on', 60), NOW).items[0]
+    expect(action).toMatchObject({ label: 'Turn off', confirmLabel: 'Confirm turn off' })
+  })
+})
+
 describe('left-on badge icon', () => {
   it('defaults the badge to the action domain when the rule names no icon', () => {
     const lights = testHomeConfig.leftOnRules.find((r) => r.id === 'bedroom-lightstrip')!
@@ -102,7 +109,10 @@ describe('left-on badge icon', () => {
       lights.entity_id,
       switchState({ entity_id: lights.entity_id, state: 'on', last_changed: minutesAgo(500) }),
     )
-    const icon = (rule: typeof lights) => leftOnRule(rule, vm, NOW).items[0].icon
+    const icon = (rule: typeof lights) => {
+      const item = leftOnRule(rule, vm, NOW).items[0]
+      return item.kind === 'left-on' ? item.icon : undefined
+    }
     expect(icon({ ...lights, icon: undefined })).toBe('light')
     expect(icon({ ...lights, icon: undefined, action: { ...lights.action, domain: 'fan' } })).toBe(
       'fan',

@@ -92,7 +92,8 @@ describe('attention snoozes', () => {
     expect(screen.queryByRole('region', { name: 'Needs attention' })).not.toBeInTheDocument()
     const strip = screen.getByRole('region', { name: 'Snoozed' })
     expect(within(strip).getByText('1 snoozed')).toBeInTheDocument()
-    expect(within(strip).getByText(/Front door battery/)).toBeInTheDocument()
+    // The collapsed list also names it, hidden.
+    expect(within(strip).getAllByText(/Front door battery/)[0]).toBeVisible()
   })
 
   it('expands the snoozed strip to list snoozed items with Unsnooze for admins', async () => {
@@ -282,6 +283,32 @@ describe('attention snoozes', () => {
     await settle()
     expect(screen.getByText('1 snoozed')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /snooze/i })).not.toBeInTheDocument()
+  })
+
+  it("keeps the snoozed list's aria-controls target in the DOM while collapsed", async () => {
+    const ha = fakeHa(admin, stored({ [ID]: { until: FUTURE, by: 'admin-1' } }))
+    seed('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    const show = screen.getByRole('button', { name: 'Show' })
+    const list = document.getElementById(show.getAttribute('aria-controls')!)
+    expect(list).not.toBeNull()
+    expect(list).not.toBeVisible()
+    fireEvent.click(show)
+    expect(list).toBeVisible()
+  })
+
+  it('shows no Unsnooze button to a non-admin with the snoozed list expanded', async () => {
+    const ha = fakeHa(
+      { id: 'kiosk', is_admin: false },
+      stored({ [ID]: { until: FUTURE, by: 'admin-1' } }),
+    )
+    seed('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    fireEvent.click(screen.getByRole('button', { name: 'Show' }))
+    expect(screen.getByText(/snoozed until /)).toBeVisible()
+    expect(screen.queryByRole('button', { name: /^Unsnooze/ })).not.toBeInTheDocument()
   })
 
   it('shows a snooze made on another device without a reload', async () => {

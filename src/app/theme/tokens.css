@@ -35,6 +35,7 @@
   --on-danger: light-dark(#ffffff, #1c130e);
   --danger-soft: light-dark(#fbe4e0, #3b1512);
   --warn: light-dark(#a86a12, #e0a030);
+  --warn-soft: light-dark(#f6e6c8, #33240e);
   --on-warn: light-dark(#2a1a12, #1c130e);
   --ok: light-dark(#2f6b4f, #7cc49a);
   --up: var(--ok);

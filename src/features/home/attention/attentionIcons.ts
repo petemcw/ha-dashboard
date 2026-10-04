@@ -16,7 +16,7 @@ import {
   Warehouse,
   type LucideIcon,
 } from 'lucide-react'
-import type { ActionIcon, AttentionIcon } from './types'
+import type { ActionIcon, AttentionIcon, AttentionItem } from './types'
 
 // Icons are imported by name so the bundle carries only these; never `icons` or
 // `DynamicIcon`, which pull in the whole set. Lucide has no garage glyph, so a warehouse
@@ -61,9 +61,13 @@ export function actionIcon(name: ActionIcon): LucideIcon {
   }
 }
 
+// A left-on rule picks its own badge; every other kind has one fixed glyph.
+const itemIcon = (item: AttentionItem): AttentionIcon =>
+  item.kind === 'left-on' ? item.icon : item.kind
+
 // Components, so a row renders a glyph without building a component during render.
-export const BadgeGlyph = ({ name }: { name: AttentionIcon }) =>
-  createElement(badgeIcon(name), { 'aria-hidden': true, size: 18 })
+export const BadgeGlyph = ({ item }: { item: AttentionItem }) =>
+  createElement(badgeIcon(itemIcon(item)), { 'aria-hidden': true, size: 18 })
 
 export const ActionGlyph = ({ name }: { name: ActionIcon }) =>
   createElement(actionIcon(name), { 'aria-hidden': true, size: 18 })

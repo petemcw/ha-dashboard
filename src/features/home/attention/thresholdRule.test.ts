@@ -23,7 +23,6 @@ describe('toner rule', () => {
         id: 'toner-low',
         tier: 'chore',
         kind: 'toner',
-        icon: 'toner',
         title: 'Printer toner',
         detail: '9% left',
         action: { label: 'Reorder toner', icon: 'cart', href: tonerRule.reorderUrl },

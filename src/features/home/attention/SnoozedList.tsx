@@ -8,11 +8,13 @@ type Props = {
   // Undefined for non-admins: they see what's snoozed but can't undo it.
   onUnsnooze?: (id: string) => void
   disabled: boolean
+  // Collapsed lists stay in the DOM so the toggle's aria-controls always points at them.
+  hidden: boolean
 }
 
-export function SnoozedList({ id, items, until, onUnsnooze, disabled }: Props) {
+export function SnoozedList({ id, items, until, onUnsnooze, disabled, hidden }: Props) {
   return (
-    <ul className="snoozed__list" id={id}>
+    <ul className="snoozed__list" id={id} hidden={hidden}>
       {items.map((item) => {
         const end = until(item.id)
         return (

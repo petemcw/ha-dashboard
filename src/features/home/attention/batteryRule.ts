@@ -13,7 +13,6 @@ export function batteryRule(config: BatteryRule, sensors: SensorViewModel[]): Ru
         id,
         tier: 'chore',
         kind: 'battery',
-        icon: 'battery',
         title: s.friendlyName,
         detail: `${s.numericValue}%`,
       })

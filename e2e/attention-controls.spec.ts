@@ -1,3 +1,4 @@
+import type { Locator } from '@playwright/test'
 import { scriptState } from '../src/domains/script/factories.ts'
 import { sensorState } from '../src/domains/sensor/factories.ts'
 import { binarySensorState } from '../src/domains/binary_sensor/factories.ts'
@@ -92,23 +93,38 @@ test('Mark replaced takes two taps and sends one script.turn_on for the reset sc
   await expect(region.getByText('Water filter', { exact: true })).toBeHidden()
 })
 
-test('the armed confirm shows no running animation when reduced motion is preferred', async ({
+test('the armed confirm animates its reveal without a motion preference and not with reduced motion', async ({
   page,
   mockHa,
 }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' })
   mockHa.setState(openDoor())
   await page.goto('/')
   const region = page.getByRole('region', { name: 'Needs attention' })
-  await region.getByRole('button', { name: 'Close garage door' }).click()
-  const armed = region.getByRole('button', { name: 'Confirm close garage door' })
-  await expect(armed).toContainText('Confirm?')
-  const animations = await armed.evaluate((el) =>
-    el.querySelectorAll('*').length === 0
-      ? 0
-      : [...el.querySelectorAll('*')].flatMap((child) => child.getAnimations()).length,
-  )
-  expect(animations).toBe(0)
+  const arm = async () => {
+    await region.getByRole('button', { name: 'Close garage door' }).click()
+    const armed = region.getByRole('button', { name: 'Confirm close garage door' })
+    await expect(armed).toContainText('Confirm?')
+    return armed
+  }
+  // The animation-name outlasts the 0.22 s run, so this isn't a race against it.
+  const reveal = (armed: Locator) =>
+    armed
+      .locator('.button__confirm-text')
+      .evaluate((el) => el.ownerDocument.defaultView!.getComputedStyle(el).animationName)
+
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  const animated = await arm()
+  expect(await reveal(animated)).toBe('confirm-reveal')
+  // Disarm by tapping elsewhere, then arm again under reduced motion.
+  await page.mouse.click(5, 5)
+  await expect(region.getByRole('button', { name: 'Close garage door' })).toBeVisible()
+
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  const still = await arm()
+  expect(await reveal(still)).toBe('none')
+  // The button and everything inside it, not just its children.
+  const running = await still.evaluate((el) => el.getAnimations({ subtree: true }).length)
+  expect(running).toBe(0)
 })
 
 test('tapping elsewhere disarms the confirm without sending', async ({ page, mockHa }) => {

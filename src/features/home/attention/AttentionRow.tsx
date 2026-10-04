@@ -52,7 +52,7 @@ function RowLayout({
   return (
     <li className={`attention-item attention-item--${item.tier}`}>
       <span className="attention-item__badge">
-        <BadgeGlyph name={item.icon} />
+        <BadgeGlyph item={item} />
       </span>
       <div className="attention-item__text">
         <strong className="attention-item__title">{item.title}</strong>

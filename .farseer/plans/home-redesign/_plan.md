@@ -6,7 +6,7 @@
 
 ## Status
 
-in_progress
+completed
 
 ## Objective
 
@@ -158,7 +158,7 @@ Decisions after the post-plan review:
 | 012  | Systems card: CPU usage bars                        | 001, 009, 011           | completed |
 | 013  | Media card (display-only)                           | 001, 009                | completed |
 | 014  | Demo house and docs for the new cards               | 001, 008, 009, 010, 011, 012, 013 | completed |
-| 015  | Attention and confirm hardening (post-run audit)    | 004, 005, 006           | pending |
+| 015  | Attention and confirm hardening (post-run audit)    | 004, 005, 006           | completed |
 
 ## Architecture Notes
 

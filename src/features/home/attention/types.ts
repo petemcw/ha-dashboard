@@ -24,14 +24,13 @@ export type RunnableAction = {
 export type AttentionKind = 'left-on' | 'battery' | 'update' | 'toner' | 'filter' | 'missing'
 
 // The badge glyph: a left-on rule's own pick, or fixed per kind.
-export type AttentionIcon = LeftOnIcon | 'battery' | 'update' | 'filter' | 'toner' | 'missing'
+export type AttentionIcon = LeftOnIcon | Exclude<AttentionKind, 'left-on'>
 
+// Only a left-on item carries an icon, because only its rule varies it.
 export type AttentionItem = {
   id: string
   tier: 'urgent' | 'chore'
-  kind: AttentionKind
-  icon: AttentionIcon
   title: string
   detail: string
   action?: RunnableAction | { label: string; icon: ActionIcon; href: string }
-}
+} & ({ kind: 'left-on'; icon: LeftOnIcon } | { kind: Exclude<AttentionKind, 'left-on'> })

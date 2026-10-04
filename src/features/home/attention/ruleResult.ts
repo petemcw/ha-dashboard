@@ -18,7 +18,6 @@ export const missingEntity = (entityId: string): RuleResult =>
     id: `missing:${entityId}`,
     tier: 'chore',
     kind: 'missing',
-    icon: 'missing',
     title: 'Missing entity',
     detail: entityId,
   })

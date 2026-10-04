@@ -12,7 +12,9 @@ import { ServiceCallError } from '../../../infrastructure/serviceGateway/service
 import { AttentionHarness } from '../../../test/AttentionHarness'
 import { createFakeServiceGateway } from '../../../test/fakeServiceGateway'
 import { renderWithHome as render } from '../../../test/renderWithHome'
+import { AttentionRow } from './AttentionRow'
 import { calmHouse } from './factories'
+import type { AttentionItem } from './types'
 
 const NOW = new Date('2026-10-03T12:00:00Z')
 const longAgo = NOW.getTime() / 1000 - 120 * 60
@@ -120,5 +122,26 @@ describe('attention rows', () => {
     render(<AttentionHarness />, { gateway: fake.gateway })
     const status = within(row('Space heater')).getByRole('status')
     expect(status).toBeEmptyDOMElement()
+  })
+
+  it("derives the badge icon from the item's kind, keeping the left-on rule's icon", () => {
+    const base = { tier: 'chore', title: 'Thing', detail: '' } as const
+    const items: AttentionItem[] = [
+      { ...base, id: 'b', kind: 'battery' },
+      { ...base, id: 'u', kind: 'update' },
+      { ...base, id: 'l', tier: 'urgent', kind: 'left-on', icon: 'heater' },
+    ]
+    render(
+      <ul>
+        {items.map((item) => (
+          <AttentionRow key={item.id} item={item} />
+        ))}
+      </ul>,
+      { gateway: fake.gateway },
+    )
+    const badges = [...document.querySelectorAll('.attention-item__badge svg')]
+    expect(badges[0]).toHaveClass('lucide-battery-low')
+    expect(badges[1]).toHaveClass('lucide-circle-arrow-up')
+    expect(badges[2]).toHaveClass('lucide-heater')
   })
 })

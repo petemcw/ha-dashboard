@@ -7,7 +7,7 @@ type Threshold = {
   id: string
   kind: 'toner' | 'filter'
   below: number
-  describe: (value: number) => Omit<AttentionItem, 'id' | 'tier' | 'kind' | 'icon'>
+  describe: (value: number) => Pick<AttentionItem, 'title' | 'detail' | 'action'>
 }
 
 // Generic "numeric state below N" chore. Non-numeric states (the printer's ink sensor
@@ -20,7 +20,6 @@ function thresholdRule(t: Threshold, vm: SensorViewModel): RuleResult {
     id: t.id,
     tier: 'chore',
     kind: t.kind,
-    icon: t.kind,
     ...t.describe(vm.numericValue),
   })
 }

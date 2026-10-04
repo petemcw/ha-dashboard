@@ -45,6 +45,11 @@
   background: var(--danger-soft);
 }
 
+/* A chore is quieter than an urgent item: a sunken row and a soft ochre badge. */
+.attention-item--chore {
+  background: var(--surface-sunken);
+}
+
 .attention-item > * {
   /* Grid children default to min-width: auto, which lets one long word widen the page. */
   min-width: 0;
@@ -57,8 +62,11 @@
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  background: var(--warn);
-  color: var(--on-warn);
+}
+
+.attention-item--chore .attention-item__badge {
+  background: var(--warn-soft);
+  color: var(--warn);
 }
 
 .attention-item--urgent .attention-item__badge {
@@ -107,6 +115,11 @@
 }
 
 /* Snoozed strip and card footer */
+
+/* The grid display above would otherwise beat the hidden attribute. */
+.snoozed__list[hidden] {
+  display: none;
+}
 
 .snoozed {
   display: grid;

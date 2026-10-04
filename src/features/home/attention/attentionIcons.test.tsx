@@ -6,31 +6,34 @@ import type { ActionIcon, AttentionIcon } from './types'
 const glyph = (Icon: ReturnType<typeof badgeIcon>) =>
   render(<Icon />).container.firstElementChild?.getAttribute('class')
 
+// Lucide has no garage glyph, so a warehouse stands in.
+const BADGES: [AttentionIcon, string][] = [
+  ['garage', 'lucide-warehouse'],
+  ['door', 'lucide-door-open'],
+  ['heater', 'lucide-heater'],
+  ['light', 'lucide-lightbulb'],
+  ['fan', 'lucide-fan'],
+  ['power', 'lucide-power'],
+  ['battery', 'lucide-battery-low'],
+  ['update', 'lucide-circle-arrow-up'],
+  ['filter', 'lucide-air-vent'],
+  ['toner', 'lucide-printer'],
+  ['missing', 'lucide-circle-question-mark'],
+]
+
+const ACTIONS: [ActionIcon, string][] = [
+  ['power', 'lucide-power'],
+  ['close-garage', 'lucide-arrow-down-to-line'],
+  ['check', 'lucide-check'],
+  ['cart', 'lucide-shopping-cart'],
+]
+
 describe('attention icons', () => {
-  it('maps each badge name to its own glyph', () => {
-    const names: AttentionIcon[] = [
-      'garage',
-      'door',
-      'heater',
-      'light',
-      'fan',
-      'power',
-      'battery',
-      'update',
-      'filter',
-      'toner',
-      'missing',
-    ]
-    const classes = names.map((n) => glyph(badgeIcon(n)))
-    expect(new Set(classes).size).toBe(names.length)
-    expect(glyph(badgeIcon('garage'))).toContain('lucide-warehouse')
-    expect(glyph(badgeIcon('toner'))).toContain('lucide-printer')
+  it.each(BADGES)('maps the %s badge to %s', (name, cls) => {
+    expect(glyph(badgeIcon(name))).toContain(cls)
   })
 
-  it('maps each action name to its own glyph', () => {
-    const names: ActionIcon[] = ['power', 'close-garage', 'check', 'cart']
-    const classes = names.map((n) => glyph(actionIcon(n)))
-    expect(new Set(classes).size).toBe(names.length)
-    expect(glyph(actionIcon('cart'))).toContain('lucide-shopping-cart')
+  it.each(ACTIONS)('maps the %s action to %s', (name, cls) => {
+    expect(glyph(actionIcon(name))).toContain(cls)
   })
 })

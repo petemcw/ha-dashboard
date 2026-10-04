@@ -1,6 +1,6 @@
 # Task 015: Attention and Confirm Hardening (Post-Run Audit)
 
-**Status**: pending
+**Status**: completed
 **Depends on**: 004, 005, 006
 **Retry count**: 0
 
@@ -40,20 +40,20 @@ Items:
 
 ## Requirements (Test Descriptions)
 
-- [ ] `it shows the pending style with a dimmed icon after the confirming tap until the action settles`
-- [ ] `it listens for outside taps only while armed and stops on disarm and unmount`
-- [ ] `it stays armed and confirmable just before the confirm window ends`
-- [ ] `it animates the armed reveal without a motion preference and not with reduced motion`
-- [ ] `it disarms on Tab after a press that was released off the button`
-- [ ] `it names the confirm for a toggle rule that isn't a door from its action`
-- [ ] `it shows a red badge for urgent items and an ochre badge for chores`
-- [ ] `it maps every badge and action icon name to its icon`
-- [ ] `it derives the badge icon from the item's kind, keeping the left-on rule's icon`
-- [ ] `it rejects a namespace, icons, or DynamicIcon import from lucide-react in lint`
-- [ ] `it keeps the snoozed list's aria-controls target in the DOM while collapsed`
-- [ ] `it shows no Unsnooze button to a non-admin with the snoozed list expanded`
-- [ ] `it keeps a row's actions on the same line, right-aligned, under a long title on a phone`
-- [ ] `it tints chore rows and softens their badge as in the mock-up`
+- [x] `it shows the pending style with a dimmed icon after the confirming tap until the action settles`
+- [x] `it listens for outside taps only while armed and stops on disarm and unmount`
+- [x] `it stays armed and confirmable just before the confirm window ends`
+- [x] `it animates the armed reveal without a motion preference and not with reduced motion`
+- [x] `it disarms on Tab after a press that was released off the button`
+- [x] `it names the confirm for a toggle rule that isn't a door from its action`
+- [x] `it shows a red badge for urgent items and an ochre badge for chores`
+- [x] `it maps every badge and action icon name to its icon`
+- [x] `it derives the badge icon from the item's kind, keeping the left-on rule's icon`
+- [x] `it rejects a namespace, icons, or DynamicIcon import from lucide-react in lint`
+- [x] `it keeps the snoozed list's aria-controls target in the DOM while collapsed`
+- [x] `it shows no Unsnooze button to a non-admin with the snoozed list expanded`
+- [x] `it keeps a row's actions on the same line, right-aligned, under a long title on a phone`
+- [x] `it tints chore rows and softens their badge as in the mock-up`
 
 ## Acceptance Criteria
 
@@ -64,4 +64,11 @@ Items:
 
 ## Implementation Notes
 
-(Left blank - filled in by programmer during implementation)
+- Tests that passed on first run (behavior already correct, only unpinned): listener lifecycle, 3.9 s confirm window, non-door toggle label, icon table, the phone actions layout, and the no-preference animation check.
+- Pending style: `ActionButton.css` (class `action-button`). The mock answers service calls instantly, so the e2e sets `aria-disabled` by hand and checks the icon's computed opacity.
+- Stuck `pressing`: document `pointerup`/`pointercancel` listeners while armed, plus a reset on arming (the arming click's pointerup came before the listeners).
+- `kind` now drives the badge: `AttentionItem` is a union where only `left-on` carries `icon`.
+- Lint: `no-restricted-imports` in `.oxlintrc.json`; verified on a throwaway fixture outside the repo with `oxlint -c .oxlintrc.json <file>` (namespace, `icons`, `DynamicIcon`, `lucide-react/dynamic` all flagged, named import not).
+- Snoozed list is always rendered, `hidden` while collapsed (`.snoozed__list[hidden]` CSS needed against `display: grid`).
+- Found `--warn-soft` was never defined (the warn Chip had no fill); added to tokens.css. Chore rows use `--surface-sunken` and a `--warn-soft` badge with `--warn` ink.
+- New spec `e2e/attention-style.spec.ts`; reduced-motion test rewritten in `attention-controls.spec.ts`.

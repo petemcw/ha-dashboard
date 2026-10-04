@@ -35,13 +35,14 @@ export function AttentionSection({ attention }: { attention: Attention }) {
       {expanded ? 'Hide' : 'Show'}
     </button>
   )
-  const list = expanded && (
+  const list = (
     <SnoozedList
       id={listId}
       items={snoozed}
       until={snoozing.until}
       onUnsnooze={snoozing.canSnooze ? snoozing.unsnooze : undefined}
       disabled={snoozing.pending}
+      hidden={!expanded}
     />
   )
   // The card and the strip never both show, so they never both show the failure.

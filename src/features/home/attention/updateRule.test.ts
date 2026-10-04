@@ -20,7 +20,6 @@ describe('update rule', () => {
         id: 'update:update.router_firmware',
         tier: 'chore',
         kind: 'update',
-        icon: 'update',
         title: 'update.router_firmware',
         detail: '4.3.5 → 4.3.10',
       },

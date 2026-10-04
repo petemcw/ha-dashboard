@@ -54,8 +54,17 @@ export function ConfirmButton({
       if (event.target instanceof Node && buttonRef.current?.contains(event.target)) return
       disarm()
     }
+    // A press released off the button never reaches its own pointerup, which would leave
+    // `pressing` set and make a later Tab-away look like part of a press.
+    const onRelease = () => (pressing.current = false)
     document.addEventListener('pointerdown', onPointerDown)
-    return () => document.removeEventListener('pointerdown', onPointerDown)
+    document.addEventListener('pointerup', onRelease)
+    document.addEventListener('pointercancel', onRelease)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('pointerup', onRelease)
+      document.removeEventListener('pointercancel', onRelease)
+    }
   }, [armed])
 
   // A connection drop must not leave a live confirm that fires after reconnecting.
@@ -66,6 +75,8 @@ export function ConfirmButton({
   const handleClick = () => {
     if (!armed) {
       armedAt.current = Date.now()
+      // The click follows the pointerup, which no document listener saw yet.
+      pressing.current = false
       setArmed(true)
       revertTimer.current = setTimeout(disarm, CONFIRM_WINDOW_MS)
       return
@@ -86,8 +97,6 @@ export function ConfirmButton({
         ref={buttonRef}
         aria-label={name}
         onPointerDown={() => (pressing.current = true)}
-        onPointerUp={() => (pressing.current = false)}
-        onPointerCancel={() => (pressing.current = false)}
         onBlur={() => {
           if (!pressing.current) disarm()
         }}

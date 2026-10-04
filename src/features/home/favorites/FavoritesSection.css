@@ -95,6 +95,16 @@
   opacity: 0.6;
 }
 
+/* Tiles dim as a whole while pending, so undo the shared ActionButton pending style
+   here; otherwise the icon dims twice and the cursor changes. */
+.favorite-tile[data-pending] .favorite-button.action-button {
+  cursor: pointer;
+}
+
+.favorite-tile[data-pending] .favorite-button.action-button > svg {
+  opacity: 1;
+}
+
 /* Tile icons: a round icon on top, name and state pushed to the bottom. */
 .favorite-icon {
   box-sizing: content-box;

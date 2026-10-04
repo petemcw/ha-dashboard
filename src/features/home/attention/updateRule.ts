@@ -13,7 +13,6 @@ export function updateRule(rule: UpdateRule, vm: UpdateViewModel): RuleResult {
     id,
     tier: 'chore',
     kind: 'update',
-    icon: 'update',
     title: rule.label ?? vm.friendlyName,
     detail: versions,
   })

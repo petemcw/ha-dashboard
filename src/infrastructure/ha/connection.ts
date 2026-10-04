@@ -11,7 +11,7 @@ import {
   type Connection,
 } from 'home-assistant-js-websocket'
 import { connectionStatus } from './connectionStatus'
-import { loadConfig } from './runtimeConfig'
+import { getConfig } from './runtimeConfig'
 import { KIOSK_MODE_KEY, LONG_LIVED_TOKEN_KEY, TOKENS_KEY } from '../storageKeys'
 
 function saveTokens(data: AuthData | null) {
@@ -104,7 +104,7 @@ async function createSocketWithRetry(options: Parameters<typeof createSocket>[0]
 }
 
 async function connect(): Promise<Connection> {
-  const { haUrl } = await loadConfig()
+  const { haUrl } = await getConfig()
   const kiosk = isKioskDevice()
   try {
     const token = loadLongLivedToken()

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { HomeScreen } from '../features/home/HomeScreen'
 import { useConnectionStatus } from '../infrastructure/ha/useConnectionStatus'
 import { ConnectionBanner } from './ConnectionBanner'
@@ -15,7 +15,8 @@ export function AppShell({ onTokenSaved = () => {} }: { onTokenSaved?: () => voi
   const [theme, setTheme] = useThemePreference()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const stale = status.kind !== 'connected'
-  const openSettings = () => setSettingsOpen(true)
+  // Stable, so the memoized favorites section doesn't re-render with the shell.
+  const openSettings = useCallback(() => setSettingsOpen(true), [])
 
   return (
     <>

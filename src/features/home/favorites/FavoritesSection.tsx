@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useAppData } from '../../../infrastructure/appData/useAppData'
 import { SectionCard } from '../SectionCard'
 import { FavoriteTile } from './FavoriteTile'
@@ -5,7 +6,7 @@ import { FAVORITES_KEY, parseFavorites } from './favoritesValue'
 
 export type FavoritesSectionProps = { onOpenSettings?: () => void }
 
-export function FavoritesSection({ onOpenSettings }: FavoritesSectionProps) {
+function FavoritesSectionContent({ onOpenSettings }: FavoritesSectionProps) {
   const { value, loaded } = useAppData('user', FAVORITES_KEY)
   // Before the first value, "no favorites" would be a guess.
   if (!loaded) return <SectionCard title="Favorites" className="favorites-card" />
@@ -29,3 +30,7 @@ export function FavoritesSection({ onOpenSettings }: FavoritesSectionProps) {
     </SectionCard>
   )
 }
+
+// HomeScreen re-renders on every clock tick and attention change; this section reads
+// neither, so it only re-renders for its own data.
+export const FavoritesSection = memo(FavoritesSectionContent)

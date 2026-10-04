@@ -37,6 +37,12 @@ function applyPreference(pref: ThemePreference) {
   }
 }
 
+// Called from main.tsx before React renders, so a stored override paints in its own
+// theme from the first frame instead of flashing the system one.
+export function applyStoredTheme() {
+  applyPreference(readPreference())
+}
+
 export function useThemePreference() {
   const [preference, setPreference] = useState(readPreference)
 

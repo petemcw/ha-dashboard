@@ -40,6 +40,19 @@ describe('connection status', () => {
     expect(result.current.kind).toBe('connected')
   })
 
+  it('does not re-notify status listeners on every entity change while connected', async () => {
+    const fake = createFakeConnection()
+    startSession(() => Promise.resolve(fake.conn))
+    await act(async () => {})
+    act(() => fake.emit([{ entity_id: 'light.kitchen', state: 'on' }]))
+    const listener = vi.fn()
+    const unsubscribe = connectionStatus.subscribe(listener)
+    act(() => fake.emit([{ entity_id: 'light.kitchen', state: 'off' }]))
+    act(() => fake.emit([{ entity_id: 'light.kitchen', state: 'on' }]))
+    unsubscribe()
+    expect(listener).not.toHaveBeenCalled()
+  })
+
   it('reports an error with a readable message when the first connection fails', async () => {
     startSession(() => Promise.reject(ERR_CANNOT_CONNECT))
     const { result } = renderHook(() => useConnectionStatus())

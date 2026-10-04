@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { useHomeConfig } from '../../../config/useHomeConfig'
 import { useEntity } from '../../../infrastructure/entities/useEntity'
 import { useHourlyMeans } from '../../../infrastructure/ha/useHourlyMeans'
@@ -27,7 +27,7 @@ function Coin({ symbol, entityId, means }: { symbol: string; entityId: string; m
   )
 }
 
-export function CryptoRow() {
+function CryptoRowContent() {
   const { crypto } = useHomeConfig()
   const statisticIds = useMemo(() => crypto.map((c) => c.entity_id), [crypto])
   const means = useHourlyMeans(statisticIds, HISTORY_HOURS)
@@ -46,3 +46,7 @@ export function CryptoRow() {
     </SectionCard>
   )
 }
+
+// HomeScreen re-renders on every clock tick and attention change; this section reads
+// neither, so it only re-renders for its own data.
+export const CryptoRow = memo(CryptoRowContent)

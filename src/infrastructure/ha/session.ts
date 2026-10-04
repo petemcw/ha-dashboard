@@ -13,6 +13,8 @@ import {
 
 const TOKEN_REJECTED = 'Home Assistant rejected that token.'
 
+const CONNECTED = { kind: 'connected' } as const
+
 // Connects and feeds the entity and status stores. Called from App's effect, never
 // at import time, so a screen can render before any connection or OAuth starts.
 // Returns the cleanup for the effect.
@@ -38,7 +40,9 @@ export function startSession(connect: () => Promise<Connection> = getConnection)
       // re-emits, which flips the status back to connected.
       const unsubscribe = subscribeEntities(conn, (entities) => {
         entityStore.setEntities(entities)
-        connectionStatus.set({ kind: 'connected' })
+        // Fires on every state change in the house. A shared value, so the status store
+        // only notifies (and re-renders the app) when the status really changes.
+        connectionStatus.set(CONNECTED)
       })
       const stopHeartbeat = startHeartbeat(conn)
       cleanup = () => {

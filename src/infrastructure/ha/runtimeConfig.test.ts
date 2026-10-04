@@ -33,3 +33,32 @@ describe('runtime config', () => {
     await expect(loadConfig()).rejects.toThrow('HTTP 404')
   })
 })
+
+describe('shared runtime config', () => {
+  const okResponse = () =>
+    new Response(JSON.stringify({ haUrl: 'https://ha.example' }), { status: 200 })
+
+  it('fetches config.json once for every caller', async () => {
+    vi.resetModules()
+    vi.stubEnv('VITE_HA_URL', '')
+    const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(okResponse()))
+    vi.stubGlobal('fetch', fetchMock)
+    const { getConfig } = await import('./runtimeConfig')
+    await Promise.all([getConfig(), getConfig()])
+    await getConfig()
+    expect(fetchMock).toHaveBeenCalledOnce()
+  })
+
+  it('tries again after a failed fetch instead of keeping the failure', async () => {
+    vi.resetModules()
+    vi.stubEnv('VITE_HA_URL', '')
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response('', { status: 503 }))
+      .mockImplementation(() => Promise.resolve(okResponse()))
+    vi.stubGlobal('fetch', fetchMock)
+    const { getConfig } = await import('./runtimeConfig')
+    await expect(getConfig()).rejects.toThrow('HTTP 503')
+    await expect(getConfig()).resolves.toEqual({ haUrl: 'https://ha.example' })
+  })
+})

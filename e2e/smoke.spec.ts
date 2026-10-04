@@ -34,11 +34,11 @@ test(
     await expect(page.getByRole('region', { name: 'Crypto' })).toBeAttached()
     // Suggestions depend on whether the Apple TV is playing; check order only if present.
     const names = await page
-      .locator('main section')
+      .locator('.sign section, main section')
       .evaluateAll((els) =>
         els.map((el) => el.getAttribute('aria-label') ?? el.querySelector('h2')?.textContent),
       )
-    const order = ['Needs attention', 'Suggestions', 'People', 'Favorites', 'Crypto']
+    const order = ['People', 'Needs attention', 'Suggestions', 'Favorites', 'Crypto']
     expect(names).toEqual(order.filter((n) => names.includes(n)))
     await page.screenshot({
       path: `e2e/screenshots/home-${testInfo.project.name}.png`,

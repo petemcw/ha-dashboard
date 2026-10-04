@@ -22,25 +22,28 @@ export function HomeScreen({ onOpenSettings }: HomeScreenProps) {
         urgent={attention.urgent}
         chores={attention.chores}
         onOpenSettings={onOpenSettings}
+        // Before the first entity map, listed people would all read as missing.
+        people={loaded ? <PresenceRow /> : null}
       />
       <main className="home">
         {/* The sign's greeting is the visible title; this names the page for assistive tech. */}
         <h1 className="visually-hidden">Home</h1>
         {loaded ? (
+          // Three stacks that reflow like Home Assistant sections: one column on phones,
+          // two on tablets (favorites on the right), three on desktops.
           <div className="home__grid">
-            <div className="home__attention">
-              <AttentionSection attention={attention} />
+            <div className="home__col home__col--now">
+              <div className="home__attention">
+                <AttentionSection attention={attention} />
+              </div>
+              <div className="home__suggestions">
+                <SuggestionsStrip />
+              </div>
             </div>
-            <div className="home__suggestions">
-              <SuggestionsStrip />
-            </div>
-            <div className="home__presence">
-              <PresenceRow />
-            </div>
-            <div className="home__favorites">
+            <div className="home__col home__col--favorites">
               <FavoritesSection onOpenSettings={onOpenSettings} />
             </div>
-            <div className="home__crypto">
+            <div className="home__col home__col--side">
               <CryptoRow />
             </div>
           </div>

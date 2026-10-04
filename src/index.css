@@ -172,7 +172,7 @@ input[type='checkbox'] {
    gutter centres the content at the same width as the page below. */
 .sign-bar,
 .sign {
-  --sign-gutter: max(calc(env(safe-area-inset-left) + 16px), calc((100% - 1168px) / 2));
+  --sign-gutter: max(calc(env(safe-area-inset-left) + 16px), calc((100% - 1408px) / 2));
   background: var(--wood);
   color: var(--on-wood);
 }
@@ -246,6 +246,34 @@ input[type='checkbox'] {
 .sign {
   padding: var(--space-2) var(--sign-gutter) var(--space-6);
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.sign .presence {
+  margin-top: var(--space-5);
+}
+
+/* From tablet width, the faces sit top right, level with the greeting. */
+@media (min-width: 740px) {
+  .sign {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-6);
+  }
+
+  .sign__text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sign .presence {
+    flex: 0 1 auto;
+    max-width: 50%;
+    margin-top: var(--space-4);
+  }
+
+  .sign .presence-row {
+    justify-content: flex-end;
+  }
 }
 
 .sign__brand {
@@ -478,7 +506,7 @@ input[type='checkbox'] {
 
 .home {
   box-sizing: border-box;
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: var(--space-5) calc(env(safe-area-inset-right) + 16px)
     calc(env(safe-area-inset-bottom) + var(--space-5)) calc(env(safe-area-inset-left) + 16px);
@@ -490,62 +518,64 @@ input[type='checkbox'] {
   text-align: center;
 }
 
-/* One column on phones; two from tablet width. Areas keep the DOM order (and so the
-   reading order) as attention, suggestions, presence, favorites, crypto. */
+/* Three stacks, like Home Assistant's sections view: one column on phones; two on
+   tablets, with favorites alone on the right; three on desktops. Each stack is its own
+   column, so a long attention list never opens a gap beside favorites. The DOM order
+   (attention, suggestions, favorites, crypto) is the reading order at every width. */
 .home__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.home__col {
+  display: flex;
+  flex-direction: column;
   gap: var(--space-6);
 }
 
 /* Grid and flex children default to min-width: auto, which lets one long word widen
    the page; 0 keeps every section inside the viewport. */
-.home__grid > *,
+.home__col,
+.home__col > *,
 .attention-item > *,
 .crypto-coin > * {
   min-width: 0;
 }
 
-.home__grid > :empty {
+.home__col > :empty {
   display: none;
 }
 
-@media (min-width: 900px) {
+/* iPads in either orientation, and the 13-inch one in landscape (1366px). */
+@media (min-width: 740px) {
   .home__grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas:
-      'attention attention'
-      'suggestions suggestions'
-      'presence favorites'
-      'crypto favorites';
-    grid-template-rows: auto auto auto 1fr;
-    align-items: start;
-    gap: var(--space-6) var(--space-6);
+      'now favorites'
+      'side favorites';
+    /* Favorites spans both rows; any height it has beyond the left stack goes to the
+       last row, so crypto sits right under attention and suggestions. */
+    grid-template-rows: auto 1fr;
   }
 
-  .home__attention {
-    grid-area: attention;
+  .home__col--now {
+    grid-area: now;
   }
-  .home__suggestions {
-    grid-area: suggestions;
-  }
-  .home__presence {
-    grid-area: presence;
-  }
-  .home__favorites {
+  .home__col--favorites {
     grid-area: favorites;
   }
-  .home__crypto {
-    grid-area: crypto;
+  .home__col--side {
+    grid-area: side;
   }
+}
 
-  /* No suggestions: drop their row, or its two gaps stack into one big hole. */
-  .home__grid:has(> .home__suggestions:empty) {
-    grid-template-areas:
-      'attention attention'
-      'presence favorites'
-      'crypto favorites';
-    grid-template-rows: auto auto 1fr;
+@media (min-width: 1400px) {
+  .home__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-areas: 'now favorites side';
+    grid-template-rows: auto;
   }
 }
 
@@ -755,37 +785,61 @@ input[type='checkbox'] {
 
 /* Presence */
 
-/* Wraps instead of scrolling, so nobody is hidden off the edge of a phone or kiosk. */
+/* Faces on the sign, with a dot for whoever is home. Names and states are in each
+   item's label for assistive tech; on screen the faces carry them. Wraps instead of
+   scrolling, so nobody is hidden off the edge of a phone or kiosk. */
 .presence-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-4) var(--space-3);
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .person {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 64px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 44px;
   min-height: 44px;
 }
 
+/* Lime from the maple's leaf, bright enough to read on heartwood in both themes, ringed
+   in wood so it sits clear of the photo. */
+.person-home::after,
+.person-zone::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--wood);
+  border-radius: 50%;
+  background: #8fd16a;
+}
+
+/* Somewhere named, like work: a hollow dot. */
+.person-zone::after {
+  background: var(--wood);
+  box-shadow: inset 0 0 0 2px var(--on-wood-muted);
+}
+
 .person__avatar {
-  width: 52px;
-  height: 52px;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   overflow: hidden;
   display: grid;
   place-items: center;
-  border: 3px solid var(--border-strong);
-  background: var(--surface-sunken);
+  border: 2px solid rgb(255 247 237 / 0.35);
+  background: rgb(255 247 237 / 0.12);
 }
 
 .person-home .person__avatar {
-  border-color: var(--ok);
+  border-color: var(--on-wood);
 }
 
 /* Initials and photo share one grid cell; the photo covers the initials once it loads. */
@@ -800,21 +854,14 @@ input[type='checkbox'] {
 }
 
 .person__initials {
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--on-wood);
 }
 
-.person__name {
-  max-width: 72px;
-  margin-top: var(--space-1);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 600;
-}
-
+.person__name,
 .person__presence {
-  color: var(--text-muted);
+  display: none;
 }
 
 .person-away .person__avatar,

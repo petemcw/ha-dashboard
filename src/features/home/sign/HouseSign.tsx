@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from 'react'
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { useNow } from '../../../infrastructure/clock/clock'
 import type { AttentionItem } from '../attention/types'
 import { greetingFor } from './greeting'
@@ -13,6 +13,8 @@ type HouseSignProps = {
   urgent: AttentionItem[]
   chores: AttentionItem[]
   onOpenSettings?: () => void
+  // Who's home, set beside the greeting.
+  people?: ReactNode
 }
 
 // True once `target` has scrolled up under the sticky bar. Without IntersectionObserver
@@ -38,7 +40,7 @@ function useScrolledUnder(
 // house's state in one sentence, big enough to read from across the room. Its top row
 // stays pinned as a bar; once the sentence scrolls under it, the bar carries a one-line
 // copy, like an iOS large title collapsing into the navigation bar.
-export function HouseSign({ loaded, urgent, chores, onOpenSettings }: HouseSignProps) {
+export function HouseSign({ loaded, urgent, chores, onOpenSettings, people }: HouseSignProps) {
   const now = useNow()
   const barRef = useRef<HTMLElement>(null)
   const statusRef = useRef<HTMLParagraphElement>(null)
@@ -85,11 +87,14 @@ export function HouseSign({ loaded, urgent, chores, onOpenSettings }: HouseSignP
         </button>
       </header>
       <div className="sign">
-        <p className="sign__greeting">{greetingFor(now)}</p>
-        <p ref={statusRef} className="sign__status" data-urgent={isUrgent ? '' : undefined}>
-          {status}
-        </p>
-        <p className="sign__date">{formatDate(now)}</p>
+        <div className="sign__text">
+          <p className="sign__greeting">{greetingFor(now)}</p>
+          <p ref={statusRef} className="sign__status" data-urgent={isUrgent ? '' : undefined}>
+            {status}
+          </p>
+          <p className="sign__date">{formatDate(now)}</p>
+        </div>
+        {people}
       </div>
     </>
   )

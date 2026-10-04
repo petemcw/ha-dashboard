@@ -12,6 +12,12 @@ describe('personViewModel', () => {
     expect(vm.initials).toBe('AR')
   })
 
+  it('gives a short first name for the label under the avatar', () => {
+    expect(personViewModel(personState(), 'person.alex_rivera', HA).shortName).toBe('Alex')
+    // A missing person's name comes from the id, lower case; the label still reads as a name.
+    expect(personViewModel(undefined, 'person.sam_quinn', HA).shortName).toBe('Sam')
+  })
+
   it('shows a person who is not_home as away', () => {
     const vm = personViewModel(personState({ state: 'not_home' }), 'person.alex_rivera', HA)
     expect(vm.presence).toBe('away')

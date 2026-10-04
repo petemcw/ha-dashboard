@@ -46,7 +46,11 @@ export function PersonAvatar({ person }: { person: PersonViewModel }) {
       aria-label={`${person.name}, ${describe(person)}`}
     >
       <span className="person__avatar" aria-hidden="true">
-        {showPicture ? (
+        {/* Always rendered under the photo, so a slow or failed load never shows an empty ring. */}
+        <span className="person__initials" data-testid="initials">
+          {person.initials}
+        </span>
+        {showPicture && (
           <img
             src={person.pictureUrl}
             alt=""
@@ -54,11 +58,14 @@ export function PersonAvatar({ person }: { person: PersonViewModel }) {
             height={48}
             onError={() => setFailedUrl(person.pictureUrl)}
           />
-        ) : (
-          <span data-testid="initials">{person.initials}</span>
         )}
       </span>
-      <small aria-hidden="true">{marker(person)}</small>
+      <span className="person__name" aria-hidden="true">
+        {person.shortName}
+      </span>
+      <small className="person__presence" aria-hidden="true">
+        {marker(person)}
+      </small>
     </li>
   )
 }

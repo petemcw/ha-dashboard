@@ -9,6 +9,11 @@ function initialsOf(name: string): string {
   return `${first[0]}${last[0] ?? ''}`.toUpperCase()
 }
 
+function shortNameOf(name: string): string {
+  const first = name.split(/\s+/).find(Boolean) ?? name
+  return first.charAt(0).toUpperCase() + first.slice(1)
+}
+
 // Missing entities have no friendly_name, so derive one from the id.
 function nameFromId(entityId: string): string {
   return entityId.replace(/^person\./, '').replace(/_/g, ' ')
@@ -36,7 +41,13 @@ export function personViewModel(
 ): PersonViewModel {
   if (!entity) {
     const name = nameFromId(entityId)
-    return { entity_id: entityId, name, initials: initialsOf(name), presence: 'missing' }
+    return {
+      entity_id: entityId,
+      name,
+      shortName: shortNameOf(name),
+      initials: initialsOf(name),
+      presence: 'missing',
+    }
   }
   const friendly = entity.attributes.friendly_name
   const name = typeof friendly === 'string' && friendly ? friendly : nameFromId(entityId)
@@ -44,6 +55,7 @@ export function personViewModel(
   return {
     entity_id: entityId,
     name,
+    shortName: shortNameOf(name),
     initials: initialsOf(name),
     presence,
     zoneName: presence === 'zone' ? entity.state : undefined,

@@ -199,10 +199,11 @@ button {
 
 /* Presence */
 
+/* Wraps instead of scrolling, so nobody is hidden off the edge of a phone or kiosk. */
 .presence-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  overflow-x: auto;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -224,6 +225,42 @@ button {
   display: grid;
   place-items: center;
   border: 2px solid currentColor;
+  background: var(--surface-raised);
+}
+
+/* Initials and photo share one grid cell; the photo covers the initials once it loads. */
+.person__avatar > * {
+  grid-area: 1 / 1;
+}
+
+.person__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.person__initials {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.person__name {
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.person__presence {
+  color: var(--text-muted);
+}
+
+.person-away .person__avatar,
+.person-unknown .person__avatar,
+.person-unavailable .person__avatar,
+.person-missing .person__avatar {
+  opacity: 0.6;
 }
 
 /* Favorites */

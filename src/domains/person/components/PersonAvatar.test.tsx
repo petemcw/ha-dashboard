@@ -48,8 +48,20 @@ describe('PersonAvatar', () => {
     const view = show('home', '/api/image/serve/abc/512x512')
     const img = view.container.querySelector('img')!
     expect(img).toHaveAttribute('src', 'https://ha.example.test/api/image/serve/abc/512x512')
-    expect(screen.queryByText('AR')).toBeNull()
     fireEvent.error(img)
+    expect(view.container.querySelector('img')).toBeNull()
     expect(screen.getByText('AR')).toBeInTheDocument()
+  })
+
+  it('keeps the initials behind the picture so a slow photo never leaves an empty circle', () => {
+    const { container } = show('home', '/api/image/serve/abc/512x512')
+    expect(container.querySelector('img')).not.toBeNull()
+    expect(screen.getByText('AR')).toBeInTheDocument()
+  })
+
+  it('shows the first name and where the person is under the avatar', () => {
+    show('Work')
+    expect(screen.getByText('Alex')).toBeVisible()
+    expect(screen.getByText('Work')).toBeVisible()
   })
 })

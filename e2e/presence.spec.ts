@@ -69,3 +69,27 @@ test.describe('people listed in home.json', () => {
     expect(order).toEqual(['Casey Lee', 'ghost person', 'Alex Rivera'])
   })
 })
+
+test.describe('a large household on a phone', () => {
+  // Eight people don't fit one row at phone width, so the row has to wrap.
+  test.use({
+    haOptions: {
+      entities: Array.from({ length: 8 }, (_, i) =>
+        person(`member_${i + 1}`, `Member ${i + 1}`, 'home'),
+      ),
+    },
+  })
+
+  test('shows everyone on screen without scrolling the row sideways', async ({ page }) => {
+    await page.goto('/')
+    const people = page.getByRole('region', { name: 'People' })
+    await expect(people.getByRole('listitem')).toHaveCount(8)
+    const width = page.viewportSize()!.width
+    const rights = await people
+      .getByRole('listitem')
+      .evaluateAll((items) => items.map((li) => li.getBoundingClientRect().right))
+    for (const right of rights) expect(right).toBeLessThanOrEqual(width)
+    const row = people.getByRole('list')
+    expect(await row.evaluate((ul) => ul.scrollWidth <= ul.clientWidth)).toBe(true)
+  })
+})

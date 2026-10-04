@@ -334,6 +334,42 @@ describe('attention snoozes', () => {
 })
 
 describe('snooze cleanup', () => {
+  it('keeps the snoozed list open when the card gives way to the snoozed strip', async () => {
+    const ha = fakeHa(admin, stored({ [ID]: { until: FUTURE, by: 'admin-1' } }))
+    const backDoor = (state: string) =>
+      batterySensorState({
+        entity_id: 'sensor.back_door_battery',
+        state,
+        attributes: { friendly_name: 'Back door battery' },
+      })
+    const house = (back: string) => [
+      ...calmHouse(),
+      batterySensorState({
+        entity_id: BATTERY,
+        state: '12',
+        attributes: { friendly_name: 'Front door battery' },
+      }),
+      backDoor(back),
+    ]
+    const load = (back: string) =>
+      entityStore.setEntities(Object.fromEntries(house(back).map((e) => [e.entity_id, e])))
+    load('12')
+    render(<AttentionHarness connect={ha.connect} />)
+    await settle()
+    const card = screen.getByRole('region', { name: 'Needs attention' })
+    fireEvent.click(within(card).getByRole('button', { name: 'Show' }))
+
+    act(() => load('90'))
+    await settle()
+    expect(screen.queryByRole('region', { name: 'Needs attention' })).not.toBeInTheDocument()
+    const strip = screen.getByRole('region', { name: 'Snoozed' })
+    expect(within(strip).getByRole('button', { name: 'Hide' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    expect(within(strip).getByRole('button', { name: 'Unsnooze Front door battery' })).toBeVisible()
+  })
+
   it('removes a stored snooze when its item has resolved', async () => {
     const ha = fakeHa(
       admin,

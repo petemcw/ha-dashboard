@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { friendlyName } from '../../domains/entityStatus'
 import { useEntity } from '../../infrastructure/entities/useEntity'
 import { useEntityIds } from '../../infrastructure/entities/useEntityIds'
-import { UndoNotice } from '../shared/UndoNotice'
+import { InlineUndoNotice } from '../shared/InlineUndoNotice'
 import { MAX_RESULTS, matchesSearch } from './searchEntities'
 import { useFavoritesEditor } from './useFavoritesEditor'
 import './FavoritesEditor.css'
@@ -88,9 +88,8 @@ export function FavoritesEditor() {
     <div className="favorites-editor">
       {editor.error && <p role="alert">{editor.error}</p>}
       {removed && !editor.error && (
-        <UndoNotice
+        <InlineUndoNotice
           key={removed.id}
-          inline
           message={`Removed ${removed.name}`}
           undoDisabled={!editor.canEdit}
           onUndo={() => {

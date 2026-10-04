@@ -134,6 +134,22 @@ test.describe('favorite tiles', () => {
     await expect(icon('Desk fan')).not.toHaveCSS('background-color', leaf)
   })
 
+  test('dims a pending tile as a whole, without dimming its icon a second time', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    const button = page.getByRole('region', { name: 'Favorites' }).getByRole('button', {
+      name: 'Kitchen',
+    })
+    await expect(button).toBeVisible()
+    const opacity = (el: Locator) =>
+      el.evaluate((node) => node.ownerDocument.defaultView!.getComputedStyle(node).opacity)
+    // The mock answers at once, so hold the pending state with the attribute useAction sets.
+    await button.evaluate((el) => el.setAttribute('aria-disabled', 'true'))
+    expect(await opacity(button)).toBe('0.6')
+    expect(await opacity(button.locator('svg'))).toBe('1')
+  })
+
   test('eases a tile and its icon between off and on, but not with reduced motion', async ({
     page,
   }) => {

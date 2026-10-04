@@ -64,7 +64,7 @@
 
 /* Tile controls: the whole tile is the button. */
 
-.favorite-tile[data-interactive] {
+.favorite-tile--control {
   position: relative;
   padding: 0;
 }
@@ -96,17 +96,15 @@
   cursor: default;
 }
 
-.favorite-tile[data-pending] .favorite-button {
+/* Pending (ActionButton sets aria-disabled while a call is in flight): the whole tile dims,
+   so undo the shared pending style's own icon dim and cursor, or the icon dims twice.
+   Scoped under the tile to outrank ActionButton.css whatever the stylesheet order. */
+.favorite-tile .favorite-button[aria-disabled='true'] {
   opacity: 0.6;
-}
-
-/* Tiles dim as a whole while pending, so undo the shared ActionButton pending style
-   here; otherwise the icon dims twice and the cursor changes. */
-.favorite-tile[data-pending] .favorite-button.action-button {
   cursor: pointer;
 }
 
-.favorite-tile[data-pending] .favorite-button.action-button > svg {
+.favorite-tile .favorite-button[aria-disabled='true'] > svg {
   opacity: 1;
 }
 

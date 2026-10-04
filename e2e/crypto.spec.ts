@@ -32,6 +32,8 @@ test('shows prices, signed change and a sparkline, then follows a live price cha
   // SOL has no statistics: price only.
   await expect(row).toContainText('SOL $142.50')
   await expect(row.locator('.crypto-spark svg[aria-hidden="true"]')).toHaveCount(2)
+  // The header names the period the change and sparkline cover.
+  await expect(row.getByText('24 h', { exact: true })).toBeVisible()
 
   const statsCalls = () =>
     mockHa.sent().filter((m) => m.type === 'recorder/statistics_during_period').length

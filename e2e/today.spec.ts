@@ -21,6 +21,9 @@ const daily = [
 const sunset = new Date()
 sunset.setHours(18, 52, 0, 0)
 
+// The sunset and hour labels are locale-formatted; pin the locale the expectations use.
+test.use({ locale: 'en-US' })
+
 test.use({
   haOptions: {
     entities: [
@@ -45,6 +48,30 @@ test('shows current conditions, high and low, stats, hours, and sunset on the To
   await expect(today.getByText('Sunset 6:52 pm')).toBeVisible()
   await expect(today.getByRole('listitem')).toHaveCount(7)
   await expect(today.getByRole('listitem').first()).toContainText('Now')
+})
+
+test('keeps the forecast through a dropped socket, then takes updates on the new one', async ({
+  page,
+  mockHa,
+}) => {
+  await page.goto('/')
+  const today = page.getByRole('region', { name: 'Today' })
+  const hourItems = today.getByRole('listitem')
+  await expect(hourItems.first()).toContainText('40°')
+
+  mockHa.drop()
+  await expect(page.getByText('Connection lost. Reconnecting…')).toBeVisible()
+  // The last good forecast stays up while the socket is down.
+  await expect(hourItems).toHaveCount(7)
+  await expect(hourItems.first()).toContainText('40°')
+  await expect(page.getByText('Connection lost. Reconnecting…')).toBeHidden()
+
+  // The old socket is closed, so these can only arrive on the resubscribed forecast.
+  const warmer = (by: number) => hours.map((h) => ({ ...h, temperature: h.temperature + by }))
+  mockHa.setForecast(WEATHER, 'hourly', warmer(20))
+  await expect(hourItems.first()).toContainText('60°')
+  mockHa.setForecast(WEATHER, 'daily', [{ ...daily[0], temperature: 66, templow: 49 }])
+  await expect(today.getByText('High 66° · Low 49°')).toBeVisible()
 })
 
 test.describe('without forecasts', () => {

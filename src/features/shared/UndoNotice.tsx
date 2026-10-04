@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import './UndoNotice.css'
 
 // Long enough to read and reach for Undo, short enough not to linger on a wall screen.
 export const UNDO_NOTICE_MS = 8_000

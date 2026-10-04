@@ -222,6 +222,23 @@ test.describe('home screen layout', () => {
     await page.screenshot({ path: 'e2e/screenshots/home-layout-ipad-portrait.png', fullPage: true })
   })
 
+  test('puts Systems and Media side by side below both columns on a tablet in portrait', async ({
+    page,
+  }) => {
+    test.skip(test.info().project.name !== 'tablet')
+    await page.setViewportSize({ width: 820, height: 1180 })
+    await page.goto('/')
+    const { attention, favorites, today, systems, media, crypto } = await layoutAt(page)
+    // Below the longer of the two columns.
+    expect(systems.y).toBeGreaterThanOrEqual(crypto.y + crypto.height)
+    expect(systems.y).toBeGreaterThanOrEqual(today.y + today.height)
+    // Its own two-column row, spanning the full width under columns 1 and 2.
+    expect(Math.abs(systems.x - attention.x)).toBeLessThan(2)
+    expect(Math.abs(media.y - systems.y)).toBeLessThan(2)
+    expect(media.x).toBeGreaterThan(systems.x + systems.width - 1)
+    expect(Math.abs(media.x + media.width - (favorites.x + favorites.width))).toBeLessThan(2)
+  })
+
   test('shows three equal top-aligned columns on a 1180 by 820 wall tablet', async ({ page }) => {
     test.skip(test.info().project.name !== 'tablet')
     await page.setViewportSize({ width: 1180, height: 820 })
@@ -262,6 +279,38 @@ test.describe('home screen layout', () => {
       const right = Math.max(...boxes.map((b) => b.x + b.width))
       expect(right).toBeGreaterThan(main.x + main.width - 40)
     })
+
+    test('leaves no space for the empty third column on a tablet in portrait', async ({ page }) => {
+      test.skip(test.info().project.name !== 'tablet')
+      await page.setViewportSize({ width: 820, height: 1180 })
+      await page.goto('/')
+      await expect(page.getByRole('region', { name: 'Crypto' })).toBeAttached()
+      await expect(page.getByRole('region', { name: 'Suggested' })).toBeVisible()
+      await expect(page.getByRole('region', { name: 'Systems' })).toHaveCount(0)
+      const boxes = await Promise.all(
+        ['Needs attention', 'Suggested', 'Favorites', 'Today', 'Crypto'].map((n) => boxOf(page, n)),
+      )
+      const lastCardBottom = Math.max(...boxes.map((b) => b.y + b.height))
+      // The grid ends with the longest column: no row or gap below it for column 3.
+      const grid = (await page.locator('.home__grid').boundingBox())!
+      expect(grid.y + grid.height - lastCardBottom).toBeLessThan(1)
+    })
+  })
+
+  // Needs attention keeps its slab-face title instead of the small-caps label (task 001).
+  test('labels every other card header with an icon', async ({ page }) => {
+    await page.goto('/')
+    await layoutAt(page)
+    const titles = await page.locator('main section.card h2').evaluateAll((els) =>
+      els.map((h) => ({
+        title: h.textContent,
+        icon: h.querySelector('svg[aria-hidden="true"]') !== null,
+      })),
+    )
+    expect(titles.map((t) => t.title)).toEqual(expect.arrayContaining(SECTIONS))
+    for (const { title, icon } of titles) {
+      expect.soft(icon, `${title} has an icon`).toBe(title !== 'Needs attention')
+    }
   })
 
   for (const [label, width, height] of [

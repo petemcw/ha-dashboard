@@ -1,0 +1,138 @@
+/* Favorites: the tile grid, tiles and their controls, and the empty state. */
+
+.favorites {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.favorite-tile {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-height: 74px;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+.favorite-tile[data-active] {
+  border-color: color-mix(in srgb, var(--leaf) 45%, transparent);
+  background: var(--leaf-soft);
+}
+
+.favorite-tile[data-status='missing'],
+.favorite-tile[data-status='unavailable'],
+.favorite-tile[data-status='unknown'] {
+  border: 1px dashed var(--border-strong);
+  background: transparent;
+}
+
+.favorite-name {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  /* Small enough that a room-and-device name ("Living room lamp") fits on its two lines. */
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.favorite-state {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.favorite-tile[data-active] .favorite-state {
+  color: var(--leaf);
+  font-weight: 700;
+}
+
+/* Tile controls: the whole tile is the button. */
+
+.favorite-tile[data-interactive] {
+  position: relative;
+  padding: 0;
+}
+
+.favorite-button {
+  box-sizing: border-box;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  /* The global button rule centers content; a tile reads top-left like the display-only ones. */
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: var(--space-1);
+  min-width: 44px;
+  min-height: 74px;
+  padding: 10px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  /* Buttons keep their label on one line; a tile's name wraps (clamped at two lines). */
+  white-space: normal;
+  cursor: pointer;
+}
+
+.favorite-button:disabled {
+  cursor: default;
+}
+
+.favorite-tile[data-pending] .favorite-button {
+  opacity: 0.6;
+}
+
+/* Tile icons: a round icon on top, name and state pushed to the bottom. */
+.favorite-icon {
+  box-sizing: content-box;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  padding: 6px;
+  margin-bottom: auto;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.favorite-tile[data-active] .favorite-icon {
+  background: var(--leaf);
+  color: var(--surface);
+}
+
+/* No favorites yet: a note and a button to the editor. */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.empty-state p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* The header's Edit: a quiet text button, like the mock-up's link. It keeps the compact
+   34 px button (44 px with the overlay) and pulls back into the 24 px header row. */
+.favorites-card__edit {
+  margin-block: -5px;
+  padding: 0 var(--space-2);
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}

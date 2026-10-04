@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createFakeServiceGateway } from '../../../test/fakeServiceGateway'
 import { resetConnectionStatus, setConnected } from '../../../test/connectionStatus'
@@ -42,6 +42,16 @@ describe('suggestions strip', () => {
     render(<SuggestionsStrip />)
     expect(screen.getByRole('button', { name: 'Bright up lights' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Media viewing mood' })).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['playing', 'Playing'],
+    ['paused', 'Paused'],
+  ])('shows a header chip saying the player is %s', (state, text) => {
+    seed(state)
+    render(<SuggestionsStrip />)
+    const header = screen.getByRole('heading', { name: 'Suggested' }).parentElement!
+    expect(within(header).getByText(text)).toBeInTheDocument()
   })
 
   it.each(['idle', 'off', 'standby', 'unavailable', 'unknown', undefined])(

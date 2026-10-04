@@ -1,0 +1,11 @@
+/* A failed action's message, under the control that sent it. */
+
+.action-error {
+  padding: 0 var(--space-3);
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+
+.action-error:not(:empty) {
+  padding-bottom: var(--space-2);
+}

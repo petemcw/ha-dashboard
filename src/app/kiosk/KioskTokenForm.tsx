@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import './KioskTokenForm.css'
 
 type KioskTokenFormProps = { error?: string; onSubmit: (token: string) => void }
 

@@ -4,8 +4,10 @@ import { useHomeConfig } from '../../../config/useHomeConfig'
 import { mediaPlayerViewModel } from '../../../domains/media_player/viewModel'
 import { useEntitiesById } from '../../../infrastructure/entities/useEntitiesById'
 import { useHaUrl } from '../../../infrastructure/ha/useHaUrl'
+import { Chip } from '../../shared/Chip'
 import { SectionCard } from '../SectionCard'
 import { mediaCardViewModel } from './mediaViewModel'
+import './MediaCard.css'
 
 // Keyed by URL by the caller: every track brings a new entity_picture, and an old failure
 // (a blocked http:// URL, an expired proxy token) must not hide the next track's artwork.
@@ -33,10 +35,12 @@ function MediaCardContent({ players }: { players: string[] }) {
     <SectionCard
       title="Media"
       icon={Music}
-      className="media-card home__order--media"
+      className="media-card"
       chip={
         playingCount > 0 ? (
-          <span className="media-chip media-chip--leaf">{playingCount} playing</span>
+          <Chip tone="leaf" variant="outline">
+            {playingCount} playing
+          </Chip>
         ) : undefined
       }
     >
@@ -77,9 +81,9 @@ function MediaCardContent({ players }: { players: string[] }) {
       {chips.length > 0 && (
         <ul className="media-players">
           {chips.map((c) => (
-            <li key={c.entity_id} className="media-chip">
+            <Chip key={c.entity_id} as="li" variant="outline">
               {c.label}
-            </li>
+            </Chip>
           ))}
         </ul>
       )}

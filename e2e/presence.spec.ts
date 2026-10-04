@@ -53,6 +53,10 @@ test.describe('people from Home Assistant', () => {
       }),
     )
     for (const box of boxes) expect(box.right - box.left).toBe(32)
+    // Neighbours in the same row sit 6 px apart.
+    const row = boxes.filter((b) => b.top === boxes[0].top).sort((a, b) => a.left - b.left)
+    expect(row.length).toBeGreaterThan(1)
+    for (let i = 1; i < row.length; i++) expect(row[i].left - row[i - 1].right).toBe(6)
     for (const [i, a] of boxes.entries()) {
       for (const b of boxes.slice(i + 1)) {
         const apart =

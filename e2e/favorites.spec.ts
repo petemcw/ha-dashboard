@@ -65,3 +65,109 @@ test('treats a stored value with an unknown version as no favorites', async ({ p
   await expect(page.getByRole('region', { name: 'Favorites' })).toContainText('No favorites yet')
   expect(mockHa.sent().filter((m) => m.type === 'frontend/set_user_data')).toHaveLength(0)
 })
+
+test.describe('favorite tiles', () => {
+  test.use({
+    haOptions: {
+      entities: [
+        lightState({
+          entity_id: 'light.kitchen',
+          state: 'on',
+          attributes: { friendly_name: 'Kitchen' },
+        }),
+        lightState({
+          entity_id: 'light.floor',
+          state: 'off',
+          attributes: { friendly_name: 'Living room floor lamp' },
+        }),
+        switchState({ entity_id: 'switch.fan', attributes: { friendly_name: 'Desk fan' } }),
+        switchState({ entity_id: 'switch.heater', attributes: { friendly_name: 'Heater' } }),
+      ],
+    },
+  })
+
+  test.beforeEach(({ mockHa }) => {
+    mockHa.userData.set(KEY, saved('light.kitchen', 'light.floor', 'switch.fan', 'switch.heater'))
+  })
+
+  test('wraps a long name onto a second line instead of cutting it off', async ({ page }) => {
+    await page.goto('/')
+    const region = page.getByRole('region', { name: 'Favorites' })
+    const size = (name: string) =>
+      region.getByText(name, { exact: true }).evaluate((el) => ({
+        height: el.getBoundingClientRect().height,
+        cutOff: el.scrollWidth > el.clientWidth,
+      }))
+    const short = await size('Kitchen')
+    const long = await size('Living room floor lamp')
+    expect(long.cutOff).toBe(false)
+    // Two lines, not one; the clamp still stops it at two.
+    expect(long.height).toBeGreaterThan(short.height * 1.5)
+    expect(long.height).toBeLessThan(short.height * 2.5)
+  })
+
+  test('lights an on tile and its icon in the leaf colour, and not an off one', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    const region = page.getByRole('region', { name: 'Favorites' })
+    await expect(region.getByRole('button', { name: 'Kitchen' })).toBeVisible()
+    // The theme's leaf tokens, resolved to the same rgb() form a computed style uses.
+    const token = (name: string) =>
+      page.locator('body').evaluate((body, v) => {
+        const probe = body.ownerDocument.createElement('div')
+        probe.style.backgroundColor = `var(${v})`
+        body.append(probe)
+        const color = body.ownerDocument.defaultView!.getComputedStyle(probe).backgroundColor
+        probe.remove()
+        return color
+      }, name)
+    const leaf = await token('--leaf')
+    const leafSoft = await token('--leaf-soft')
+    const tile = (name: string) => region.getByRole('listitem').filter({ hasText: name })
+    const icon = (name: string) => tile(name).locator('svg')
+
+    await expect(tile('Kitchen')).toHaveCSS('background-color', leafSoft)
+    await expect(icon('Kitchen')).toHaveCSS('background-color', leaf)
+    await expect(tile('Desk fan')).not.toHaveCSS('background-color', leafSoft)
+    await expect(icon('Desk fan')).not.toHaveCSS('background-color', leaf)
+  })
+
+  test.describe('in a phone-width card', () => {
+    test.use({ viewport: { width: 393, height: 852 } })
+
+    test('lays tiles out three across with a 10 px gap, each at least 74 px tall', async ({
+      page,
+    }) => {
+      await page.goto('/')
+      const tiles = page.getByRole('region', { name: 'Favorites' }).getByRole('listitem')
+      await expect(tiles).toHaveCount(4)
+      const boxes = await tiles.evaluateAll((items) =>
+        items.map((li) => {
+          const b = li.getBoundingClientRect()
+          return { x: b.x, y: b.y, width: b.width, height: b.height }
+        }),
+      )
+      const [a, b, c, d] = boxes
+      // Three on the first row, the fourth wraps to the next.
+      expect([b.y, c.y]).toEqual([a.y, a.y])
+      expect(d.y).toBeGreaterThan(a.y)
+      expect(b.x - (a.x + a.width)).toBeCloseTo(10, 0)
+      expect(d.y - (a.y + a.height)).toBeCloseTo(10, 0)
+      for (const box of boxes) {
+        expect(box.width).toBeGreaterThanOrEqual(96)
+        expect(box.height).toBeGreaterThanOrEqual(74)
+      }
+    })
+  })
+
+  test('opens the favorites editor from the card header', async ({ page, mockHa }) => {
+    await page.goto('/')
+    const region = page.getByRole('region', { name: 'Favorites' })
+    await region.getByRole('button', { name: 'Edit favorites' }).click()
+    const editor = page.getByRole('dialog').getByRole('list', { name: 'Your favorites' })
+    await expect(editor).toBeInViewport()
+    await expect(editor.getByRole('listitem')).toHaveCount(4)
+    expect(mockHa.sent().filter((m) => m.type === 'call_service')).toHaveLength(0)
+  })
+})

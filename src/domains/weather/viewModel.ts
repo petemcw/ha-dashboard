@@ -1,63 +1,43 @@
-import type { LucideIcon } from 'lucide-react'
-import {
-  Cloud,
-  CloudFog,
-  CloudHail,
-  CloudLightning,
-  CloudMoon,
-  CloudRain,
-  CloudRainWind,
-  CloudSnow,
-  CloudSun,
-  CloudDrizzle,
-  Moon,
-  Sun,
-  Tornado,
-  Wind,
-} from 'lucide-react'
 import type { HassEntity } from 'home-assistant-js-websocket'
 import { entityStatus } from '../entityStatus'
 import type { WeatherViewModel } from './types'
 
-type Condition = { label: string; icon: LucideIcon }
-
-// HA's fixed set of weather condition values, in one place so labels and icons never drift.
-// Each icon is imported by name; never an icon map (it would bundle all of lucide).
-export function conditionInfo(condition: string): Condition {
+// HA's fixed set of weather condition values, readable.
+export function conditionLabel(condition: string): string {
   switch (condition) {
     case 'clear-night':
-      return { label: 'Clear night', icon: Moon }
+      return 'Clear night'
     case 'cloudy':
-      return { label: 'Cloudy', icon: Cloud }
+      return 'Cloudy'
     case 'exceptional':
-      return { label: 'Exceptional', icon: Tornado }
+      return 'Exceptional'
     case 'fog':
-      return { label: 'Fog', icon: CloudFog }
+      return 'Fog'
     case 'hail':
-      return { label: 'Hail', icon: CloudHail }
+      return 'Hail'
     case 'lightning':
-      return { label: 'Thunderstorm', icon: CloudLightning }
+      return 'Thunderstorm'
     case 'lightning-rainy':
-      return { label: 'Thunderstorm with rain', icon: CloudLightning }
+      return 'Thunderstorm with rain'
     case 'partlycloudy':
-      return { label: 'Partly cloudy', icon: CloudSun }
+      return 'Partly cloudy'
     case 'pouring':
-      return { label: 'Pouring rain', icon: CloudRainWind }
+      return 'Pouring rain'
     case 'rainy':
-      return { label: 'Rain', icon: CloudRain }
+      return 'Rain'
     case 'snowy':
-      return { label: 'Snow', icon: CloudSnow }
+      return 'Snow'
     case 'snowy-rainy':
-      return { label: 'Sleet', icon: CloudDrizzle }
+      return 'Sleet'
     case 'sunny':
-      return { label: 'Sunny', icon: Sun }
+      return 'Sunny'
     case 'windy':
     case 'windy-variant':
-      return { label: 'Windy', icon: Wind }
+      return 'Windy'
     default: {
       // A value this build doesn't know: show it readable rather than hide it.
       const words = condition.replace(/[-_]/g, ' ')
-      return { label: words.charAt(0).toUpperCase() + words.slice(1), icon: CloudMoon }
+      return words.charAt(0).toUpperCase() + words.slice(1)
     }
   }
 }
@@ -70,22 +50,18 @@ export function weatherViewModel(
   entityId = entity?.entity_id ?? '',
 ): WeatherViewModel {
   const status = entityStatus(entity)
-  if (!entity || status !== 'ok') {
-    return { entity_id: entity?.entity_id ?? entityId, status, icon: Cloud }
-  }
-  const info = conditionInfo(entity.state)
+  if (!entity || status !== 'ok') return { entity_id: entity?.entity_id ?? entityId, status }
   const a = entity.attributes
   return {
     entity_id: entity.entity_id,
     status,
     condition: entity.state,
-    conditionLabel: info.label,
-    icon: info.icon,
+    conditionLabel: conditionLabel(entity.state),
     temperature: num(a.temperature),
-    temperature_unit: str(a.temperature_unit),
+    temperatureUnit: str(a.temperature_unit),
     humidity: num(a.humidity),
-    wind_speed: num(a.wind_speed),
-    wind_speed_unit: str(a.wind_speed_unit),
-    uv_index: num(a.uv_index),
+    windSpeed: num(a.wind_speed),
+    windSpeedUnit: str(a.wind_speed_unit),
+    uvIndex: num(a.uv_index),
   }
 }

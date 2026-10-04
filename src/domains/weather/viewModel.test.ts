@@ -1,27 +1,29 @@
 import { describe, expect, it } from 'vitest'
 import { weatherState } from './factories'
-import { weatherViewModel } from './viewModel'
+import { conditionLabel, weatherViewModel } from './viewModel'
 
 describe('weatherViewModel', () => {
-  it('maps a weather entity to its temperature, unit, condition label, and icon', () => {
-    const vm = weatherViewModel(weatherState('partlycloudy'))
-    expect(vm).toMatchObject({
+  it('maps a weather entity to its temperature, unit, condition, and condition label', () => {
+    expect(weatherViewModel(weatherState('partlycloudy'))).toEqual({
+      entity_id: 'weather.forecast_home',
       status: 'ok',
       condition: 'partlycloudy',
       conditionLabel: 'Partly cloudy',
       temperature: 54,
-      temperature_unit: '°F',
+      temperatureUnit: '°F',
+      humidity: 62,
+      windSpeed: 8,
+      windSpeedUnit: 'mph',
+      uvIndex: 3,
     })
-    expect(vm.icon).toBe(weatherViewModel(weatherState('partlycloudy')).icon)
-    expect(vm.icon).not.toBe(weatherViewModel(weatherState('rainy')).icon)
   })
 
   it('reads humidity, wind, and UV from attributes', () => {
     expect(weatherViewModel(weatherState('sunny'))).toMatchObject({
       humidity: 62,
-      wind_speed: 8,
-      wind_speed_unit: 'mph',
-      uv_index: 3,
+      windSpeed: 8,
+      windSpeedUnit: 'mph',
+      uvIndex: 3,
     })
   })
 
@@ -30,7 +32,7 @@ describe('weatherViewModel', () => {
       weatherState('sunny', { attributes: { humidity: '62', uv_index: undefined } }),
     )
     expect(vm.humidity).toBeUndefined()
-    expect(vm.uv_index).toBeUndefined()
+    expect(vm.uvIndex).toBeUndefined()
   })
 
   it('is missing when the entity does not exist', () => {
@@ -41,9 +43,10 @@ describe('weatherViewModel', () => {
   })
 
   it.each(['unavailable', 'unknown'])('reports %s without a condition', (state) => {
-    const vm = weatherViewModel(weatherState(state))
-    expect(vm.status).toBe(state)
-    expect(vm.conditionLabel).toBeUndefined()
+    expect(weatherViewModel(weatherState(state))).toEqual({
+      entity_id: 'weather.forecast_home',
+      status: state,
+    })
   })
 
   it('labels an unfamiliar condition by tidying HA value', () => {
@@ -69,5 +72,6 @@ describe('weatherViewModel', () => {
     ['windy-variant', 'Windy'],
   ])('labels the %s condition as %s', (condition, label) => {
     expect(weatherViewModel(weatherState(condition)).conditionLabel).toBe(label)
+    expect(conditionLabel(condition)).toBe(label)
   })
 })

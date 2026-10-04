@@ -14,6 +14,7 @@ import {
   type SpringAnimation,
   type SpringParams,
 } from '../motion/spring'
+import './SettingsSheet.css'
 
 type SettingsSheetProps = { open: boolean; onClose: () => void; children?: ReactNode }
 

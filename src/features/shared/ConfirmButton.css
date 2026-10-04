@@ -1,0 +1,40 @@
+/* Armed state of the tap-twice confirm: loud enough to notice from across the room. */
+.button--confirm-armed:not(:disabled) {
+  border-color: transparent;
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+/* The global button hover swaps in the surface background, which would leave the light
+   armed text on a light fill. Keep the danger fill and just shift it. */
+@media (hover: hover) {
+  .button--confirm-armed:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--danger) 85%, var(--text));
+  }
+}
+
+/* Sliding confirm: the armed icon button grows leftward (it sits at the right end
+   of the actions, so the snooze icon beside it stays put) and "Confirm?" slides in after the
+   icon. Only max-width/opacity animate; the hit area stays at least 44 px in both states. */
+.button--confirm-armed .button__confirm-text {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: confirm-reveal 0.22s ease-out;
+}
+
+@keyframes confirm-reveal {
+  from {
+    max-width: 0;
+    opacity: 0;
+  }
+  to {
+    max-width: 6rem;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button--confirm-armed .button__confirm-text {
+    animation: none;
+  }
+}

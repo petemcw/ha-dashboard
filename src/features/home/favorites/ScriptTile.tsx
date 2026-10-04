@@ -1,13 +1,13 @@
 import type { ScriptViewModel } from '../../../domains/script/viewModel'
 import { STATUS_TEXT } from '../statusText'
-import { Tile, type TileControl } from './Tile'
+import { Tile, type TileControl, type TileLabel } from './Tile'
 
 // A run button: no `pressed`, because a script has no on/off state to toggle.
 export function ScriptTile({
   name,
   script,
   ...control
-}: { name: string; script: ScriptViewModel } & TileControl) {
+}: TileLabel & { script: ScriptViewModel } & TileControl) {
   const text =
     script.status !== 'ok' ? STATUS_TEXT[script.status] : script.isRunning ? 'Running' : 'Run'
   return (

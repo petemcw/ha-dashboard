@@ -6,20 +6,21 @@ import { CryptoRow } from './crypto/CryptoRow'
 import { FavoritesSection } from './favorites/FavoritesSection'
 import { MediaCard } from './media/MediaCard'
 import { PresenceRow } from './presence/PresenceRow'
-import { HeaderBar } from './sign/HeaderBar'
+import { HeaderBar } from './header/HeaderBar'
 import { SuggestionsStrip } from './suggestions/SuggestionsStrip'
 import { TodaySection } from './today/TodaySection'
 import { SystemsCard } from './systems/SystemsCard'
 
 type HomeScreenProps = {
   onOpenSettings?: () => void
+  // Opens the favorites editor, from the Favorites card's Edit and Add favorites buttons.
+  onEditFavorites?: () => void
   // Header buttons shown before Settings; AppShell supplies the theme toggle.
   tools?: ReactNode
 }
 
-// Each region is its own component in its own file, so tasks fill them in
-// without touching this one.
-export function HomeScreen({ onOpenSettings, tools }: HomeScreenProps) {
+// Each region is its own component in its own file.
+export function HomeScreen({ onOpenSettings, onEditFavorites, tools }: HomeScreenProps) {
   // Until HA sends the first entity map, no entity can be called missing.
   const loaded = useEntitiesLoaded()
   const attention = useAttention()
@@ -52,17 +53,21 @@ export function HomeScreen({ onOpenSettings, tools }: HomeScreenProps) {
             </div>
             <div className="home__col home__col--2">
               <div className="home__order--favorites">
-                <FavoritesSection onOpenSettings={onOpenSettings} />
+                <FavoritesSection onEditFavorites={onEditFavorites} />
               </div>
               <div className="home__order--today">
                 <TodaySection />
               </div>
             </div>
-            {/* Cards carry their own phone order class, so a card that isn't configured leaves
-                this column empty and the layout stays at two columns. */}
+            {/* A card that isn't configured leaves its wrapper empty; with both empty the
+                column takes no space and the layout stays at two columns. */}
             <div className="home__col home__col--3">
-              <SystemsCard />
-              <MediaCard />
+              <div className="home__order--systems">
+                <SystemsCard />
+              </div>
+              <div className="home__order--media">
+                <MediaCard />
+              </div>
             </div>
           </div>
         ) : (

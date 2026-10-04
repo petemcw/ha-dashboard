@@ -1,0 +1,164 @@
+/* Needs attention is the primary card: a slab title and a stronger border. */
+.card.attention {
+  border-color: var(--border-strong);
+}
+
+.card.attention .card__title {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.urgent-list,
+.chore-row,
+.snoozed__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Attention rows: badge, text, actions on one line, the failure under them.
+   Actions never wrap beneath the text; a long title wraps inside its own column. */
+.urgent-list,
+.chore-row {
+  gap: var(--space-2);
+}
+
+.urgent-list + .chore-row {
+  margin-top: var(--space-2);
+}
+
+.attention-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 var(--space-3);
+  padding: 10px 10px 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.attention-item--urgent {
+  background: var(--danger-soft);
+}
+
+.attention-item > * {
+  /* Grid children default to min-width: auto, which lets one long word widen the page. */
+  min-width: 0;
+}
+
+.attention-item__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--warn);
+  color: var(--on-warn);
+}
+
+.attention-item--urgent .attention-item__badge {
+  background: var(--danger);
+  color: #fff;
+}
+
+.attention-item__text {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Titles can be raw entity IDs with no break points. */
+.attention-item__title {
+  overflow-wrap: anywhere;
+}
+
+.attention-item__detail {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The gap between compact buttons is set with the button overlay (controls.css). */
+.attention-item__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* The failure takes its own line under the row, so it never widens the actions column. */
+.attention-item > .action-error {
+  grid-column: 1 / -1;
+  padding: 0;
+}
+
+/* More specific than ActionError's own :not(:empty) padding, so stylesheet order can't
+   change it. */
+.attention-item > .action-error:not(:empty) {
+  padding-block: var(--space-2);
+}
+
+.snooze-choices {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+
+/* Snoozed strip and card footer */
+
+.snoozed {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+}
+
+.snoozed__bar,
+.snoozed__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  font-size: var(--text-sm);
+}
+
+.snoozed__bar svg {
+  flex: none;
+}
+
+.snoozed__bar b {
+  color: var(--text);
+}
+
+.snoozed__toggle {
+  margin-left: auto;
+}
+
+.snoozed__foot {
+  justify-content: space-between;
+  padding: 0 var(--space-1);
+}
+
+.snoozed__list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.snoozed__list strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--text);
+}
+
+.snoozed__list span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}

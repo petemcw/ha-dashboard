@@ -1,0 +1,145 @@
+/* Header bar */
+
+/* Full-bleed heartwood that runs up under the status bar (theme-color matches). The
+   gutter centres the content at the same width as the page below; on a phone it is
+   12 px, as in the mock-up, which leaves "Good afternoon" room for one line. */
+.header-bar {
+  --bar-gutter: max(calc(env(safe-area-inset-left) + 12px), calc((100% - 1408px) / 2));
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: calc(env(safe-area-inset-top) + 10px) var(--bar-gutter) 10px;
+  background: var(--wood);
+  color: var(--on-wood);
+  box-shadow:
+    0 1px 0 rgb(20 8 2 / 0.12),
+    0 4px 10px -4px rgb(20 8 2 / 0.4);
+}
+
+.header-bar :focus-visible {
+  outline-color: var(--on-wood);
+}
+
+.header-bar__brand {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* The logo's house is heartwood brown, so it sits on a birch tile like the app icon. */
+.header-bar__logo {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--on-wood);
+}
+
+.header-bar__text {
+  display: grid;
+  min-width: 0;
+}
+
+.header-bar__name {
+  /* A phone has room for the greeting only; the name returns on a tablet. */
+  display: none;
+  color: var(--on-wood-muted);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.header-bar__greeting {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.header-bar__clock {
+  display: grid;
+  /* On a phone a single hairline sets the time apart from the tools. */
+  padding-inline-end: 14px;
+  border-inline-end: 1px solid rgb(255 247 237 / 0.18);
+  text-align: right;
+  line-height: 1.05;
+}
+
+.header-bar__time {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.header-bar__time small {
+  margin-left: 2px;
+  font-size: 0.8rem;
+}
+
+.header-bar__date {
+  display: none;
+  color: var(--on-wood-muted);
+  font-size: 0.75rem;
+}
+
+.header-bar__tools {
+  display: flex;
+  /* At least 10 px, so the theme toggle's touch overlay and Settings' never reach past
+     each other's visible edge (see controls.css). */
+  gap: 10px;
+}
+
+.header-bar .icon-button {
+  color: var(--on-wood);
+}
+
+@media (hover: hover) {
+  .header-bar .icon-button:hover {
+    background: rgb(255 247 237 / 0.12);
+  }
+}
+
+/* On a phone the faces take a second row of their own. */
+.header-bar .presence {
+  order: 5;
+  width: 100%;
+}
+
+/* Tablet and wider: one row, with hairlines around the clock. */
+@media (min-width: 740px) {
+  .header-bar {
+    --bar-gutter: max(calc(env(safe-area-inset-left) + 16px), calc((100% - 1408px) / 2));
+    flex-wrap: nowrap;
+    gap: 20px;
+    padding-block-end: 10px;
+  }
+
+  .header-bar .presence {
+    order: 0;
+    width: auto;
+  }
+
+  .header-bar__name,
+  .header-bar__date {
+    display: block;
+  }
+
+  .header-bar__clock {
+    padding-inline: 20px;
+    border-inline: 1px solid rgb(255 247 237 / 0.18);
+  }
+
+  .header-bar__time {
+    font-size: 1.6rem;
+  }
+}

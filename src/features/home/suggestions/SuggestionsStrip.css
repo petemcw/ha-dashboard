@@ -1,0 +1,10 @@
+/* Suggested scenes: a wrapping row of buttons. */
+
+/* The gap between compact buttons is set with the button overlay (controls.css). */
+.suggestions__list {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

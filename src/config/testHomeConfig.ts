@@ -83,7 +83,12 @@ export const testHomeConfig: HomeConfig = {
     status: { entity_id: 'sensor.gateway_state', upState: 'connected', label: 'Gateway' },
     uptime: { entity_id: 'sensor.gateway_boot_time', label: 'Gateway' },
     accessPoints: {
-      entity_ids: ['sensor.office_ap_state', 'sensor.hallway_ap_state'],
+      entity_ids: [
+        'sensor.office_ap_state',
+        'sensor.hallway_ap_state',
+        'sensor.garage_ap_state',
+        'sensor.basement_ap_state',
+      ],
       upState: 'connected',
     },
     backup: 'sensor.backup_last_successful_automatic_backup',
@@ -92,5 +97,12 @@ export const testHomeConfig: HomeConfig = {
       { label: 'Gateway', entity_id: 'sensor.gateway_cpu_utilization' },
     ],
   },
-  media: { players: ['media_player.living_room_speaker', 'media_player.kitchen_speaker'] },
+  media: {
+    players: [
+      'media_player.living_room_speaker',
+      'media_player.kitchen_speaker',
+      'media_player.family_room_tv',
+      'media_player.receiver',
+    ],
+  },
 }

@@ -5,6 +5,7 @@ import { useEntityIds } from '../../infrastructure/entities/useEntityIds'
 import { UndoNotice } from '../shared/UndoNotice'
 import { MAX_RESULTS, matchesSearch } from './searchEntities'
 import { useFavoritesEditor } from './useFavoritesEditor'
+import './FavoritesEditor.css'
 
 function useName(entityId: string) {
   const entity = useEntity(entityId)

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { PersonViewModel } from '../types'
+import './PersonAvatar.css'
 
 function describe(vm: PersonViewModel): string {
   switch (vm.presence) {

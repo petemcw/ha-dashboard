@@ -58,4 +58,41 @@ describe('subscribeForecast', () => {
     state.push(undefined)
     expect(onForecast).not.toHaveBeenCalled()
   })
+
+  it('drops forecast entries with a wrong-typed field and keeps the well-formed ones', () => {
+    const { conn, state } = fakeSubscribable()
+    const onForecast = vi.fn()
+    void subscribeForecast(conn, 'weather.forecast_home', 'daily', onForecast)
+    const good = { datetime: '2026-10-04T17:00:00+00:00', condition: 'rainy', temperature: 61 }
+    state.push({
+      type: 'daily',
+      forecast: [
+        null,
+        'sunny',
+        { condition: 'sunny', temperature: 50 },
+        { datetime: 1759597200, condition: 'sunny' },
+        { datetime: '2026-10-05T17:00:00+00:00', condition: 7, temperature: 62 },
+        { datetime: '2026-10-06T17:00:00+00:00', condition: 'sunny', temperature: '63' },
+        { datetime: '2026-10-07T17:00:00+00:00', condition: 'sunny', templow: Number.NaN },
+        {
+          datetime: '2026-10-08T17:00:00+00:00',
+          condition: 'sunny',
+          precipitation_probability: {},
+        },
+        good,
+      ],
+    })
+    expect(onForecast).toHaveBeenCalledWith([good])
+  })
+
+  it('treats null fields as absent, as HA sends for values a provider lacks', () => {
+    const { conn, state } = fakeSubscribable()
+    const onForecast = vi.fn()
+    void subscribeForecast(conn, 'weather.forecast_home', 'hourly', onForecast)
+    state.push({
+      type: 'hourly',
+      forecast: [{ datetime: '2026-10-04T15:00:00+00:00', condition: null, temperature: null }],
+    })
+    expect(onForecast).toHaveBeenCalledWith([{ datetime: '2026-10-04T15:00:00+00:00' }])
+  })
 })

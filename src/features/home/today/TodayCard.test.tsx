@@ -19,6 +19,7 @@ function card(over: Parameters<typeof todayViewModel>[0] extends infer T ? Parti
         daily: undefined,
         hourly: undefined,
         now,
+        locale: 'en-US',
         ...over,
       })}
     />,
@@ -72,8 +73,20 @@ describe('TodayCard', () => {
     expect(within(region).queryByRole('list')).not.toBeInTheDocument()
   })
 
-  it('shows Unavailable when HA reports the weather as unavailable', () => {
-    const region = card({ weather: weatherViewModel(weatherState('unavailable')) })
-    expect(within(region).getByText('Unavailable')).toBeInTheDocument()
+  it.each([
+    ['unavailable', 'Unavailable'],
+    ['unknown', 'Unknown'],
+  ])('shows %s weather as %s, with no readings', (state, text) => {
+    const region = card({ weather: weatherViewModel(weatherState(state)) })
+    expect(within(region).getByText(text)).toBeInTheDocument()
+    expect(within(region).queryByText('Humidity')).not.toBeInTheDocument()
+    expect(within(region).queryByText('54°')).not.toBeInTheDocument()
+  })
+
+  it('names each hour by its condition for screen readers', () => {
+    const region = card({
+      hourly: [{ datetime: at(18).toISOString(), condition: 'clear-night', temperature: 50 }],
+    })
+    expect(within(region).getByRole('img', { name: 'Clear night' })).toBeInTheDocument()
   })
 })

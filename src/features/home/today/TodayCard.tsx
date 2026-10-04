@@ -2,29 +2,31 @@ import { Sun } from 'lucide-react'
 import { SectionCard } from '../SectionCard'
 import { STATUS_TEXT } from '../statusText'
 import type { TodayViewModel } from './todayViewModel'
+import { weatherIcon } from './weatherIcon'
+import './TodayCard.css'
 
-const deg = (n: number | undefined) => (n === undefined ? '–' : `${Math.round(n)}°`)
-
-function Stat({ label, value }: { label: string; value: string | undefined }) {
-  return (
-    <div>
-      <span>{label}</span>
-      <span>{value ?? '–'}</span>
-    </div>
+// A weather icon in the mock-up's colours (see the tone rules in TodayCard.css).
+function ConditionIcon({
+  condition,
+  size,
+  className,
+  label,
+}: {
+  condition: string
+  size: number
+  className?: string
+  label?: string
+}) {
+  const { Icon, tone } = weatherIcon(condition)
+  const classes = ['wx-icon', tone && `wx-icon--${tone}`, className].filter(Boolean).join(' ')
+  return label ? (
+    <Icon className={classes} size={size} role="img" aria-label={label} />
+  ) : (
+    <Icon className={classes} size={size} aria-hidden="true" />
   )
 }
 
 export function TodayCard({ vm }: { vm: TodayViewModel }) {
-  const { weather } = vm
-  const Icon = weather.icon
-  const hilo =
-    vm.high !== undefined || vm.low !== undefined
-      ? `High ${deg(vm.high)} · Low ${deg(vm.low)}`
-      : undefined
-  const wind =
-    weather.wind_speed === undefined
-      ? undefined
-      : `${Math.round(weather.wind_speed)}${weather.wind_speed_unit ? ` ${weather.wind_speed_unit}` : ''}`
   return (
     <SectionCard
       title="Today"
@@ -32,40 +34,39 @@ export function TodayCard({ vm }: { vm: TodayViewModel }) {
       className="today"
       chip={vm.sunsetText && <span className="today__sunset">{vm.sunsetText}</span>}
     >
-      {weather.status !== 'ok' ? (
-        <p className="today__status">{STATUS_TEXT[weather.status]}</p>
+      {vm.status !== 'ok' ? (
+        <p className="today__status">{STATUS_TEXT[vm.status]}</p>
       ) : (
         <>
           <div className="today__main">
-            <Icon className="today__icon" size={46} aria-hidden="true" />
-            <div className="today__temp">{deg(weather.temperature)}</div>
+            {vm.condition && (
+              <ConditionIcon condition={vm.condition} size={46} className="today__icon" />
+            )}
+            <div className="today__temp">{vm.temperatureText}</div>
             <div>
-              <div className="today__cond">{weather.conditionLabel}</div>
-              {hilo && <div className="today__hilo">{hilo}</div>}
+              <div className="today__cond">{vm.conditionLabel}</div>
+              {vm.highLowText && <div className="today__hilo">{vm.highLowText}</div>}
             </div>
           </div>
           <div className="today__stats">
-            <Stat
-              label="Humidity"
-              value={
-                weather.humidity === undefined ? undefined : `${Math.round(weather.humidity)}%`
-              }
-            />
-            <Stat label="Wind" value={wind} />
-            <Stat label="UV" value={weather.uv_index?.toString()} />
+            {vm.stats.map((s) => (
+              <div key={s.label}>
+                <span>{s.label}</span>
+                <span>{s.value}</span>
+              </div>
+            ))}
           </div>
           {vm.hours.length > 0 && (
             <ul className="today__hourly" aria-label="Next hours">
-              {vm.hours.map((h) => {
-                const HourIcon = h.icon
-                return (
-                  <li key={h.key}>
-                    <span className="today__hour">{h.label}</span>
-                    {HourIcon && <HourIcon size={18} aria-label={h.conditionLabel} role="img" />}
-                    <span>{deg(h.temperature)}</span>
-                  </li>
-                )
-              })}
+              {vm.hours.map((h) => (
+                <li key={h.key}>
+                  <span className="today__hour">{h.label}</span>
+                  {h.condition && (
+                    <ConditionIcon condition={h.condition} size={18} label={h.conditionLabel} />
+                  )}
+                  <span>{h.temperatureText}</span>
+                </li>
+              ))}
             </ul>
           )}
         </>

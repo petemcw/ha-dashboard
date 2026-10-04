@@ -35,7 +35,7 @@ export function ThemeToggle({ preference, onChange }: ThemeToggleProps) {
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
       onClick={() => onChange(dark ? 'light' : 'dark')}
     >
-      <Icon size={24} aria-hidden="true" />
+      <Icon size={19} aria-hidden="true" />
     </button>
   )
 }

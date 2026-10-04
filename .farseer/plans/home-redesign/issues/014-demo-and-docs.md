@@ -35,8 +35,9 @@ Seed demo mode with placeholder data for the Today, Systems, and Media cards so 
 
 ## Implementation Notes
 
-- `demoHouse.ts` seeds weather + sun, hourly/daily forecasts (relative to page load, via `forecasts`), gateway/uptime/AP/backup/CPU sensors, update entities (one pending, not in an attention rule), and two media players (first playing, no entity_picture).
-- The shared test config has two access points, so the demo tile reads "1/2" (one down), not "3/4".
-- The no-images test ignores same-origin requests (the app's own logo); only remote images would fail it.
-- Docs: CLAUDE.md Status and .farseer/architecture.md updated (header bar / theme toggle not claimed, since 002/003 not done).
-- Verified: demo.spec.ts 12/12, vitest 496 pass, lint, build, prettier on touched files. Full e2e not run.
+- `demoHouse.ts` seeds weather + sun, hourly/daily forecasts (relative to page load, via `forecasts`), gateway/uptime/AP/backup/CPU sensors, update entities (one pending, not in an attention rule), and the four configured media players (the first playing; the others Off, Off, and Idle so the chips row shows; none with an entity_picture).
+- Demo times match the mock-up: the hourly forecast starts at the current hour, so the Today strip leads with "Now"; sunset is 6:50 pm local today (tomorrow's once it has passed); the last backup ran at 3:10 am local (last night's before 3:10 am).
+- The shared test config (`testHomeConfig.ts`, mirrored in `home.example.json`) has four access points with the first down in demo, so the tile reads "3/4".
+- The no-images test allows only the app's own logo path. In demo mode the HA URL is the page's origin, so allowing every same-origin image would let a demo entity_picture through.
+- Docs: CLAUDE.md Status and .farseer/architecture.md describe the redesigned Home, including the header bar and theme toggle.
+- Audit follow-up: `demoHouse.test.tsx` covers the forecast start, sunset, backup time, the "3/4" tile, the media chips, and no pictures on people or media players.

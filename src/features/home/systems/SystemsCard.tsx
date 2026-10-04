@@ -5,8 +5,10 @@ import { useHomeConfig } from '../../../config/useHomeConfig'
 import { useNow } from '../../../infrastructure/clock/clock'
 import { useEntitiesById } from '../../../infrastructure/entities/useEntitiesById'
 import { useEntityIds } from '../../../infrastructure/entities/useEntityIds'
+import { Chip } from '../../shared/Chip'
 import { SectionCard } from '../SectionCard'
 import { systemsEntityIds, systemsViewModel } from './systemsViewModel'
+import './SystemsCard.css'
 
 // Every update entity, whatever the integration: the count is of the house, not a list.
 const isUpdate = (e: HassEntity) => e.entity_id.startsWith('update.')
@@ -24,8 +26,12 @@ function SystemsCardContent() {
     <SectionCard
       title="Systems"
       icon={Wifi}
-      className="systems home__order--systems"
-      chip={<span className={`systems__chip systems__chip--${chip.tone}`}>{chip.text}</span>}
+      className="systems"
+      chip={
+        <Chip tone={chip.tone} dot>
+          {chip.text}
+        </Chip>
+      }
     >
       <div className="stat-tiles">
         {tiles.map((t) => (
@@ -35,7 +41,7 @@ function SystemsCardContent() {
             </span>
             <span className="stat__v">
               {t.value}
-              {t.unit && <small>{t.unit.startsWith('/') ? t.unit : ` ${t.unit}`}</small>}
+              {t.unit && <small>{t.unit}</small>}
             </span>
             <span className="stat__s">{t.sub}</span>
           </div>

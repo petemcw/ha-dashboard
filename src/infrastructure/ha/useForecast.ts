@@ -6,7 +6,7 @@ import { subscribeForecast, type ForecastEntry, type ForecastType } from './fore
 // store. Undefined until the first event, and after a rejected subscription (unknown
 // entity, or one without that forecast type), so the card just shows no forecast.
 export function useForecast(
-  entityId: string | undefined,
+  entityId: string,
   type: ForecastType,
   connect = getConnection,
 ): ForecastEntry[] | undefined {
@@ -14,7 +14,6 @@ export function useForecast(
   const key = `${entityId}/${type}`
 
   useEffect(() => {
-    if (!entityId) return
     let cancelled = false
     let unsubscribe: (() => Promise<void>) | undefined
     connect()

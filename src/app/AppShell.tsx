@@ -31,6 +31,7 @@ export function AppShell({ onTokenSaved = () => {} }: { onTokenSaved?: () => voi
       <div className="content" data-stale={stale ? '' : undefined}>
         <HomeScreen
           onOpenSettings={openSettings}
+          onEditFavorites={openSettings}
           tools={<ThemeToggle preference={theme} onChange={setTheme} />}
         />
       </div>

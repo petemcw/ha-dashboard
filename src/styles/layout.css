@@ -1,0 +1,130 @@
+/* Home layout: the page frame and the card grid. */
+
+.home {
+  /* The space around and between cards, as in the mock-up: tighter on a phone, a little
+     more on a tablet, the most on a wall screen. */
+  --home-gap: 12px;
+  box-sizing: border-box;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--home-gap) calc(env(safe-area-inset-right) + var(--home-gap))
+    calc(env(safe-area-inset-bottom) + var(--home-gap))
+    calc(env(safe-area-inset-left) + var(--home-gap));
+}
+
+@media (min-width: 740px) {
+  .home {
+    --home-gap: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home {
+    --home-gap: 16px;
+  }
+}
+
+.home__connecting {
+  padding: var(--space-6) 0;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Three stacks that reflow like Home Assistant's sections view. Each stack is its own
+   column, so a long attention list never opens a gap beside favorites.
+   Below 740 px the stacks dissolve (display: contents) and every card takes its own
+   order, so the phone reading order is attention, suggested, favorites, today, systems,
+   media, crypto whatever column a card lives in. Every card sits in a wrapper that carries
+   that order; a card that isn't configured renders nothing, which leaves its wrapper
+   :empty. */
+.home__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--home-gap);
+  align-items: start;
+}
+
+.home__col {
+  display: contents;
+}
+
+.home__col > * {
+  min-width: 0;
+}
+
+.home__col > :empty {
+  display: none;
+}
+
+.home__order--attention {
+  order: 1;
+}
+.home__order--suggested {
+  order: 2;
+}
+.home__order--favorites {
+  order: 3;
+}
+.home__order--today {
+  order: 4;
+}
+.home__order--systems {
+  order: 5;
+}
+.home__order--media {
+  order: 6;
+}
+.home__order--crypto {
+  order: 7;
+}
+
+/* iPads in either orientation. Column 3 drops below both, as its own two-column grid. */
+@media (min-width: 740px) {
+  .home__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home__col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--home-gap);
+    min-width: 0;
+  }
+
+  .home__order--attention,
+  .home__order--suggested,
+  .home__order--favorites,
+  .home__order--today,
+  .home__order--systems,
+  .home__order--media,
+  .home__order--crypto {
+    order: 0;
+  }
+
+  .home__col--3 {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  /* A column whose wrappers are all empty never takes space (or a grid gap). */
+  .home__col:not(:has(> :not(:empty))) {
+    display: none;
+  }
+}
+
+/* Three equal columns, but only once column 3 has a card (a wrapper that isn't empty):
+   an empty third track would waste a third of a wall tablet. */
+@media (min-width: 1024px) {
+  .home__grid:has(> .home__col--3 > :not(:empty)) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .home__grid:has(> .home__col--3 > :not(:empty)) > .home__col--3 {
+    grid-column: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

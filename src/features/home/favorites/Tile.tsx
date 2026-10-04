@@ -12,17 +12,22 @@ export type TileControl = {
   pending?: boolean
   failure?: ActionFailure | null
   disabled?: boolean
+}
+
+// What every tile shows, control or not.
+export type TileLabel = {
+  name: string
   // Decorative domain icon; the name and state carry the meaning.
   icon: LucideIcon
 }
 
-type TileProps = TileControl & {
-  name: string
-  status: string
-  // On, playing, unlocked…: lit up so a glance finds what's running.
-  active?: boolean
-  children: ReactNode
-}
+type TileProps = TileLabel &
+  TileControl & {
+    status: string
+    // On, playing, unlocked…: lit up so a glance finds what's running.
+    active?: boolean
+    children: ReactNode
+  }
 
 export function Tile({
   name,

@@ -1,25 +1,32 @@
-import type { LucideIcon } from 'lucide-react'
+import type { EntityStatus } from '../../../domains/entityStatus'
 import type { SunViewModel } from '../../../domains/sun/types'
 import type { WeatherViewModel } from '../../../domains/weather/types'
-import { conditionInfo } from '../../../domains/weather/viewModel'
+import { conditionLabel } from '../../../domains/weather/viewModel'
 import type { ForecastEntry } from '../../../infrastructure/ha/forecast'
-import { formatClock } from '../formatClock'
+import { formatClock, formatHour } from '../formatClock'
 
 const HOURS_SHOWN = 7
 const HOUR_MS = 3_600_000
+const DASH = '–'
 
 export type HourViewModel = {
   key: string
   label: string
-  icon?: LucideIcon
+  // HA's condition value, for the icon.
+  condition?: string
   conditionLabel?: string
-  temperature?: number
+  temperatureText: string
 }
 
+export type StatViewModel = { label: string; value: string }
+
 export type TodayViewModel = {
-  weather: WeatherViewModel
-  high?: number
-  low?: number
+  status: EntityStatus
+  condition?: string
+  conditionLabel?: string
+  temperatureText: string
+  highLowText?: string
+  stats: StatViewModel[]
   hours: HourViewModel[]
   sunsetText?: string
 }
@@ -30,29 +37,55 @@ type Input = {
   daily: ForecastEntry[] | undefined
   hourly: ForecastEntry[] | undefined
   now: Date
+  // For tests; the app follows the browser's locale.
+  locale?: string
 }
 
-const sameLocalDay = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() &&
-  a.getMonth() === b.getMonth() &&
-  a.getDate() === b.getDate()
+const pad = (n: number) => String(n).padStart(2, '0')
+const localDay = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 
 const toDate = (iso: string) => new Date(iso)
 const validDate = (d: Date) => !Number.isNaN(d.getTime())
-const number = (v: unknown) => (typeof v === 'number' ? v : undefined)
 
-// "7p", "12a": the compact hour the strip has room for.
-function hourLabel(d: Date): string {
-  const h = d.getHours()
-  return `${h % 12 === 0 ? 12 : h % 12}${h < 12 ? 'a' : 'p'}`
+const deg = (n: number | undefined) => (n === undefined ? DASH : `${Math.round(n)}°`)
+
+// A bare date, or midnight UTC: some integrations write the forecast's calendar day this
+// way. Read as an instant, it would land on the previous evening west of UTC and make
+// tomorrow's entry look like today's.
+const CALENDAR_DAY = /^(\d{4}-\d{2}-\d{2})(?:T00:00(?::00(?:\.0+)?)?(?:Z|[+-]00:?00))?$/
+
+// The day a daily entry is for. Any other datetime is a real instant (met.no sends local
+// noon in UTC; others send local midnight with an offset), so it is read in local time.
+function forecastDay(datetime: string): string | undefined {
+  const calendarDay = CALENDAR_DAY.exec(datetime)?.[1]
+  if (calendarDay) return calendarDay
+  const d = toDate(datetime)
+  return validDate(d) ? localDay(d) : undefined
 }
 
-export function todayViewModel({ weather, sun, daily, hourly, now }: Input): TodayViewModel {
+function stats(weather: WeatherViewModel): StatViewModel[] {
+  const { humidity, windSpeed, windSpeedUnit, uvIndex } = weather
+  const wind =
+    windSpeed === undefined
+      ? DASH
+      : `${Math.round(windSpeed)}${windSpeedUnit ? ` ${windSpeedUnit}` : ''}`
+  return [
+    { label: 'Humidity', value: humidity === undefined ? DASH : `${Math.round(humidity)}%` },
+    { label: 'Wind', value: wind },
+    { label: 'UV', value: uvIndex === undefined ? DASH : String(uvIndex) },
+  ]
+}
+
+export function todayViewModel({
+  weather,
+  sun,
+  daily,
+  hourly,
+  now,
+  locale,
+}: Input): TodayViewModel {
   // Some integrations start the daily list at tomorrow late in the day; never show that as today's.
-  const today = daily?.find((e) => {
-    const d = toDate(e.datetime)
-    return validDate(d) && sameLocalDay(d, now)
-  })
+  const today = daily?.find((e) => forecastDay(e.datetime) === localDay(now))
   const hours = (hourly ?? [])
     .filter((e) => {
       const d = toDate(e.datetime)
@@ -61,20 +94,25 @@ export function todayViewModel({ weather, sun, daily, hourly, now }: Input): Tod
     .slice(0, HOURS_SHOWN)
     .map((e, i): HourViewModel => {
       const d = toDate(e.datetime)
-      const info = e.condition ? conditionInfo(e.condition) : undefined
       return {
         key: e.datetime,
-        label: i === 0 && d.getTime() <= now.getTime() ? 'Now' : hourLabel(d),
-        icon: info?.icon,
-        conditionLabel: info?.label,
-        temperature: number(e.temperature),
+        label: i === 0 && d.getTime() <= now.getTime() ? 'Now' : formatHour(d, locale),
+        condition: e.condition,
+        conditionLabel: e.condition ? conditionLabel(e.condition) : undefined,
+        temperatureText: deg(e.temperature),
       }
     })
+  const hasHighLow = today?.temperature !== undefined || today?.templow !== undefined
   return {
-    weather,
-    high: number(today?.temperature),
-    low: number(today?.templow),
+    status: weather.status,
+    condition: weather.condition,
+    conditionLabel: weather.conditionLabel,
+    temperatureText: deg(weather.temperature),
+    highLowText: hasHighLow
+      ? `High ${deg(today?.temperature)} · Low ${deg(today?.templow)}`
+      : undefined,
+    stats: stats(weather),
     hours,
-    sunsetText: sun.nextSetting ? `Sunset ${formatClock(sun.nextSetting)}` : undefined,
+    sunsetText: sun.nextSetting ? `Sunset ${formatClock(sun.nextSetting, locale)}` : undefined,
   }
 }

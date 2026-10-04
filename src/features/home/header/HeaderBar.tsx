@@ -1,25 +1,12 @@
+import { SlidersHorizontal } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useNow } from '../../../infrastructure/clock/clock'
+import { clockParts } from '../formatClock'
 import { greetingFor } from './greeting'
+import './HeaderBar.css'
 
 const formatDate = (d: Date) =>
   d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })
-
-// The locale decides 12 or 24 hour. The am/pm marker, when there is one, is split out so
-// it can sit small beside the digits.
-function timeParts(d: Date) {
-  const parts = new Intl.DateTimeFormat(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
-  }).formatToParts(d)
-  const period = parts.find((p) => p.type === 'dayPeriod')?.value.toLowerCase()
-  const digits = parts
-    .filter((p) => p.type !== 'dayPeriod')
-    .map((p) => p.value)
-    .join('')
-    .trim()
-  return { digits, period }
-}
 
 type HeaderBarProps = {
   onOpenSettings?: () => void
@@ -34,7 +21,8 @@ type HeaderBarProps = {
 // and the tools. The attention card, not the header, says what needs doing.
 export function HeaderBar({ onOpenSettings, people, tools }: HeaderBarProps) {
   const now = useNow()
-  const { digits, period } = timeParts(now)
+  // The same locale formatting as the times on the cards, with am/pm set small.
+  const { digits, period } = clockParts(now)
 
   return (
     <header className="header-bar">
@@ -64,16 +52,7 @@ export function HeaderBar({ onOpenSettings, people, tools }: HeaderBarProps) {
           aria-haspopup="dialog"
           onClick={onOpenSettings}
         >
-          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-            <path
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm7.4-2.1.1-1.4-.1-1.4 2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-2.4-1.4L14.2 2h-4.4l-.4 2.6a7.6 7.6 0 0 0-2.4 1.4l-2.4-1-2 3.4 2 1.6-.1 1.4.1 1.4-2 1.6 2 3.4 2.4-1c.7.6 1.5 1 2.4 1.4l.4 2.6h4.4l.4-2.6c.9-.4 1.7-.8 2.4-1.4l2.4 1 2-3.4-2-1.6Z"
-            />
-          </svg>
+          <SlidersHorizontal size={19} aria-hidden="true" />
         </button>
       </div>
     </header>

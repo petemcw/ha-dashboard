@@ -7,6 +7,7 @@ import { useEntitiesById } from '../../../infrastructure/entities/useEntitiesByI
 import { useEntity } from '../../../infrastructure/entities/useEntity'
 import { useEntityIds } from '../../../infrastructure/entities/useEntityIds'
 import { useHaUrl } from '../../../infrastructure/ha/useHaUrl'
+import './PresenceRow.css'
 
 const isPerson = (e: HassEntity) => e.entity_id.startsWith('person.')
 

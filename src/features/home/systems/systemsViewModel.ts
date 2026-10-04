@@ -6,6 +6,8 @@ import { updateViewModel } from '../../../domains/update/viewModel'
 import { formatClock } from '../formatClock'
 
 export type StatusChip = { tone: 'ok' | 'danger' | 'neutral'; text: string }
+// `unit` is shown as is after the value, spacing included: " d" after a count, "/4" after a
+// fraction.
 export type StatTile = { key: string; value: string; unit?: string; sub: string }
 // `percent` is clamped to 0-100 and absent when the sensor can't be read.
 export type CpuBar = { key: string; label: string; percent?: number; note?: string }
@@ -52,8 +54,8 @@ function uptimeTile(
   const base = { key: 'Uptime', sub: config.label }
   if (!Number.isFinite(elapsed) || elapsed < 0) return { ...base, value: 'Unknown' }
   return elapsed >= DAY_MS
-    ? { ...base, value: String(Math.floor(elapsed / DAY_MS)), unit: 'd' }
-    : { ...base, value: String(Math.floor(elapsed / HOUR_MS)), unit: 'h' }
+    ? { ...base, value: String(Math.floor(elapsed / DAY_MS)), unit: ' d' }
+    : { ...base, value: String(Math.floor(elapsed / HOUR_MS)), unit: ' h' }
 }
 
 function accessPointsTile(
@@ -72,7 +74,7 @@ function accessPointsTile(
 
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
 
-function backupTile(entity: HassEntity | undefined, now: Date): StatTile {
+function backupTile(entity: HassEntity | undefined, now: Date, locale?: string): StatTile {
   const key = 'Last backup'
   const at = new Date(okState(entity) ?? NaN)
   if (Number.isNaN(at.getTime())) return { key, value: 'Unknown', sub: '' }
@@ -82,8 +84,8 @@ function backupTile(entity: HassEntity | undefined, now: Date): StatTile {
       ? 'Today'
       : daysAgo === 1
         ? 'Yesterday'
-        : at.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  return { key, value, sub: formatClock(at) }
+        : at.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
+  return { key, value, sub: formatClock(at, locale) }
 }
 
 function updatesTile(updates: Entities): StatTile {
@@ -103,17 +105,19 @@ function cpuBar(label: string, entityId: string, entity: HassEntity | undefined)
   return { key, label, percent: Math.min(100, Math.max(0, Math.round(numericValue))) }
 }
 
-// `entities` holds the configured entities by ID; `updates` every update.* entity.
+// `entities` holds the configured entities by ID; `updates` every update.* entity. Dates
+// and times follow the browser's locale; `locale` is for tests, and the app leaves it out.
 export function systemsViewModel(
   config: SystemsConfig,
   entities: Entities,
   updates: Entities,
   now: Date,
+  locale?: string,
 ): SystemsViewModel {
   const tiles: (StatTile | undefined)[] = [
     config.uptime && uptimeTile(config.uptime, entities[config.uptime.entity_id], now),
     config.accessPoints && accessPointsTile(config.accessPoints, entities),
-    config.backup ? backupTile(entities[config.backup], now) : undefined,
+    config.backup ? backupTile(entities[config.backup], now, locale) : undefined,
     updatesTile(updates),
   ]
   return {

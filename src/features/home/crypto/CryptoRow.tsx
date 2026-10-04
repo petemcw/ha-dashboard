@@ -6,6 +6,7 @@ import { useHourlyMeans } from '../../../infrastructure/ha/useHourlyMeans'
 import { SectionCard } from '../SectionCard'
 import { cryptoViewModel } from './cryptoViewModel'
 import { Sparkline } from './Sparkline'
+import './CryptoRow.css'
 
 const HISTORY_HOURS = 24
 
@@ -33,7 +34,13 @@ function CryptoRowContent() {
   const statisticIds = useMemo(() => crypto.map((c) => c.entity_id), [crypto])
   const means = useHourlyMeans(statisticIds, HISTORY_HOURS)
   return (
-    <SectionCard title="Crypto" icon={Coins} className="crypto">
+    <SectionCard
+      title="Crypto"
+      icon={Coins}
+      className="crypto"
+      // The period the change and the sparkline cover.
+      chip={<span className="crypto__period">{HISTORY_HOURS} h</span>}
+    >
       <ul className="crypto-row">
         {crypto.map((c) => (
           <Coin

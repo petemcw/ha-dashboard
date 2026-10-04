@@ -42,13 +42,29 @@ export const FAVORITE_IDS = [
 
 const iso = (ms: number) => new Date(ms).toISOString()
 
+// The next time the local clock reads hour:minute, today or (once it has passed) tomorrow.
+function nextLocal(now: number, hour: number, minute: number): Date {
+  const at = new Date(now)
+  at.setHours(hour, minute, 0, 0)
+  if (at.getTime() <= now) at.setDate(at.getDate() + 1)
+  return at
+}
+
+// The last time the local clock read hour:minute, today or (if not yet) yesterday.
+function lastLocal(now: number, hour: number, minute: number): Date {
+  const at = new Date(now)
+  at.setHours(hour, minute, 0, 0)
+  if (at.getTime() > now) at.setDate(at.getDate() - 1)
+  return at
+}
+
 function demoToday(now: number): HassEntity[] {
   const { weather } = testHomeConfig
   if (!weather) return []
   return [
     weatherState('partlycloudy', { entity_id: weather.entity_id }),
-    // Later today, so the sunset line reads as upcoming.
-    sunState(iso(now + 3 * HOUR * 1000), 'above_horizon', weather.sun),
+    // An evening sunset, as in the mock-up. The card reads only next_setting, not the state.
+    sunState(nextLocal(now, 18, 50).toISOString(), 'above_horizon', weather.sun),
   ]
 }
 
@@ -65,7 +81,10 @@ function demoSystems(now: number): HassEntity[] {
       : []),
     // One access point is down so the tile reads like "3/4".
     ...apIds.map((id, i) => sensorState({ entity_id: id, state: i === 0 ? 'disconnected' : up })),
-    ...(backup ? [sensorState({ entity_id: backup, state: iso(now - 4 * HOUR * 1000) })] : []),
+    // A nightly backup, so the tile reads like "Today, 3:10 am".
+    ...(backup
+      ? [sensorState({ entity_id: backup, state: lastLocal(now, 3, 10).toISOString() })]
+      : []),
     ...(cpu ?? []).map((c, i) =>
       sensorState({ entity_id: c.entity_id, state: String(18 + i * 31) }),
     ),
@@ -74,21 +93,28 @@ function demoSystems(now: number): HassEntity[] {
   ]
 }
 
+// The configured players in order: the first plays, the rest show as chips. No
+// entity_picture anywhere, so the Media card shows its placeholder and requests nothing.
+const DEMO_PLAYERS: { state: string; attributes: Record<string, unknown> }[] = [
+  {
+    state: 'playing',
+    attributes: {
+      friendly_name: 'Living room speaker',
+      media_title: 'Demo Song',
+      media_artist: 'Demo Band',
+      volume_level: 0.3,
+    },
+  },
+  { state: 'off', attributes: { friendly_name: 'Kitchen speaker' } },
+  { state: 'off', attributes: { friendly_name: 'Family room TV' } },
+  { state: 'idle', attributes: { friendly_name: 'Receiver' } },
+]
+
 function demoMediaPlayers(): HassEntity[] {
-  return (testHomeConfig.media?.players ?? []).map((id, i) =>
-    mediaPlayer(i === 0 ? 'playing' : 'idle', {
-      entity_id: id,
-      attributes:
-        i === 0
-          ? {
-              friendly_name: 'Living room speaker',
-              media_title: 'Demo Song',
-              media_artist: 'Demo Band',
-              volume_level: 0.3,
-            }
-          : { friendly_name: 'Kitchen speaker' },
-    }),
-  )
+  return (testHomeConfig.media?.players ?? []).map((id, i) => {
+    const { state, attributes } = DEMO_PLAYERS[i] ?? { state: 'idle', attributes: {} }
+    return mediaPlayer(state, { entity_id: id, attributes })
+  })
 }
 
 export function demoEntities(now: number = Date.now()): HassEntity[] {
@@ -198,8 +224,10 @@ function demoForecasts(now: number): Record<string, Forecasts> {
   const weather = testHomeConfig.weather
   if (!weather) return {}
   const conditions = ['partlycloudy', 'sunny', 'cloudy', 'rainy', 'partlycloudy']
+  // From the start of this hour, as HA's providers send it, so the strip leads with "Now".
+  const thisHour = lastLocal(now, new Date(now).getHours(), 0).getTime()
   const hourly = Array.from({ length: 12 }, (_, i) => ({
-    datetime: iso(now + (i + 1) * HOUR * 1000),
+    datetime: iso(thisHour + i * HOUR * 1000),
     condition: conditions[i % conditions.length],
     temperature: 52 + Math.round(6 * Math.sin(i / 3)),
   }))

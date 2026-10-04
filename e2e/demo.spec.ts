@@ -50,17 +50,18 @@ test('it shows the Today card with a forecast in demo mode', async ({ page }) =>
   await page.goto('/?demo')
   const today = page.getByRole('region', { name: 'Today' })
   await expect(today).toBeVisible()
-  await expect(
-    today.getByRole('list', { name: 'Next hours' }).getByRole('listitem'),
-  ).not.toHaveCount(0)
+  const hours = today.getByRole('list', { name: 'Next hours' }).getByRole('listitem')
+  await expect(hours).not.toHaveCount(0)
+  // The demo forecast starts at the current hour.
+  await expect(hours.first()).toContainText('Now')
 })
 
 test('it shows the Systems card with the gateway online in demo mode', async ({ page }) => {
   await page.goto('/?demo')
   const systems = page.getByRole('region', { name: 'Systems' })
   await expect(systems).toBeVisible()
-  await expect(systems.getByText('Online', { exact: false }).first()).toBeVisible()
-  await expect(systems.getByText('1/2')).toBeVisible()
+  await expect(systems.getByText('Gateway online', { exact: true })).toBeVisible()
+  await expect(systems.getByRole('group', { name: 'Access points' })).toContainText('3/4')
 })
 
 test('it shows the Media card with a player playing in demo mode', async ({ page }) => {
@@ -68,16 +69,26 @@ test('it shows the Media card with a player playing in demo mode', async ({ page
   const media = page.getByRole('region', { name: 'Media' })
   await expect(media).toBeVisible()
   await expect(media.getByText('Demo Song')).toBeVisible()
+  await expect(media.getByRole('listitem')).toHaveText([
+    'Kitchen speaker · Off',
+    'Family room TV · Off',
+    'Receiver · Idle',
+  ])
 })
 
-test('it requests no images in demo mode', async ({ page }) => {
+// The app's own logo is the only image allowed. In demo mode the HA URL is the page's own
+// origin, so an entity_picture would be a same-origin request: allow by path, not origin.
+const OWN_IMAGES = ['/maple_frontier_logo.svg']
+
+test('it requests no images in demo mode', async ({ page, baseURL }) => {
   const images: string[] = []
   page.on('request', (r) => {
-    // The app's own bundled assets (the logo) are fine; entity pictures would be remote.
-    const own = new URL(r.url()).origin === new URL(page.url()).origin
+    const url = new URL(r.url())
+    const own = url.origin === new URL(baseURL!).origin && OWN_IMAGES.includes(url.pathname)
     if (r.resourceType() === 'image' && !own) images.push(r.url())
   })
   await page.goto('/?demo')
-  await expect(page.getByRole('region', { name: 'Media' })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Media' }).getByText('Demo Song')).toBeVisible()
+  await page.waitForLoadState('networkidle')
   expect(images).toEqual([])
 })

@@ -52,8 +52,25 @@ describe('systems card', () => {
     expect(screen.getByText('Gateway missing')).toBeInTheDocument()
   })
 
+  it('tints the status chip ok when online, danger when offline, and neutral otherwise', () => {
+    const chipFor = (...entities: ReturnType<typeof status>[]) => {
+      load(...entities)
+      const { unmount } = render(<SystemsCard />)
+      const header = within(screen.getByRole('region', { name: 'Systems' }))
+      const chip = header.getByText(/^Gateway /)
+      unmount()
+      return chip
+    }
+    expect(chipFor(status('connected'))).toHaveClass('chip--ok')
+    expect(chipFor(status('disconnected'))).toHaveClass('chip--danger')
+    expect(chipFor(status('unavailable'))).toHaveClass('chip--neutral')
+    expect(chipFor()).toHaveClass('chip--neutral')
+  })
+
   it('shows the gateway uptime in days from its boot timestamp', () => {
-    load(sensorState({ entity_id: 'sensor.gateway_boot_time', state: '2026-09-15T08:00:00+00:00' }))
+    // Relative to NOW, so the answer is the same in every time zone.
+    const booted = new Date(NOW.getTime() - (19 * 24 + 4) * 3_600_000)
+    load(sensorState({ entity_id: 'sensor.gateway_boot_time', state: booted.toISOString() }))
     render(<SystemsCard />)
     expect(screen.getByRole('group', { name: 'Uptime' })).toHaveTextContent('19 d')
     expect(tile('Uptime').getByText('Gateway')).toBeInTheDocument()
@@ -77,10 +94,22 @@ describe('systems card', () => {
   })
 
   it('shows how many access points are online out of those configured', () => {
-    load(ap('office', 'connected'), ap('hallway', 'disconnected'))
+    load(
+      ap('office', 'connected'),
+      ap('hallway', 'disconnected'),
+      ap('garage', 'connected'),
+      ap('basement', 'connected'),
+    )
     render(<SystemsCard />)
-    expect(screen.getByRole('group', { name: 'Access points' })).toHaveTextContent('1/2')
+    expect(screen.getByRole('group', { name: 'Access points' })).toHaveTextContent('3/4')
     expect(tile('Access points').getByText('Online')).toBeInTheDocument()
+  })
+
+  it('counts an access point HA does not have as offline', () => {
+    // The basement access point is configured but missing.
+    load(ap('office', 'connected'), ap('hallway', 'connected'), ap('garage', 'connected'))
+    render(<SystemsCard />)
+    expect(screen.getByRole('group', { name: 'Access points' })).toHaveTextContent('3/4')
   })
 
   it('counts access points against their own up state, not the status entity', () => {
@@ -91,9 +120,12 @@ describe('systems card', () => {
         status: { entity_id: 'sensor.gateway_state', upState: 'on', label: 'Gateway' },
       },
     }
-    load(status('on'), ap('office', 'connected'), ap('hallway', 'connected'))
+    load(
+      status('on'),
+      ...['office', 'hallway', 'garage', 'basement'].map((id) => ap(id, 'connected')),
+    )
     render(<SystemsCard />, { config })
-    expect(screen.getByRole('group', { name: 'Access points' })).toHaveTextContent('2/2')
+    expect(screen.getByRole('group', { name: 'Access points' })).toHaveTextContent('4/4')
   })
 
   it('shows when the last backup succeeded', () => {
@@ -110,7 +142,11 @@ describe('systems card', () => {
     second.unmount()
     load(backup(new Date(2026, 8, 20, 9, 0).toISOString()))
     render(<SystemsCard />)
-    expect(tile('Last backup').getByText('Sep 20')).toBeInTheDocument()
+    // An older one shows its date, in the browser's locale (systemsViewModel.test.ts pins it).
+    expect(screen.getByRole('group', { name: 'Last backup' })).toHaveTextContent(/20/)
+    expect(screen.getByRole('group', { name: 'Last backup' })).not.toHaveTextContent(
+      /Today|Yesterday/,
+    )
   })
 
   it('counts every update entity that has an update ready', () => {
@@ -169,6 +205,16 @@ describe('systems card', () => {
       'aria-valuenow',
       '100',
     )
+  })
+
+  it('clamps a CPU reading below zero to 0%', () => {
+    load(sensorState({ entity_id: 'sensor.processor_use', state: '-3' }))
+    render(<SystemsCard />)
+    expect(screen.getByRole('meter', { name: 'Home Assistant CPU' })).toHaveAttribute(
+      'aria-valuenow',
+      '0',
+    )
+    expect(screen.getByRole('group', { name: 'CPU usage' })).toHaveTextContent('0%')
   })
 
   it('shows a dash instead of a bar when a CPU sensor is unavailable', () => {

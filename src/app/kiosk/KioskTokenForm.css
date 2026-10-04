@@ -1,0 +1,22 @@
+/* Kiosk setup: the token form, alone on the page. */
+
+.kiosk-token {
+  box-sizing: border-box;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+
+.kiosk-token__form {
+  display: grid;
+  gap: var(--space-3);
+  width: min(100%, 420px);
+}
+
+.kiosk-token__form h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+}

@@ -10,6 +10,7 @@ beforeEach(() => vi.stubEnv('VITE_HA_URL', 'https://ha.example'))
 afterEach(() => {
   entityStore.reset()
   vi.unstubAllEnvs()
+  vi.unstubAllGlobals()
 })
 
 const SPEAKER = 'media_player.living_room_speaker'
@@ -92,6 +93,33 @@ describe('media card', () => {
     })
     await act(async () => {})
     expect(container).toBeEmptyDOMElement()
+  })
+
+  it('shows the artwork placeholder until the HA URL is known', async () => {
+    // No dev URL, so the HA URL comes from /config.json, which answers when the test says.
+    vi.stubEnv('VITE_HA_URL', '')
+    let answer: (r: Response) => void = () => {}
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise<Response>((resolve) => (answer = resolve))),
+    )
+    load(
+      player(SPEAKER, 'Living Room Speaker', 'playing', {
+        media_title: 'T',
+        entity_picture: '/api/media_player_proxy/x?token=one',
+      }),
+    )
+    const { container } = renderWithHome(<MediaCard />)
+    await screen.findByText('T')
+    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('.media-art svg')).not.toBeNull()
+
+    await act(async () => answer(Response.json({ haUrl: 'https://ha.example' })))
+    await vi.waitFor(() =>
+      expect(container.querySelector('.media-art img')?.getAttribute('src')).toBe(
+        'https://ha.example/api/media_player_proxy/x?token=one',
+      ),
+    )
   })
 
   it('tries the artwork again when the track picture changes after a failed load', async () => {

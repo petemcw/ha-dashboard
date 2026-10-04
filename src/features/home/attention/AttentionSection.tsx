@@ -1,11 +1,13 @@
 import { Clock } from 'lucide-react'
 import { useId, useState } from 'react'
+import { Chip } from '../../shared/Chip'
 import { UndoNotice } from '../../shared/UndoNotice'
 import { SectionCard } from '../SectionCard'
 import { AttentionRow } from './AttentionRow'
 import { SnoozedList } from './SnoozedList'
 import { formatUntil } from './snoozes'
 import type { Attention } from './useAttention'
+import './AttentionSection.css'
 
 export function AttentionSection({ attention }: { attention: Attention }) {
   const { items, urgent, chores, snoozed, snoozing } = attention
@@ -120,9 +122,5 @@ function countChip(urgent: number, chores: number) {
   const parts = [urgent > 0 && `${urgent} urgent`, chores > 0 && plural(chores, 'chore')].filter(
     Boolean,
   )
-  return (
-    <span className={`attention__chip attention__chip--${urgent > 0 ? 'danger' : 'warn'}`}>
-      {parts.join(' · ')}
-    </span>
-  )
+  return <Chip tone={urgent > 0 ? 'danger' : 'warn'}>{parts.join(' · ')}</Chip>
 }

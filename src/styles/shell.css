@@ -1,0 +1,55 @@
+/* App shell: connection banner, the content wrapper, and the demo badge. */
+
+/* Sticky, so a dropped connection is obvious however far down the page you are. */
+.banner {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin: 0;
+  padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.banner--warn {
+  background: var(--warn);
+  color: var(--on-warn);
+}
+
+.banner--danger {
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+.content {
+  transition: opacity 0.3s;
+}
+
+/* Stale values stay readable but dimmed, next to the banner. Opacity only: a filter
+   here would make fixed children (the undo notice) position against this box. */
+.content[data-stale] {
+  opacity: var(--stale-opacity);
+}
+
+/* Demo mode badge */
+.demo-badge {
+  /* A tab in the bottom-left corner, off the header bar. 16 px tall, so it stays below
+     the undo notice, which rises 16 px above the bottom edge. */
+  position: fixed;
+  bottom: env(safe-area-inset-bottom);
+  left: env(safe-area-inset-left);
+  z-index: 50;
+  box-sizing: border-box;
+  height: 16px;
+  padding: 0 0.625rem;
+  border-radius: 0 var(--radius-sm) 0 0;
+  line-height: 16px;
+  /* Ochre, so it never reads as a heartwood button. */
+  background: var(--warn);
+  color: var(--on-warn);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  pointer-events: none;
+}

@@ -60,7 +60,7 @@ describe('attention section', () => {
     )
     render(<AttentionHarness />)
     const chip = screen.getByText('1 urgent · 1 chore')
-    expect(chip).toHaveClass('attention__chip--danger')
+    expect(chip).toHaveClass('chip--danger')
   })
 
   it('counts only chores in the warn style when nothing is urgent', () => {
@@ -74,7 +74,7 @@ describe('attention section', () => {
       }),
     )
     render(<AttentionHarness />)
-    expect(screen.getByText('2 chores')).toHaveClass('attention__chip--warn')
+    expect(screen.getByText('2 chores')).toHaveClass('chip--warn')
   })
 
   it('renders chores in a compact row after urgent items', () => {

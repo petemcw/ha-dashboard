@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { lightState } from '../../domains/light/factories'
 import { entityState } from '../../domains/factories'
-import { matchesSearch } from './searchEntities'
+import { entitySearch } from './searchEntities'
 
 const kitchen = lightState({
   entity_id: 'light.kitchen_main',
@@ -10,10 +10,14 @@ const kitchen = lightState({
 
 describe('favorites search', () => {
   it('finds entities by friendly name or entity ID', () => {
-    expect(matchesSearch(kitchen, 'ceiling', [])).toBe(true)
-    expect(matchesSearch(kitchen, 'KITCHEN_MAIN', [])).toBe(true)
-    expect(matchesSearch(kitchen, 'garage', [])).toBe(false)
-    expect(matchesSearch(kitchen, '  ', [])).toBe(false)
+    expect(entitySearch('ceiling', [])?.(kitchen)).toBe(true)
+    expect(entitySearch('KITCHEN_MAIN', [])?.(kitchen)).toBe(true)
+    expect(entitySearch('garage', [])?.(kitchen)).toBe(false)
+  })
+
+  it('offers nothing, with no predicate to scan with, for a blank query', () => {
+    expect(entitySearch('  ', [])).toBeNull()
+    expect(entitySearch('', [])).toBeNull()
   })
 
   it('only offers entities from controllable domains', () => {
@@ -21,10 +25,10 @@ describe('favorites search', () => {
       entity_id: 'sensor.kitchen_temp',
       attributes: { friendly_name: 'Kitchen temp' },
     })
-    expect(matchesSearch(sensor, 'kitchen', [])).toBe(false)
+    expect(entitySearch('kitchen', [])?.(sensor)).toBe(false)
   })
 
   it('does not offer an entity that is already a favorite', () => {
-    expect(matchesSearch(kitchen, 'kitchen', ['light.kitchen_main'])).toBe(false)
+    expect(entitySearch('kitchen', ['light.kitchen_main'])?.(kitchen)).toBe(false)
   })
 })

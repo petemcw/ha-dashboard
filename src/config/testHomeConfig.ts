@@ -105,4 +105,12 @@ export const testHomeConfig: HomeConfig = {
       'media_player.receiver',
     ],
   },
+  rooms: {
+    hidden: ['storage'],
+    awayRoom: 'garage',
+    areas: {
+      living_room: { add: ['light.kitchen_pendant'], remove: ['switch.unused_plug'] },
+    },
+  },
+  confirm: ['switch.garage_door_opener'],
 }

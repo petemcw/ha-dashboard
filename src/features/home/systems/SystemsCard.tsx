@@ -1,4 +1,4 @@
-import { Wifi } from 'lucide-react'
+import { mdiWifi } from '@mdi/js'
 import { memo, useMemo } from 'react'
 import type { HassEntity } from 'home-assistant-js-websocket'
 import { useHomeConfig } from '../../../config/useHomeConfig'
@@ -6,7 +6,7 @@ import { useNow } from '../../../infrastructure/clock/clock'
 import { useEntitiesById } from '../../../infrastructure/entities/useEntitiesById'
 import { useEntityIds } from '../../../infrastructure/entities/useEntityIds'
 import { Chip } from '../../shared/Chip'
-import { SectionCard } from '../SectionCard'
+import { SectionCard } from '../../shared/SectionCard'
 import { systemsEntityIds, systemsViewModel } from './systemsViewModel'
 import './SystemsCard.css'
 
@@ -25,7 +25,7 @@ function SystemsCardContent() {
   return (
     <SectionCard
       title="Systems"
-      icon={Wifi}
+      icon={mdiWifi}
       className="systems"
       chip={
         <Chip tone={chip.tone} dot>

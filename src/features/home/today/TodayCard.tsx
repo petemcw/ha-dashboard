@@ -1,6 +1,7 @@
-import { Sun } from 'lucide-react'
-import { SectionCard } from '../SectionCard'
-import { STATUS_TEXT } from '../statusText'
+import { mdiWeatherSunny } from '@mdi/js'
+import { Icon } from '../../shared/icons/Icon'
+import { SectionCard } from '../../shared/SectionCard'
+import { STATUS_TEXT } from '../../shared/statusText'
 import type { TodayViewModel } from './todayViewModel'
 import { weatherIcon } from './weatherIcon'
 import './TodayCard.css'
@@ -17,12 +18,12 @@ function ConditionIcon({
   className?: string
   label?: string
 }) {
-  const { Icon, tone } = weatherIcon(condition)
+  const { path, tone } = weatherIcon(condition)
   const classes = ['wx-icon', tone && `wx-icon--${tone}`, className].filter(Boolean).join(' ')
   return label ? (
-    <Icon className={classes} size={size} role="img" aria-label={label} />
+    <Icon path={path} className={classes} size={size} title={label} />
   ) : (
-    <Icon className={classes} size={size} aria-hidden="true" />
+    <Icon path={path} className={classes} size={size} />
   )
 }
 
@@ -30,7 +31,7 @@ export function TodayCard({ vm }: { vm: TodayViewModel }) {
   return (
     <SectionCard
       title="Today"
-      icon={Sun}
+      icon={mdiWeatherSunny}
       className="today"
       chip={vm.sunsetText && <span className="today__sunset">{vm.sunsetText}</span>}
     >

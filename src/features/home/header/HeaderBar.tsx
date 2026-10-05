@@ -1,7 +1,8 @@
-import { SlidersHorizontal } from 'lucide-react'
+import { mdiTuneVariant } from '@mdi/js'
 import type { ReactNode } from 'react'
 import { useNow } from '../../../infrastructure/clock/clock'
 import { clockParts } from '../formatClock'
+import { Icon } from '../../shared/icons/Icon'
 import { greetingFor } from './greeting'
 import './HeaderBar.css'
 
@@ -52,7 +53,7 @@ export function HeaderBar({ onOpenSettings, people, tools }: HeaderBarProps) {
           aria-haspopup="dialog"
           onClick={onOpenSettings}
         >
-          <SlidersHorizontal size={19} aria-hidden="true" />
+          <Icon path={mdiTuneVariant} size={19} />
         </button>
       </div>
     </header>

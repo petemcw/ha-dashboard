@@ -1,8 +1,8 @@
-import { Star } from 'lucide-react'
+import { mdiStar } from '@mdi/js'
 import { memo } from 'react'
 import { useAppData } from '../../../infrastructure/appData/useAppData'
-import { SectionCard } from '../SectionCard'
-import { FavoriteTile } from './FavoriteTile'
+import { SectionCard } from '../../shared/SectionCard'
+import { EntityTile } from '../../shared/tiles/EntityTile'
 import { FAVORITES_KEY, parseFavorites } from './favoritesValue'
 import './FavoritesSection.css'
 
@@ -12,7 +12,7 @@ export type FavoritesSectionProps = { onEditFavorites?: () => void }
 function FavoritesSectionContent({ onEditFavorites }: FavoritesSectionProps) {
   const { value, loaded } = useAppData('user', FAVORITES_KEY)
   // Before the first value, "no favorites" would be a guess.
-  if (!loaded) return <SectionCard title="Favorites" icon={Star} className="favorites-card" />
+  if (!loaded) return <SectionCard title="Favorites" icon={mdiStar} className="favorites-card" />
   const { entityIds } = parseFavorites(value)
   const edit = onEditFavorites && (
     // Visible "Edit" for the header; the full name says what it edits.
@@ -26,7 +26,7 @@ function FavoritesSectionContent({ onEditFavorites }: FavoritesSectionProps) {
     </button>
   )
   return (
-    <SectionCard title="Favorites" icon={Star} className="favorites-card" chip={edit}>
+    <SectionCard title="Favorites" icon={mdiStar} className="favorites-card" chip={edit}>
       {entityIds.length === 0 ? (
         <div className="empty-state">
           <p>No favorites yet</p>
@@ -37,7 +37,7 @@ function FavoritesSectionContent({ onEditFavorites }: FavoritesSectionProps) {
       ) : (
         <ul className="favorites">
           {entityIds.map((id) => (
-            <FavoriteTile key={id} entityId={id} />
+            <EntityTile key={id} entityId={id} />
           ))}
         </ul>
       )}

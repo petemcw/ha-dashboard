@@ -9,4 +9,6 @@ export type PersonViewModel = {
   presence: Presence
   zoneName?: string
   pictureUrl?: string
+  // The HA user this person belongs to (the `user_id` attribute).
+  userId?: string
 }

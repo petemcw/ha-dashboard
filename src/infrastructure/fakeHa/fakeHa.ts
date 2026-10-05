@@ -27,10 +27,48 @@ export type FakeHaOptions = {
   // Extra state changes a service call causes, which the generic switch/scene handling
   // doesn't know: return the entities to set. `house` reads the current state.
   onServiceCall?: (call: ServiceCall, house: FakeHouse) => HassEntity[] | void
+  // Registries in HA's wire shapes; absent ones answer empty lists.
+  areas?: unknown[]
+  floors?: unknown[]
+  devices?: unknown[]
+  entityRegistry?: EntityRegistryDisplay
+}
+
+// `config/entity_registry/list_for_display`: abbreviated keys (`ei` entity_id, `ai` area_id,
+// `di` device_id, ...), with entity categories as indexes into `entity_categories`.
+export type EntityRegistryDisplay = {
+  entity_categories: Record<number, string>
+  entities: Record<string, unknown>[]
+}
+export type RegistryName = 'areas' | 'floors' | 'devices' | 'entityRegistry'
+
+const EMPTY_ENTITY_REGISTRY: EntityRegistryDisplay = {
+  entity_categories: { 0: 'config', 1: 'diagnostic' },
+  entities: [],
+}
+
+const REGISTRY_LIST_MESSAGES: Record<string, RegistryName> = {
+  'config/area_registry/list': 'areas',
+  'config/floor_registry/list': 'floors',
+  'config/device_registry/list': 'devices',
+  'config/entity_registry/list_for_display': 'entityRegistry',
+}
+
+const REGISTRY_UPDATED_EVENTS: Record<RegistryName, string> = {
+  areas: 'area_registry_updated',
+  floors: 'floor_registry_updated',
+  devices: 'device_registry_updated',
+  entityRegistry: 'entity_registry_updated',
 }
 
 export type Forecasts = { hourly?: unknown[]; daily?: unknown[] }
-export type ServiceCall = { domain: string; service: string; entityIds: string[] }
+export type ServiceCall = {
+  domain: string
+  service: string
+  entityIds: string[]
+  // `service_data` without `entity_id`, which is the target.
+  serviceData: Record<string, unknown>
+}
 export type FakeHouse = { getState(entityId: string): HassEntity | undefined }
 
 export const FAKE_HA_VERSION = '2026.9.4'
@@ -44,6 +82,7 @@ export type FakeHaClient = { send: Send; subs: Map<string, number[]>; stalled: b
 const dataChannel = (type: string, key: string) => `${type} ${key}`
 const forecastChannel = (entityId: string, type: string) =>
   `weather/subscribe_forecast ${entityId} ${type}`
+const eventChannel = (eventType: string) => `subscribe_events ${eventType}`
 const toEpoch = (iso: string) => Date.parse(iso) / 1000
 
 function compress(e: HassEntity) {
@@ -56,14 +95,88 @@ function compress(e: HassEntity) {
   }
 }
 
-const SWITCHABLE = new Set(['light', 'switch', 'fan'])
-
 // What each on/off service leaves the entity's state as.
 const NEXT_ON_OFF_STATE = new Map<string, (state: string) => string>([
   ['turn_on', () => 'on'],
   ['turn_off', () => 'off'],
   ['toggle', (state) => (state === 'on' ? 'off' : 'on')],
 ])
+
+type ServiceHandler = (entity: HassEntity, call: ServiceCall) => HassEntity
+
+const onOff: ServiceHandler = (entity, call) => {
+  const next = NEXT_ON_OFF_STATE.get(call.service)
+  if (!next || entity.entity_id.split('.')[0] !== call.domain) return entity
+  const now = new Date().toISOString()
+  const state = next(entity.state)
+  return {
+    ...entity,
+    state,
+    last_updated: now,
+    last_changed: state === entity.state ? entity.last_changed : now,
+  }
+}
+
+// brightness_pct is 1-100; the entity reports brightness as 0-255. Setting a color
+// temperature or color also switches the color mode, as HA does.
+const light: ServiceHandler = (entity, call) => {
+  const next = onOff(entity, call)
+  if (call.service !== 'turn_on') return next
+  const { brightness_pct: pct, color_temp_kelvin: kelvin, hs_color: hs } = call.serviceData
+  const attributes: Record<string, unknown> = { ...next.attributes }
+  if (typeof pct === 'number') attributes.brightness = Math.round((pct / 100) * 255)
+  if (typeof kelvin === 'number') {
+    attributes.color_temp_kelvin = kelvin
+    attributes.color_mode = 'color_temp'
+  }
+  if (Array.isArray(hs)) {
+    attributes.hs_color = hs
+    attributes.color_mode = 'hs'
+  }
+  return { ...next, attributes }
+}
+
+const scene: ServiceHandler = (entity, call) => {
+  if (call.service !== 'turn_on') return entity
+  // A scene's state is the time it was last activated.
+  const now = new Date().toISOString()
+  return { ...entity, state: now, last_changed: now, last_updated: now }
+}
+
+// What each media_player service leaves the player's state as. Track changes leave it alone.
+const NEXT_MEDIA_STATE = new Map([
+  ['media_play', 'playing'],
+  ['media_pause', 'paused'],
+  ['turn_on', 'idle'],
+  ['turn_off', 'off'],
+])
+
+const mediaPlayer: ServiceHandler = (entity, call) => {
+  const level = call.serviceData.volume_level
+  if (call.service === 'volume_set' && typeof level === 'number') {
+    const now = new Date().toISOString()
+    return {
+      ...entity,
+      attributes: { ...entity.attributes, volume_level: level },
+      last_updated: now,
+    }
+  }
+  const state = NEXT_MEDIA_STATE.get(call.service)
+  if (!state || state === entity.state) return entity
+  const now = new Date().toISOString()
+  return { ...entity, state, last_changed: now, last_updated: now }
+}
+
+// What a service does to each entity it targets, keyed by HA domain. Control features add
+// their own entry (brightness, media transport, ...) rather than editing one shared function.
+const SERVICE_HANDLERS: Record<string, ServiceHandler> = {
+  light,
+  switch: onOff,
+  fan: onOff,
+  input_boolean: onOff,
+  scene,
+  media_player: mediaPlayer,
+}
 
 export class FakeHa {
   user: FakeUser
@@ -77,6 +190,12 @@ export class FakeHa {
   private failServices: string[]
   private responseDelayMs: number
   private onServiceCall: FakeHaOptions['onServiceCall']
+  private registries: {
+    areas: unknown[]
+    floors: unknown[]
+    devices: unknown[]
+    entityRegistry: EntityRegistryDisplay
+  }
 
   constructor(options: FakeHaOptions = {}) {
     this.user = { ...DEFAULT_USER, ...options.user }
@@ -85,6 +204,12 @@ export class FakeHa {
     this.failServices = options.failServices ?? []
     this.responseDelayMs = options.responseDelayMs ?? 0
     this.onServiceCall = options.onServiceCall
+    this.registries = {
+      areas: structuredClone(options.areas ?? []),
+      floors: structuredClone(options.floors ?? []),
+      devices: structuredClone(options.devices ?? []),
+      entityRegistry: structuredClone(options.entityRegistry ?? EMPTY_ENTITY_REGISTRY),
+    }
     for (const [k, v] of Object.entries(options.userData ?? {})) this.userData.set(k, v)
     for (const e of options.entities ?? []) this.entities.set(e.entity_id, e)
   }
@@ -144,6 +269,24 @@ export class FakeHa {
     for (const c of this.clients) {
       for (const id of c.subs.get(forecastChannel(entityId, type)) ?? []) {
         c.send({ id, type: 'event', event: { type, forecast } })
+      }
+    }
+  }
+
+  // Replace one registry and tell subscribers of its `*_registry_updated` event, as HA does
+  // when an area, device, or entity changes.
+  setRegistry<K extends RegistryName>(name: K, value: FakeHa['registries'][K]) {
+    this.registries[name] = structuredClone(value)
+    const event_type = REGISTRY_UPDATED_EVENTS[name]
+    for (const c of this.clients) {
+      for (const id of c.subs.get(eventChannel(event_type)) ?? []) {
+        const event = {
+          event_type,
+          data: {},
+          origin: 'LOCAL',
+          time_fired: new Date().toISOString(),
+        }
+        c.send({ id, type: 'event', event })
       }
     }
   }
@@ -222,6 +365,8 @@ export class FakeHa {
         if (!forecast) return fail('forecast_not_supported', `Entity does not support ${type}`)
         return subscribe(forecastChannel(entityId, type), { type, forecast })
       }
+      case 'subscribe_events':
+        return subscribe(eventChannel(String(msg.event_type)))
       case 'unsubscribe_events':
         // The library unsubscribes every subscription this way, whatever command opened it.
         for (const [type, ids] of client.subs) {
@@ -231,8 +376,11 @@ export class FakeHa {
           )
         }
         return ok()
-      default:
+      default: {
+        const registry = REGISTRY_LIST_MESSAGES[msg.type]
+        if (registry) return ok(this.registries[registry])
         return fail('unknown_command', `Unknown command: ${msg.type}`)
+      }
     }
   }
 
@@ -254,7 +402,7 @@ export class FakeHa {
     // The library always sends `target`, and leaves out `service_data` when it's undefined.
     // HA sends the state change before the call's result; a delay holds back both.
     const respond = () => {
-      this.applyServiceCall({ domain, service, entityIds: ids })
+      this.applyServiceCall({ domain, service, entityIds: ids, serviceData: serviceDataOf(msg) })
       ok({ context: { id: 'ctx', parent_id: null, user_id: null } })
     }
     if (this.responseDelayMs > 0) setTimeout(respond, this.responseDelayMs)
@@ -269,29 +417,11 @@ export class FakeHa {
     }
     for (const entityId of call.entityIds) {
       const entity = this.entities.get(entityId)!
-      const next = this.applyService(entity, call.domain, call.service)
+      const next = SERVICE_HANDLERS[call.domain]?.(entity, call) ?? entity
       if (next !== entity) set(next)
     }
     for (const extra of this.onServiceCall?.(call, this) ?? []) set(extra)
     if (Object.keys(changed).length > 0) this.broadcastEntities({ c: changed })
-  }
-
-  private applyService(entity: HassEntity, domain: string, service: string): HassEntity {
-    const now = new Date().toISOString()
-    if (domain === 'scene' && service === 'turn_on') {
-      // A scene's state is the time it was last activated.
-      return { ...entity, state: now, last_changed: now, last_updated: now }
-    }
-    if (!SWITCHABLE.has(domain) || entity.entity_id.split('.')[0] !== domain) return entity
-    const next = NEXT_ON_OFF_STATE.get(service)
-    if (!next) return entity
-    const state = next(entity.state)
-    return {
-      ...entity,
-      state,
-      last_updated: now,
-      last_changed: state === entity.state ? entity.last_changed : now,
-    }
   }
 
   private statisticsFor(ids: string[] = Object.keys(this.statistics)) {
@@ -306,4 +436,9 @@ function targetIds(msg: ClientMessage): string[] {
   const data = msg.service_data as { entity_id?: string | string[] } | undefined
   const raw = target?.entity_id ?? data?.entity_id ?? []
   return Array.isArray(raw) ? raw : [raw]
+}
+
+function serviceDataOf(msg: ClientMessage): Record<string, unknown> {
+  const { entity_id: _target, ...rest } = (msg.service_data ?? {}) as Record<string, unknown>
+  return rest
 }

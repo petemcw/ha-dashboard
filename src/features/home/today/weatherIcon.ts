@@ -1,59 +1,61 @@
 import {
-  Cloud,
-  CloudDrizzle,
-  CloudFog,
-  CloudHail,
-  CloudLightning,
-  CloudRain,
-  CloudRainWind,
-  CloudSnow,
-  CloudSun,
-  Moon,
-  Sun,
-  Tornado,
-  Wind,
-  type LucideIcon,
-} from 'lucide-react'
+  mdiWeatherCloudy,
+  mdiWeatherFog,
+  mdiWeatherHail,
+  mdiWeatherLightning,
+  mdiWeatherLightningRainy,
+  mdiWeatherNight,
+  mdiWeatherPartlyCloudy,
+  mdiWeatherPouring,
+  mdiWeatherRainy,
+  mdiWeatherSnowy,
+  mdiWeatherSnowyRainy,
+  mdiWeatherSunny,
+  mdiWeatherTornado,
+  mdiWeatherWindy,
+  mdiWeatherWindyVariant,
+} from '@mdi/js'
 
-// How TodayCard.css colours the icon, after the mock-up: an amber sun or moon, a pale
-// cloud, or both. Icons without a tone take the text colour.
+// How TodayCard.css colours the icon: an amber sun or moon, a pale cloud, or MDI's
+// single-colour partly cloudy. Icons without a tone take the text colour.
 export type WeatherIconTone = 'sun' | 'cloud' | 'partly'
 
-export type WeatherIcon = { Icon: LucideIcon; tone?: WeatherIconTone }
+export type WeatherIcon = { path: string; tone?: WeatherIconTone }
 
-// One icon per HA condition value. Each icon is imported by name; never an icon map, which
-// would bundle all of lucide.
+// One MDI path per HA condition value, each imported by name so Vite can tree-shake.
 export function weatherIcon(condition: string): WeatherIcon {
   switch (condition) {
     case 'sunny':
-      return { Icon: Sun, tone: 'sun' }
+      return { path: mdiWeatherSunny, tone: 'sun' }
     case 'clear-night':
-      return { Icon: Moon, tone: 'sun' }
+      return { path: mdiWeatherNight, tone: 'sun' }
     case 'partlycloudy':
-      return { Icon: CloudSun, tone: 'partly' }
+      return { path: mdiWeatherPartlyCloudy, tone: 'partly' }
     case 'cloudy':
-      return { Icon: Cloud, tone: 'cloud' }
+      return { path: mdiWeatherCloudy, tone: 'cloud' }
     case 'fog':
-      return { Icon: CloudFog }
+      return { path: mdiWeatherFog }
     case 'hail':
-      return { Icon: CloudHail }
+      return { path: mdiWeatherHail }
     case 'lightning':
+      return { path: mdiWeatherLightning }
     case 'lightning-rainy':
-      return { Icon: CloudLightning }
+      return { path: mdiWeatherLightningRainy }
     case 'pouring':
-      return { Icon: CloudRainWind }
+      return { path: mdiWeatherPouring }
     case 'rainy':
-      return { Icon: CloudRain }
+      return { path: mdiWeatherRainy }
     case 'snowy':
-      return { Icon: CloudSnow }
+      return { path: mdiWeatherSnowy }
     case 'snowy-rainy':
-      return { Icon: CloudDrizzle }
+      return { path: mdiWeatherSnowyRainy }
     case 'windy':
+      return { path: mdiWeatherWindy }
     case 'windy-variant':
-      return { Icon: Wind }
+      return { path: mdiWeatherWindyVariant }
     case 'exceptional':
-      return { Icon: Tornado }
+      return { path: mdiWeatherTornado }
     default:
-      return { Icon: Cloud }
+      return { path: mdiWeatherCloudy }
   }
 }

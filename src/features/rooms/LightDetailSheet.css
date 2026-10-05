@@ -1,0 +1,36 @@
+.light-detail {
+  display: grid;
+  gap: var(--space-4);
+  padding-block: var(--space-2) var(--space-4);
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* A round color chip that is a full 44 px target. */
+.swatch {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.swatch[aria-pressed='true'] {
+  border-color: var(--text);
+  box-shadow: 0 0 0 2px var(--surface-raised);
+}
+
+.swatch:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.swatch:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--leaf));
+  outline-offset: 3px;
+}

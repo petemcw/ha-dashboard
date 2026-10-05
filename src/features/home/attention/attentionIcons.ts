@@ -1,73 +1,63 @@
-import { createElement } from 'react'
 import {
-  AirVent,
-  ArrowDownToLine,
-  BatteryLow,
-  Check,
-  CircleArrowUp,
-  CircleQuestionMark,
-  DoorOpen,
-  Fan,
-  Heater,
-  Lightbulb,
-  Power,
-  Printer,
-  ShoppingCart,
-  Warehouse,
-  type LucideIcon,
-} from 'lucide-react'
+  mdiAirFilter,
+  mdiArrowCollapseDown,
+  mdiArrowUpCircleOutline,
+  mdiBatteryLow,
+  mdiCart,
+  mdiCheck,
+  mdiDoorOpen,
+  mdiFan,
+  mdiGarage,
+  mdiHelpCircleOutline,
+  mdiLightbulb,
+  mdiPower,
+  mdiPrinter,
+  mdiRadiator,
+} from '@mdi/js'
 import type { ActionIcon, AttentionIcon, AttentionItem } from './types'
 
-// Icons are imported by name so the bundle carries only these; never `icons` or
-// `DynamicIcon`, which pull in the whole set. Lucide has no garage glyph, so a warehouse
-// stands in for the garage badge.
-export function badgeIcon(name: AttentionIcon): LucideIcon {
+// Icons are imported by name so the bundle carries only these; never the whole `@mdi/js`
+// namespace, which defeats tree-shaking.
+export function badgeIcon(name: AttentionIcon): string {
   switch (name) {
     case 'garage':
-      return Warehouse
+      return mdiGarage
     case 'door':
-      return DoorOpen
+      return mdiDoorOpen
     case 'heater':
-      return Heater
+      return mdiRadiator
     case 'light':
-      return Lightbulb
+      return mdiLightbulb
     case 'fan':
-      return Fan
+      return mdiFan
     case 'power':
-      return Power
+      return mdiPower
     case 'battery':
-      return BatteryLow
+      return mdiBatteryLow
     case 'update':
-      return CircleArrowUp
+      return mdiArrowUpCircleOutline
     case 'filter':
-      return AirVent
+      return mdiAirFilter
     case 'toner':
-      return Printer
+      return mdiPrinter
     case 'missing':
-      return CircleQuestionMark
+      return mdiHelpCircleOutline
   }
 }
 
-export function actionIcon(name: ActionIcon): LucideIcon {
+export function actionIcon(name: ActionIcon): string {
   switch (name) {
     case 'power':
-      return Power
+      return mdiPower
     case 'close-garage':
-      return ArrowDownToLine
+      return mdiArrowCollapseDown
     case 'check':
-      return Check
+      return mdiCheck
     case 'cart':
-      return ShoppingCart
+      return mdiCart
   }
 }
 
 // A left-on rule picks its own badge; every other kind has one fixed glyph.
-const itemIcon = (item: AttentionItem): AttentionIcon =>
+export const itemIcon = (item: AttentionItem): AttentionIcon =>
   item.kind === 'left-on' ? item.icon : item.kind
-
-// Components, so a row renders a glyph without building a component during render.
-export const BadgeGlyph = ({ item }: { item: AttentionItem }) =>
-  createElement(badgeIcon(itemIcon(item)), { 'aria-hidden': true, size: 18 })
-
-export const ActionGlyph = ({ name }: { name: ActionIcon }) =>
-  createElement(actionIcon(name), { 'aria-hidden': true, size: 18 })

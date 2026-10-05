@@ -2,6 +2,16 @@ import { describe, expect, it } from 'vitest'
 import { mediaPlayer } from './factories'
 import { mediaPlayerViewModel } from './viewModel'
 
+const NOTHING = {
+  pause: false,
+  play: false,
+  previous: false,
+  next: false,
+  volumeSet: false,
+  turnOn: false,
+  turnOff: false,
+}
+
 describe('mediaPlayerViewModel', () => {
   it.each(['playing', 'paused', 'idle', 'off', 'standby', 'unavailable', 'unknown'])(
     'reports %s playback as is',
@@ -19,6 +29,7 @@ describe('mediaPlayerViewModel', () => {
     expect(mediaPlayerViewModel(undefined, 'media_player.gone')).toEqual({
       entity_id: 'media_player.gone',
       playback: 'missing',
+      supports: NOTHING,
     })
   })
 })
@@ -64,5 +75,25 @@ describe('mediaPlayerViewModel details', () => {
     expect(bare.title).toBeUndefined()
     const noUrl = mediaPlayer('playing', { attributes: { entity_picture: '/x' } })
     expect(mediaPlayerViewModel(noUrl).artworkUrl).toBeUndefined()
+  })
+
+  it('reads what a player supports from its supported_features bits', () => {
+    // 1 pause + 4 volume set + 32 next track + 256 turn off + 16384 play
+    const vm = mediaPlayerViewModel(
+      mediaPlayer('playing', { attributes: { supported_features: 1 + 4 + 32 + 256 + 16384 } }),
+    )
+    expect(vm.supports).toEqual({
+      pause: true,
+      play: true,
+      previous: false,
+      next: true,
+      volumeSet: true,
+      turnOn: false,
+      turnOff: true,
+    })
+  })
+
+  it('supports nothing when supported_features is absent', () => {
+    expect(mediaPlayerViewModel(mediaPlayer('playing')).supports).toEqual(NOTHING)
   })
 })

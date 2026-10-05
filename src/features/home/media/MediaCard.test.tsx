@@ -1,3 +1,4 @@
+import { mdiMusic } from '@mdi/js'
 import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mediaPlayer } from '../../../domains/media_player/factories'
@@ -29,6 +30,13 @@ const load = (...entities: ReturnType<typeof mediaPlayer>[]) =>
 const card = () => screen.getByRole('region', { name: 'Media' })
 
 describe('media card', () => {
+  it('renders the media card label with an MDI icon', async () => {
+    load(player(SPEAKER, 'Living Room Speaker', 'playing', { media_title: 'T' }))
+    renderWithHome(<MediaCard />)
+    await screen.findByText('T')
+    expect(card().querySelector('svg.card__icon path')?.getAttribute('d')).toBe(mdiMusic)
+  })
+
   it('features the playing player with its title, artist, and room', async () => {
     load(
       player(KITCHEN, 'Kitchen Speaker', 'off'),

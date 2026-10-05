@@ -1,3 +1,4 @@
+import { mdiWifi } from '@mdi/js'
 import { act, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { testHomeConfig } from '../../../config/testHomeConfig'
@@ -29,6 +30,13 @@ const ap = (id: string, state: string) => sensorState({ entity_id: `sensor.${id}
 const tile = (name: string) => within(screen.getByRole('group', { name }))
 
 describe('systems card', () => {
+  it('renders the systems card label with an MDI icon', () => {
+    load(status('connected'))
+    render(<SystemsCard />)
+    const region = screen.getByRole('region', { name: 'Systems' })
+    expect(region.querySelector('svg.card__icon path')?.getAttribute('d')).toBe(mdiWifi)
+  })
+
   it('shows Gateway online when the status entity is in its up state', () => {
     load(status('connected'))
     render(<SystemsCard />)

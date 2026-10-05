@@ -13,3 +13,6 @@ export const KIOSK_MODE_KEY = 'ha-dashboard:kiosk-mode'
 
 // Per-device theme override: 'light' or 'dark'. Absent means follow the system.
 export const THEME_KEY = 'ha-dashboard:theme'
+
+// Per-device room pick: 'auto' or an area id. Absent means Auto.
+export const ROOM_SELECTION_KEY = 'ha-dashboard:room'

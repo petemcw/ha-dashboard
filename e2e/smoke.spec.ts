@@ -75,32 +75,30 @@ test(
 )
 
 // A raw socket from the page bypasses the app, so only the guard stands in the way.
-async function sendRawCallService(page: Page) {
+async function sendRaw(page: Page, message: Record<string, unknown>) {
   const haUrl = process.env.HA_URL
   if (!haUrl) throw new Error('HA_URL is not set. Run from a direnv shell in this repo.')
   const wsUrl = `${haUrl.replace(/^http/, 'ws')}/api/websocket`
   return page.evaluate(
-    (url) =>
+    ([url, message]) =>
       new Promise<string>((resolve, reject) => {
         const ws = new WebSocket(url)
         ws.onerror = () => reject(new Error('socket error'))
-        ws.onopen = () =>
-          ws.send(
-            JSON.stringify({
-              id: 1,
-              type: 'call_service',
-              domain: 'homeassistant',
-              service: 'noop',
-            }),
-          )
+        ws.onopen = () => ws.send(JSON.stringify({ id: 1, ...message }))
         ws.onmessage = (ev) => {
           const msg = JSON.parse(String(ev.data))
           if (msg.type === 'result') resolve(msg.error?.code ?? 'forwarded')
         }
       }),
-    wsUrl,
+    [wsUrl, message] as const,
   )
 }
+
+const sendRawCallService = (page: Page) =>
+  sendRaw(page, { type: 'call_service', domain: 'homeassistant', service: 'noop' })
+
+const sendRawRegistryWrite = (page: Page) =>
+  sendRaw(page, { type: 'config/area_registry/update', area_id: 'noop', name: 'noop' })
 
 test(
   'never forwards call_service or a frontend set message to the real Home Assistant',
@@ -117,4 +115,20 @@ test('fails a live test that sends call_service', { tag: '@live' }, async ({ pag
   test.fail()
   await page.goto('/')
   await sendRawCallService(page)
+})
+
+test(
+  'it blocks a registry write from a live test',
+  { tag: '@live' },
+  async ({ page, liveSocket }) => {
+    await page.goto('/')
+    expect(await sendRawRegistryWrite(page)).toBe('blocked_by_test')
+    expect(liveSocket.takeBlocked().map((m) => m.type)).toEqual(['config/area_registry/update'])
+  },
+)
+
+test('fails a live test that writes a registry', { tag: '@live' }, async ({ page }) => {
+  test.fail()
+  await page.goto('/')
+  await sendRawRegistryWrite(page)
 })

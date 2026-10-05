@@ -1,28 +1,14 @@
-import { Music, Volume2, VolumeX } from 'lucide-react'
-import { useState } from 'react'
+import { mdiMusic, mdiVolumeHigh, mdiVolumeOff } from '@mdi/js'
 import { useHomeConfig } from '../../../config/useHomeConfig'
 import { mediaPlayerViewModel } from '../../../domains/media_player/viewModel'
 import { useEntitiesById } from '../../../infrastructure/entities/useEntitiesById'
 import { useHaUrl } from '../../../infrastructure/ha/useHaUrl'
+import { Artwork } from '../../shared/Artwork'
 import { Chip } from '../../shared/Chip'
-import { SectionCard } from '../SectionCard'
+import { Icon } from '../../shared/icons/Icon'
+import { SectionCard } from '../../shared/SectionCard'
 import { mediaCardViewModel } from './mediaViewModel'
 import './MediaCard.css'
-
-// Keyed by URL by the caller: every track brings a new entity_picture, and an old failure
-// (a blocked http:// URL, an expired proxy token) must not hide the next track's artwork.
-function Artwork({ url }: { url?: string }) {
-  const [failed, setFailed] = useState(false)
-  return (
-    <div className="media-art">
-      {url && !failed ? (
-        <img src={url} alt="" onError={() => setFailed(true)} />
-      ) : (
-        <Music size={22} aria-hidden="true" />
-      )}
-    </div>
-  )
-}
 
 function MediaCardContent({ players }: { players: string[] }) {
   const haUrl = useHaUrl()
@@ -30,11 +16,11 @@ function MediaCardContent({ players }: { players: string[] }) {
   const { featured, chips, playingCount } = mediaCardViewModel(
     players.map((id) => mediaPlayerViewModel(entities[id], id, haUrl)),
   )
-  const VolumeIcon = featured?.muted ? VolumeX : Volume2
+  const volumePath = featured?.muted ? mdiVolumeOff : mdiVolumeHigh
   return (
     <SectionCard
       title="Media"
-      icon={Music}
+      icon={mdiMusic}
       className="media-card"
       chip={
         playingCount > 0 ? (
@@ -52,14 +38,14 @@ function MediaCardContent({ players }: { players: string[] }) {
               <div className="media-now__title">{featured.title ?? 'Unknown title'}</div>
               {featured.artist && <div className="media-now__artist">{featured.artist}</div>}
               <div className="media-now__room">
-                <Volume2 size={12} aria-hidden="true" />
+                <Icon path={mdiVolumeHigh} size={12} />
                 {featured.room}
               </div>
             </div>
           </div>
           {featured.volumePercent !== undefined && (
             <div className="media-volume">
-              <VolumeIcon size={16} aria-hidden="true" />
+              <Icon path={volumePath} size={16} />
               <div
                 role="meter"
                 aria-label="Volume"

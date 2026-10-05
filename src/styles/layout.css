@@ -33,7 +33,7 @@
 /* Three stacks that reflow like Home Assistant's sections view. Each stack is its own
    column, so a long attention list never opens a gap beside favorites.
    Below 740 px the stacks dissolve (display: contents) and every card takes its own
-   order, so the phone reading order is attention, suggested, favorites, today, systems,
+   order, so the phone reading order is attention, suggested, room, favorites, today, systems,
    media, crypto whatever column a card lives in. Every card sits in a wrapper that carries
    that order; a card that isn't configured renders nothing, which leaves its wrapper
    :empty. */
@@ -56,26 +56,32 @@
   display: none;
 }
 
+.home__order--room-selector {
+  order: 0;
+}
 .home__order--attention {
   order: 1;
 }
 .home__order--suggested {
   order: 2;
 }
-.home__order--favorites {
+.home__order--room {
   order: 3;
 }
-.home__order--today {
+.home__order--favorites {
   order: 4;
 }
-.home__order--systems {
+.home__order--today {
   order: 5;
 }
-.home__order--media {
+.home__order--systems {
   order: 6;
 }
-.home__order--crypto {
+.home__order--media {
   order: 7;
+}
+.home__order--crypto {
+  order: 8;
 }
 
 /* iPads in either orientation. Column 3 drops below both, as its own two-column grid. */
@@ -91,8 +97,10 @@
     min-width: 0;
   }
 
+  .home__order--room-selector,
   .home__order--attention,
   .home__order--suggested,
+  .home__order--room,
   .home__order--favorites,
   .home__order--today,
   .home__order--systems,

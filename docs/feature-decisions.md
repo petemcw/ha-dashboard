@@ -4,47 +4,69 @@ What carries over from the Lovelace dashboard (`dashboard-home`), and how. Decid
 
 ## Release order
 
-1. **v1: read-only home.** Attention, suggestions (shown, not tappable), presence, favorites (state only), crypto. No HA actions. **Shipped (v1):** all five regions, snoozes shared via HA system data, per-user favorites with an editor, kiosk token entry, and reconnect handling.
+1. **v1: read-only home.** Attention, suggestions (shown, not tappable), presence, favorites (state only), crypto. No HA actions. **Shipped:** all five regions, snoozes shared via HA system data, per-user favorites with an editor, kiosk token entry, and reconnect handling.
 2. **Demo mode** (`?demo`, real gateway over a shared fake HA) so controls can be tested without touching the house. **Shipped.**
-3. **Controls**: tap actions on home, then rooms. **Shipped (home):** rooms are still to come.
+3. **Controls**: tap actions on home, then rooms, then a media viewer with controls. **Shipped (home):** favorites, suggestions, and attention actions are live. **Shipped (rooms):** the room selector, Auto with the away source, the room card with light, switch, fan, input_boolean, scene, script, and media controls, and the `confirm` list. A media viewer is still to come.
+4. **Home redesign**: slim sticky header, card grid, one-line attention rows with icon actions, light/dark toggle, and display-only Today, Systems, and Media cards. **Shipped.**
+5. **Favorites editor**: improve the user interface and experience for managing personal favorites, including adding, removing, and reordering items.
+6. **Dynamic suggestions**: provide context-aware recommendations based on current home state, such as adjusting lights or climate settings.
+7. **YouVersion Bible verse of the day**: replace the generic greeting with a daily Bible verse; collapse to the reference on mobile.
 
 ## Home screen
+
+A grid of cards under a slim sticky header: three columns on a landscape tablet, two in portrait, one on a phone (attention, suggestions, favorites, Today, Systems, Media, crypto).
+
+### Header
+
+Time-of-day greeting, presence avatars, a large clock and date, Settings, and a one-tap light/dark toggle. The settings sheet keeps a "System" theme option.
 
 ### Attention
 
 Items that need action, at the top of home. Each rule is typed config with unit tests.
 
-- **Left on/open**, shown only after a per-rule duration:
-  - the garage door sensor (open). Its action toggles the opener switch, a different entity from the sensor.
+- **Left on/open**, shown only after a per-rule duration. Each rule picks its icon in `home.json`.
+  - the garage door sensor (open). Its action toggles the opener switch, a different entity from the sensor, with a two-tap confirm.
   - a smart plug for work lights
   - a space heater switch
   - a bedroom lightstrip
 - **Low battery**: any `sensor` with `device_class: battery` below a threshold, minus an ignore list. At decision time it would have caught four sensors, all at 0%.
 - **Updates**: only a listed set of `update` and update-available `binary_sensor` entities, not every update in HA. Open: whether a third firmware entity joins them.
 - **Printer toner**: the printer's ink sensor below 15. Its action opens the reorder link. The sensor is often `unavailable`.
-- **Filters due**: fewer than 5 days left on any of three filter days-remaining sensors (HVAC and two refrigerator filters). Each filter's action runs its own reset script.
+- **Filters due**: fewer than 5 days left on any of three filter days-remaining sensors (HVAC and two refrigerator filters). "Mark replaced" (two-tap confirm) runs that filter's reset script.
 
 Behavior:
 
-- **Severity tiers**: urgent items (left on/open) are large. Chores (batteries, filters, toner, updates) go in a compact row.
-- **Snooze**: hold an item to snooze it for a set time. Snoozes are shared across devices and users, so they need storage in HA (see open questions).
+- **One row per item**: icon badge, what it is, and icon actions on the right. Urgent items (left on/open) get a red badge; chores (batteries, filters, toner, updates) get an ochre one. A count chip sums them ("2 urgent · 2 chores").
+- **Two-tap confirm**: the first tap slides the icon aside and shows "Confirm?"; the second sends. Tapping elsewhere or waiting a few seconds disarms it.
+- **Snooze**: a clock icon opens "1 day · 1 week · Cancel". Snoozes are shared across devices and users through HA system data.
+- **Empty states**: with nothing to show the card disappears. If items are snoozed, a "N snoozed" strip takes its place and can be expanded to unsnooze.
 
 ### Suggestions
 
-A separate strip from attention, so a suggestion never looks like a problem.
+A separate strip from attention, so a suggestion never looks like a problem. Each button activates a scene, with an optional transition.
 
 - The TV media player playing → a lights-down scene (5 s transition)
 - Same player paused → a lights-up scene
 
 ### Presence
 
-A compact avatar row for every `person` entity: photo or initials, a home/away dot, and the zone name when away. A person with no trackers shows `unknown`.
+Avatars in the header for every `person` entity (or the `people` list in `home.json`): photo or initials, a home/away dot, and the zone name when away. A person with no trackers shows `unknown`.
 
 ### Favorites
 
 - Each user picks and manages their own favorites list. The phone knows the user from the OAuth login, mapped to a `person` through its `user_id`.
 - The kiosk logs in as a shared user and has its own household list, managed the same way.
 - Seed list: the household's everyday lights and plugs (eight entities at decision time), kept in `home.json`, not here.
+- Tiles show an icon for what they control, highlighted when on. Lights, switches, and fans toggle; scenes activate; scripts run. Media players, covers, climate, and locks are display-only.
+- The editor lives in the settings sheet: search to add, remove with undo, and move up.
+
+### Today, Systems, Media
+
+Display-only cards, each shown only when its section exists in `home.json`.
+
+- **Today**: current temperature, condition, high/low, humidity, wind, UV, the next several hours of forecast, and sunset. The forecast refreshes on its own and after a reconnect, and keeps the last good data if a refresh fails.
+- **Systems**: a status chip from a configured entity, gateway uptime, access points online, last backup, pending updates, and CPU bars for the gateway and access points.
+- **Media**: the playing player first with what's on and the volume, the rest as chips, and an "N playing" chip.
 
 ### Crypto
 
@@ -52,9 +74,9 @@ One compact row of exchange-rate sensors (BTC, ETH, SOL), each with price, 24 h 
 
 ### Dropped (may return later)
 
-Weather forecast, filter days-left list, sunrise/sunset badges, greeting.
+Filter days-left list, sunrise badge.
 
-## Rooms (after v1)
+## Rooms
 
 - **Rooms are HA areas.** Area IDs carry floor prefixes; areas with nothing to control are hidden.
 - **Which room shows is chosen per user or device**, not by a global helper. It's manual first, behind a room-source interface, so automatic sources can be added later. The candidates:
@@ -66,14 +88,12 @@ Weather forecast, filter days-left list, sunrise/sunset badges, greeting.
 - **Media**: now playing, transport, and volume for the speaker and TV media players.
 - **No hidden gestures.** A bedroom fan that is a double-tap on a switch today gets its own visible control.
 - The Lovelace Garage view becomes the Garage area.
+- **Shipped.** Out for now: cover, climate, and lock controls (display-only, no devices to verify against), automatic sources beyond the away rule (occupancy, UniFi AP, BLE), buttons and remotes in rooms, brightness drag on favorites, fan speed, and an interactive Home Media card.
 
 ## Visual style
 
-Light and dark modes, built on design tokens. The palette and theme aren't decided yet.
+Light and dark modes, built on design tokens, in the Maple Frontier timber palette with Zilla Slab headings. Icons are Material Design Icons (`@mdi/js`), imported by name into a curated map in `src/features/shared/icons/`; HA's `mdi:` icon names resolve through it, with a per-domain fallback.
 
 ## Open questions
 
-- Shared storage for snoozes: an HA helper or something else. Creating a helper is a write to HA, so ask first.
-- Per-user favorites storage: check that HA's per-user frontend data (`frontend/get_user_data` / `frontend/set_user_data`) is available on 2026.9 and fits.
-- Thresholds: the duration for each left-on rule, and the battery cutoff.
-- Theme and color palette.
+- (Answered) MDI replaced Lucide: it has a garage glyph and matches the `mdi:` names HA entities already carry. `lucide-react` is removed, and `iconImports.test.ts` keeps it and whole-module MDI imports out.

@@ -1,5 +1,6 @@
-import { AlarmClock } from 'lucide-react'
+import { mdiAlarm } from '@mdi/js'
 import { useEffect, useRef, useState } from 'react'
+import { Icon } from '../../shared/icons/Icon'
 import type { SnoozeDuration } from './useSnoozes'
 
 // A visible button, not a hold gesture: the wall screen has no hover or long-press.
@@ -44,7 +45,7 @@ export function SnoozeMenu({
         aria-hidden={open || undefined}
         onClick={() => setOpen(true)}
       >
-        <AlarmClock aria-hidden="true" size={18} />
+        <Icon path={mdiAlarm} size={18} />
       </button>
       <span
         role="group"

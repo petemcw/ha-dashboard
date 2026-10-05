@@ -278,7 +278,7 @@ describe('FakeHa protocol basics', () => {
   it('answers unknown_command for a message type it does not speak', () => {
     const { ha, connect } = setup()
     const { client, received } = connect()
-    ha.receive(client, { id: 1, type: 'config/area_registry/list' })
+    ha.receive(client, { id: 1, type: 'config/label_registry/list' })
     expect(resultOf(received, 1)).toMatchObject({
       success: false,
       error: { code: 'unknown_command' },
@@ -434,5 +434,224 @@ describe('FakeHa statistics', () => {
       'sensor.btc',
       'sensor.eth',
     ])
+  })
+})
+
+describe('FakeHa registries', () => {
+  const areas = [
+    {
+      area_id: 'kitchen',
+      name: 'Kitchen',
+      icon: null,
+      floor_id: 'ground_floor',
+      temperature_entity_id: null,
+      humidity_entity_id: null,
+      aliases: [],
+      labels: [],
+      picture: null,
+    },
+  ]
+  const floors = [
+    { floor_id: 'ground_floor', name: 'Ground Floor', level: 0, icon: null, aliases: [] },
+  ]
+  const devices = [{ id: 'dev1', area_id: 'kitchen', name: 'Lamp' }]
+  const entityRegistry = {
+    entity_categories: { 0: 'config', 1: 'diagnostic' },
+    entities: [{ ei: 'light.lamp', pl: 'hue', di: 'dev1' }],
+  }
+  const lists: [string, unknown][] = [
+    ['config/area_registry/list', areas],
+    ['config/floor_registry/list', floors],
+    ['config/device_registry/list', devices],
+    ['config/entity_registry/list_for_display', entityRegistry],
+  ]
+
+  it("answers the four registry list messages from the fake HA's registries", () => {
+    const { ha, connect } = setup({ areas, floors, devices, entityRegistry })
+    const { client, received } = connect()
+    lists.forEach(([type], i) => ha.receive(client, { id: i + 1, type }))
+    lists.forEach(([, expected], i) => {
+      expect(resultOf(received, i + 1)).toMatchObject({ success: true, result: expected })
+    })
+  })
+
+  it('answers empty registry lists when none are configured', () => {
+    const { ha, connect } = setup()
+    const { client, received } = connect()
+    lists.forEach(([type], i) => ha.receive(client, { id: i + 1, type }))
+    expect(resultOf(received, 1)).toMatchObject({ result: [] })
+    expect(resultOf(received, 2)).toMatchObject({ result: [] })
+    expect(resultOf(received, 3)).toMatchObject({ result: [] })
+    expect(resultOf(received, 4)).toMatchObject({
+      result: { entity_categories: { 0: 'config', 1: 'diagnostic' }, entities: [] },
+    })
+  })
+
+  it('answers unknown_command for other config messages', () => {
+    const { ha, connect } = setup()
+    const { client, received } = connect()
+    ha.receive(client, { id: 1, type: 'config/automation/list' })
+    expect(resultOf(received, 1)).toMatchObject({
+      success: false,
+      error: { code: 'unknown_command' },
+    })
+  })
+
+  it('sends a registry-updated event to subscribers when a registry changes', () => {
+    const { ha, connect } = setup()
+    const { client, received } = connect()
+    const other = connect()
+    ha.receive(client, { id: 5, type: 'subscribe_events', event_type: 'area_registry_updated' })
+    ha.receive(other.client, {
+      id: 6,
+      type: 'subscribe_events',
+      event_type: 'floor_registry_updated',
+    })
+    expect(resultOf(received, 5)).toMatchObject({ success: true })
+    ha.setRegistry('areas', areas)
+    expect(received.filter((m) => m.type === 'event')).toEqual([
+      expect.objectContaining({
+        id: 5,
+        event: expect.objectContaining({ event_type: 'area_registry_updated' }),
+      }),
+    ])
+    expect(other.received.filter((m) => m.type === 'event')).toEqual([])
+    ha.receive(client, { id: 7, type: 'config/area_registry/list' })
+    expect(resultOf(received, 7)).toMatchObject({ result: areas })
+  })
+
+  it('stops sending events after unsubscribe_events', () => {
+    const { ha, connect } = setup()
+    const { client, received } = connect()
+    ha.receive(client, { id: 5, type: 'subscribe_events', event_type: 'device_registry_updated' })
+    ha.receive(client, { id: 6, type: 'unsubscribe_events', subscription: 5 })
+    ha.setRegistry('devices', devices)
+    expect(received.filter((m) => m.type === 'event')).toEqual([])
+  })
+})
+
+describe('FakeHa service data and input_boolean', () => {
+  it('passes service data to the service-call hook', () => {
+    const calls: unknown[] = []
+    const { ha, connect } = setup({
+      entities: [light],
+      onServiceCall: (call) => void calls.push(call),
+    })
+    const { client } = connect()
+    ha.receive(client, {
+      id: 1,
+      type: 'call_service',
+      domain: 'light',
+      service: 'turn_on',
+      service_data: { brightness_pct: 40, entity_id: 'light.lamp' },
+      target: { entity_id: 'light.lamp' },
+    })
+    expect(calls).toEqual([
+      {
+        domain: 'light',
+        service: 'turn_on',
+        entityIds: ['light.lamp'],
+        serviceData: { brightness_pct: 40 },
+      },
+    ])
+  })
+
+  it('turns an input_boolean on and off in the fake HA', () => {
+    const helper = entityState({ entity_id: 'input_boolean.guest_mode', state: 'off' })
+    const { ha, connect } = setup({ entities: [helper] })
+    const { client } = connect()
+    ha.receive(client, callService(1, 'input_boolean', 'turn_on', 'input_boolean.guest_mode'))
+    expect(ha.getState('input_boolean.guest_mode')?.state).toBe('on')
+    ha.receive(client, callService(2, 'input_boolean', 'turn_off', 'input_boolean.guest_mode'))
+    expect(ha.getState('input_boolean.guest_mode')?.state).toBe('off')
+  })
+
+  it('sets a light brightness from brightness_pct and turns it on', () => {
+    const { ha, connect } = setup({ entities: [light] })
+    const { client } = connect()
+    ha.receive(client, {
+      id: 1,
+      type: 'call_service',
+      domain: 'light',
+      service: 'turn_on',
+      service_data: { brightness_pct: 40 },
+      target: { entity_id: 'light.lamp' },
+    })
+    expect(ha.getState('light.lamp')?.state).toBe('on')
+    // 40% of 255 is 102.
+    expect(ha.getState('light.lamp')?.attributes.brightness).toBe(102)
+  })
+
+  it('sets a light color temperature and color mode from color_temp_kelvin and turns it on', () => {
+    const { ha, connect } = setup({ entities: [light] })
+    const { client } = connect()
+    ha.receive(client, {
+      id: 1,
+      type: 'call_service',
+      domain: 'light',
+      service: 'turn_on',
+      service_data: { color_temp_kelvin: 2700 },
+      target: { entity_id: 'light.lamp' },
+    })
+    const lamp = ha.getState('light.lamp')
+    expect(lamp?.state).toBe('on')
+    expect(lamp?.attributes).toMatchObject({ color_temp_kelvin: 2700, color_mode: 'color_temp' })
+  })
+
+  it('sets a light color and color mode from hs_color and turns it on', () => {
+    const { ha, connect } = setup({ entities: [light] })
+    const { client } = connect()
+    ha.receive(client, {
+      id: 1,
+      type: 'call_service',
+      domain: 'light',
+      service: 'turn_on',
+      service_data: { hs_color: [240, 100] },
+      target: { entity_id: 'light.lamp' },
+    })
+    const lamp = ha.getState('light.lamp')
+    expect(lamp?.state).toBe('on')
+    expect(lamp?.attributes).toMatchObject({ hs_color: [240, 100], color_mode: 'hs' })
+  })
+})
+
+describe('FakeHa media_player', () => {
+  it('moves a media player between playing, paused, idle, and off with its services', () => {
+    const speaker = entityState({ entity_id: 'media_player.kitchen', state: 'playing' })
+    const { ha, connect } = setup({ entities: [speaker] })
+    const { client } = connect()
+    const send = (service: string, id: number) =>
+      ha.receive(client, callService(id, 'media_player', service, 'media_player.kitchen'))
+    const state = () => ha.getState('media_player.kitchen')?.state
+    send('media_pause', 1)
+    expect(state()).toBe('paused')
+    send('media_play', 2)
+    expect(state()).toBe('playing')
+    send('media_next_track', 3)
+    expect(state()).toBe('playing')
+    send('turn_off', 4)
+    expect(state()).toBe('off')
+    send('turn_on', 5)
+    expect(state()).toBe('idle')
+  })
+
+  it('sets a media player volume_level with volume_set', () => {
+    const speaker = entityState({
+      entity_id: 'media_player.kitchen',
+      state: 'playing',
+      attributes: { volume_level: 0.2 },
+    })
+    const { ha, connect } = setup({ entities: [speaker] })
+    const { client } = connect()
+    ha.receive(client, {
+      id: 1,
+      type: 'call_service',
+      domain: 'media_player',
+      service: 'volume_set',
+      service_data: { volume_level: 0.65 },
+      target: { entity_id: 'media_player.kitchen' },
+    })
+    expect(ha.getState('media_player.kitchen')?.attributes.volume_level).toBe(0.65)
+    expect(ha.getState('media_player.kitchen')?.state).toBe('playing')
   })
 })

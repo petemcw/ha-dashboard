@@ -13,23 +13,6 @@
   gap: 12px;
 }
 
-.media-art {
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  overflow: hidden;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--leaf) 0%, var(--wood) 100%);
-  color: var(--on-wood);
-}
-
-.media-art img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .media-now__title {
   font-weight: 700;
   font-size: 0.95rem;

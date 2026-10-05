@@ -4,32 +4,21 @@
    dark, so there is no dark-mode override. */
 .today {
   --wx-sun: #e0a030;
-  --wx-cloud: #d9cfc4;
   --wx-cloud-edge: #b8a999;
 }
 
-/* Sun and moon: amber, filled like the mock-up's moon (a sun's rays are lines, so only
-   its disc takes the fill). */
+/* MDI glyphs are single filled paths, so each tone is just a `color`. */
 .wx-icon--sun {
   color: var(--wx-sun);
-  fill: var(--wx-sun);
 }
 
-/* A pale cloud with a darker edge. */
 .wx-icon--cloud {
   color: var(--wx-cloud-edge);
-  fill: var(--wx-cloud);
 }
 
-/* Partly cloudy: an amber sun behind the pale cloud. Lucide's cloud-sun draws the cloud
-   as its last path. */
+/* Partly cloudy is one colour in MDI: the amber of the sun. */
 .wx-icon--partly {
   color: var(--wx-sun);
-}
-
-.wx-icon--partly path:last-child {
-  stroke: var(--wx-cloud-edge);
-  fill: var(--wx-cloud);
 }
 
 .today__sunset {

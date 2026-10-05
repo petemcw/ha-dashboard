@@ -1,3 +1,16 @@
+import {
+  mdiBlinds,
+  mdiCast,
+  mdiFan,
+  mdiGauge,
+  mdiLightbulb,
+  mdiLock,
+  mdiPalette,
+  mdiScriptText,
+  mdiSofa,
+  mdiThermostat,
+  mdiToggleSwitch,
+} from '@mdi/js'
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -355,12 +368,13 @@ describe('favorite tile controls', () => {
 describe('favorite tile icons', () => {
   const iconOf = (name: string) =>
     screen.getByRole('button', { name }).querySelector('svg.favorite-icon')
+  const pathOf = (icon: Element | null) => icon?.querySelector('path')?.getAttribute('d')
 
   it('shows a lightbulb icon on a light tile', async () => {
     seed(lightState({ entity_id: 'light.k', attributes: { friendly_name: 'Kitchen' } }))
     await renderLoaded(saved('light.k'))
     const icon = iconOf('Kitchen')
-    expect(icon).toHaveClass('lucide-lightbulb')
+    expect(pathOf(icon)).toBe(mdiLightbulb)
     expect(icon).toHaveAttribute('aria-hidden', 'true')
   })
 
@@ -372,29 +386,46 @@ describe('favorite tile icons', () => {
       scriptState({ entity_id: 'script.p', attributes: { friendly_name: 'Sp' } }),
     )
     await renderLoaded(saved('switch.s', 'fan.f', 'scene.c', 'script.p'))
-    expect(iconOf('Sw')).toHaveClass('lucide-plug')
-    expect(iconOf('Fa')).toHaveClass('lucide-fan')
-    expect(iconOf('Sc')).toHaveClass('lucide-sparkles')
-    expect(iconOf('Sp')).toHaveClass('lucide-play')
+    expect(pathOf(iconOf('Sw'))).toBe(mdiToggleSwitch)
+    expect(pathOf(iconOf('Fa'))).toBe(mdiFan)
+    expect(pathOf(iconOf('Sc'))).toBe(mdiPalette)
+    expect(pathOf(iconOf('Sp'))).toBe(mdiScriptText)
   })
 
   it.each([
-    ['media_player.tv', 'playing', 'lucide-speaker'],
-    ['cover.blind', 'open', 'lucide-blinds'],
-    ['climate.hall', 'heat', 'lucide-thermometer'],
-    ['lock.door', 'locked', 'lucide-lock'],
+    ['media_player.tv', 'playing', mdiCast],
+    ['cover.blind', 'open', mdiBlinds],
+    ['climate.hall', 'heat', mdiThermostat],
+    ['lock.door', 'locked', mdiLock],
   ])('shows its domain icon on a display-only %s tile', async (entity_id, state, icon) => {
     seed(entityState({ entity_id, state, attributes: { friendly_name: 'Shown' } }))
     await renderLoaded(saved(entity_id))
     const tile = screen.getByText('Shown').closest('li')!
-    expect(tile.querySelector('svg.favorite-icon')).toHaveClass(icon)
+    expect(pathOf(tile.querySelector('svg.favorite-icon'))).toBe(icon)
   })
 
   it('shows a fallback icon on a display-only tile', async () => {
     seed(entityState({ entity_id: 'sensor.x', state: '5', attributes: { friendly_name: 'Odd' } }))
     await renderLoaded(saved('sensor.x'))
     const tile = screen.getByText('Odd').closest('li')!
-    expect(tile.querySelector('svg.favorite-icon')).toHaveClass('lucide-circle-dot')
+    expect(pathOf(tile.querySelector('svg.favorite-icon'))).toBe(mdiGauge)
+  })
+
+  it("shows the entity's own HA icon on a favorites tile when HA sets one", async () => {
+    seed(
+      lightState({
+        entity_id: 'light.k',
+        attributes: { friendly_name: 'Kitchen', icon: 'mdi:sofa' },
+      }),
+    )
+    await renderLoaded(saved('light.k'))
+    expect(pathOf(iconOf('Kitchen'))).toBe(mdiSofa)
+  })
+
+  it('falls back to the domain icon on a favorites tile when the entity has no icon', async () => {
+    seed(lightState({ entity_id: 'light.k', attributes: { friendly_name: 'Kitchen' } }))
+    await renderLoaded(saved('light.k'))
+    expect(pathOf(iconOf('Kitchen'))).toBe(mdiLightbulb)
   })
 
   it('highlights the icon of a tile whose entity is on', async () => {

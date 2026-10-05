@@ -1,5 +1,6 @@
-import { Moon, Sun } from 'lucide-react'
+import { mdiWeatherNight, mdiWeatherSunny } from '@mdi/js'
 import { useEffect, useState } from 'react'
+import { Icon } from '../../features/shared/icons/Icon'
 import type { ThemePreference } from './useThemePreference'
 
 const DARK_QUERY = '(prefers-color-scheme: dark)'
@@ -27,7 +28,6 @@ type ThemeToggleProps = {
 export function ThemeToggle({ preference, onChange }: ThemeToggleProps) {
   const deviceDark = useDeviceIsDark()
   const dark = preference === 'system' ? deviceDark : preference === 'dark'
-  const Icon = dark ? Sun : Moon
   return (
     <button
       type="button"
@@ -35,7 +35,7 @@ export function ThemeToggle({ preference, onChange }: ThemeToggleProps) {
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
       onClick={() => onChange(dark ? 'light' : 'dark')}
     >
-      <Icon size={19} aria-hidden="true" />
+      <Icon path={dark ? mdiWeatherSunny : mdiWeatherNight} size={19} />
     </button>
   )
 }

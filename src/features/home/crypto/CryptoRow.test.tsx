@@ -1,3 +1,4 @@
+import { mdiCurrencyBtc } from '@mdi/js'
 import { act, screen, within } from '@testing-library/react'
 import { renderWithHome as render } from '../../../test/renderWithHome'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -31,6 +32,12 @@ const load = (...entities: ReturnType<typeof price>[]) =>
   act(() => entityStore.setEntities(Object.fromEntries(entities.map((e) => [e.entity_id, e]))))
 
 describe('crypto row', () => {
+  it('renders the crypto card label with an MDI icon', () => {
+    render(<CryptoRow />)
+    const region = screen.getByRole('heading', { name: 'Crypto' }).closest('section')!
+    expect(region.querySelector('svg.card__icon path')?.getAttribute('d')).toBe(mdiCurrencyBtc)
+  })
+
   it('reads each coin with price and signed change, and draws a sparkline when there is history', async () => {
     render(<CryptoRow />)
     load(price('btc', '105'), price('eth', '7.5'), price('sol', '142.5'))

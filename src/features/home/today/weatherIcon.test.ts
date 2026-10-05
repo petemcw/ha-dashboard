@@ -1,48 +1,50 @@
 import {
-  Cloud,
-  CloudDrizzle,
-  CloudFog,
-  CloudHail,
-  CloudLightning,
-  CloudRain,
-  CloudRainWind,
-  CloudSnow,
-  CloudSun,
-  Moon,
-  Sun,
-  Tornado,
-  Wind,
-} from 'lucide-react'
+  mdiWeatherCloudy,
+  mdiWeatherFog,
+  mdiWeatherHail,
+  mdiWeatherLightning,
+  mdiWeatherLightningRainy,
+  mdiWeatherNight,
+  mdiWeatherPartlyCloudy,
+  mdiWeatherPouring,
+  mdiWeatherRainy,
+  mdiWeatherSnowy,
+  mdiWeatherSnowyRainy,
+  mdiWeatherSunny,
+  mdiWeatherTornado,
+  mdiWeatherWindy,
+  mdiWeatherWindyVariant,
+} from '@mdi/js'
 import { describe, expect, it } from 'vitest'
 import { weatherIcon } from './weatherIcon'
 
 describe('weatherIcon', () => {
   it.each([
-    ['sunny', Sun, 'sun'],
-    ['clear-night', Moon, 'sun'],
-    ['partlycloudy', CloudSun, 'partly'],
-    ['cloudy', Cloud, 'cloud'],
-  ] as const)('draws %s in the mock-up colours', (condition, Icon, tone) => {
-    expect(weatherIcon(condition)).toEqual({ Icon, tone })
+    ['sunny', mdiWeatherSunny, 'sun'],
+    ['clear-night', mdiWeatherNight, 'sun'],
+    ['partlycloudy', mdiWeatherPartlyCloudy, 'partly'],
+    ['cloudy', mdiWeatherCloudy, 'cloud'],
+  ] as const)('draws %s in the mock-up colours', (condition, path, tone) => {
+    expect(weatherIcon(condition)).toEqual({ path, tone })
   })
 
   it.each([
-    ['fog', CloudFog],
-    ['hail', CloudHail],
-    ['lightning', CloudLightning],
-    ['lightning-rainy', CloudLightning],
-    ['pouring', CloudRainWind],
-    ['rainy', CloudRain],
-    ['snowy', CloudSnow],
-    ['snowy-rainy', CloudDrizzle],
-    ['windy', Wind],
-    ['windy-variant', Wind],
-    ['exceptional', Tornado],
-  ])('draws %s in the text colour', (condition, Icon) => {
-    expect(weatherIcon(condition)).toEqual({ Icon })
+    ['fog', mdiWeatherFog],
+    ['hail', mdiWeatherHail],
+    ['lightning', mdiWeatherLightning],
+    ['lightning-rainy', mdiWeatherLightningRainy],
+    ['pouring', mdiWeatherPouring],
+    ['rainy', mdiWeatherRainy],
+    ['snowy', mdiWeatherSnowy],
+    ['snowy-rainy', mdiWeatherSnowyRainy],
+    ['windy', mdiWeatherWindy],
+    ['windy-variant', mdiWeatherWindyVariant],
+    ['exceptional', mdiWeatherTornado],
+  ])('maps %s to an MDI weather icon in the text colour', (condition, path) => {
+    expect(weatherIcon(condition)).toEqual({ path })
   })
 
-  it('draws a plain cloud for a condition this build does not know', () => {
-    expect(weatherIcon('mystery-mist')).toEqual({ Icon: Cloud })
+  it('falls back to a neutral weather icon for an unknown condition', () => {
+    expect(weatherIcon('mystery-mist')).toEqual({ path: mdiWeatherCloudy })
   })
 })

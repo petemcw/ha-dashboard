@@ -14,11 +14,18 @@
   outline-offset: 2px;
 }
 
+/* Scaled rather than sized, so a moving fill never relays out the tile. */
 .slider-fill {
   height: 100%;
   background: color-mix(in srgb, var(--leaf) 22%, transparent);
-  /* Following the finger needs no easing; HA's value arriving does. */
-  transition: width 0.2s ease-out;
+  transform-origin: left center;
+  /* HA's value arriving (or a key step) eases in. */
+  transition: transform 0.2s ease-out;
+}
+
+/* A finger is on it: the fill stays under the finger, 1:1, no easing. */
+.slider[data-dragging] .slider-fill {
+  transition: none;
 }
 
 /* A bar to drag across: a full 44 px target, with the fill laid over it. A vertical swipe
@@ -29,4 +36,16 @@
   border-radius: 12px;
   background: var(--surface-sunken);
   touch-action: pan-y;
+}
+
+/* The control as a whole stretches when dragged past an end (useSliderGesture's `frame`).
+   Let go, it springs back with a little overshoot: the finger's momentum carries into it. */
+.slider-track[data-slider-frame] {
+  transform: scaleX(var(--slider-stretch, 1));
+  transform-origin: var(--slider-anchor, left) center;
+  transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.slider-track[data-slider-frame][data-dragging] {
+  transition: none;
 }

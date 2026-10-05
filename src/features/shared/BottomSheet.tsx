@@ -38,6 +38,8 @@ const SPRING_BACK: SpringParams = { damping: 0.8, response: 0.3 }
 const DISMISS_AT = 0.5
 // Velocity is measured over the last stretch of the drag, not its whole length.
 const VELOCITY_WINDOW_MS = 100
+// With reduced motion the sheet doesn't slide: it and its scrim fade in place this fast.
+const FADE_MS = 200
 
 const reduceMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 
@@ -55,6 +57,7 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
   const offset = useRef(0)
   const animation = useRef<SpringAnimation | undefined>(undefined)
   const releaseVelocity = useRef(0)
+  const fades = useRef<Animation[]>([])
   const drag = useRef<{ startOffset: number; startY: number; samples: { t: number; y: number }[] }>(
     undefined,
   )
@@ -91,12 +94,52 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
     )
   }
 
+  // Reduced motion: a cross-fade in place instead of the slide, so opening and closing still
+  // read as happening. The global reduced-motion rule turns CSS transitions off, so this uses
+  // the Web Animations API. An interrupted fade turns around from the opacity on screen.
+  const crossFade = (to: 0 | 1, onDone?: () => void) => {
+    const layers = [sheetRef.current, backdropRef.current].filter(
+      (el): el is HTMLDivElement => typeof el?.animate === 'function',
+    )
+    const fading = fades.current.length > 0
+    const from = layers.map((el) => (fading ? Number(getComputedStyle(el).opacity) : 1 - to))
+    fades.current.forEach((a) => a.cancel())
+    fades.current = layers.map((el, i) =>
+      el.animate([{ opacity: from[i] }, { opacity: to }], {
+        duration: FADE_MS,
+        easing: 'ease-out',
+        fill: 'forwards',
+      }),
+    )
+    const [first] = fades.current
+    if (!first) return onDone?.()
+    first.finished.then(
+      () => {
+        // Hand opacity back to the inline styles a drag sets on the scrim.
+        if (to === 1) fades.current.forEach((a) => a.cancel())
+        fades.current = []
+        onDone?.()
+      },
+      // Cancelled: a newer fade took over.
+      () => {},
+    )
+  }
+
   useLayoutEffect(() => {
     if (!shown) return
     if (open) {
+      if (reduceMotion()) {
+        animation.current?.stop()
+        animation.current = undefined
+        place(0)
+        crossFade(1)
+        return
+      }
       // Fresh open: start just below the screen edge, then rise.
       if (!animation.current) place(height())
       moveTo(0, SETTLE)
+    } else if (reduceMotion()) {
+      crossFade(0, () => setShown(false))
     } else {
       moveTo(height(), SETTLE, () => {
         animation.current = undefined
@@ -107,7 +150,13 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, shown])
 
-  useEffect(() => () => void animation.current?.stop(), [])
+  useEffect(
+    () => () => {
+      animation.current?.stop()
+      fades.current.forEach((a) => a.cancel())
+    },
+    [],
+  )
 
   useEffect(() => {
     if (!open) return

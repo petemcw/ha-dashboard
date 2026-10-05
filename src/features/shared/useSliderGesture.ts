@@ -1,4 +1,12 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent,
+} from 'react'
+import { rubberband } from './spring'
 
 // Horizontal movement beyond vertical, in px, before a press becomes a drag. Until then a
 // press is a tap (or the start of a vertical scroll), so brightness can't change while
@@ -7,8 +15,13 @@ const ENGAGE_PX = 8
 const KEY_STEP = 10
 // A held arrow key repeats; wait for the key to settle so it sends once.
 const KEY_DEBOUNCE_MS = 250
+// Dragged past either end, the control stretches toward the finger, resisting harder the
+// further it goes, up to this share of its width. Small, so a tile's text barely distorts.
+const STRETCH_LIMIT = 0.06
 
-type Local = { value: number; sent: boolean }
+// `stretch` is the signed share of the width the control is pulled past an end: below 0 past
+// the start, above 0 past the end.
+type Local = { value: number; sent: boolean; dragging?: boolean; stretch?: number }
 
 export type SliderGesture = ReturnType<typeof useSliderGesture>
 
@@ -82,7 +95,11 @@ export function useSliderGesture({
         // Keeps tracking when the finger leaves the tile.
         e.currentTarget.setPointerCapture(e.pointerId)
       }
-      if (p.width > 0) setLocal({ value: clamp(p.from + (dx / p.width) * 100), sent: false })
+      if (p.width <= 0) return
+      const raw = p.from + (dx / p.width) * 100
+      const past = raw < 0 ? raw : raw > 100 ? raw - 100 : 0
+      const stretch = rubberband((past / 100) * p.width, p.width * STRETCH_LIMIT) / p.width
+      setLocal({ value: clamp(raw), sent: false, dragging: true, stretch })
     },
     onPointerUp: (e: PointerEvent<HTMLElement>) => {
       const p = press.current
@@ -128,10 +145,24 @@ export function useSliderGesture({
     },
   }
 
+  const dragging = local?.dragging === true
+  const stretch = local?.stretch ?? 0
   return {
     shown,
     // The value on screen isn't HA's: it is being dragged, or its send is in flight.
     active: local !== undefined,
+    // A finger is moving the value: the fill follows it 1:1, with no easing.
+    dragging,
+    // For the element that looks like the control (a tile, a track): it stretches past an end
+    // while dragged, anchored at the opposite edge, and springs back once let go.
+    frame: {
+      'data-slider-frame': '',
+      'data-dragging': dragging ? '' : undefined,
+      style: {
+        '--slider-stretch': 1 + Math.abs(stretch),
+        '--slider-anchor': stretch < 0 ? 'right' : 'left',
+      } as CSSProperties,
+    },
     surface,
     keyboard,
     // True once, for the click that follows a drag's release.

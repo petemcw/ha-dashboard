@@ -8,7 +8,7 @@ import {
   PLACEHOLDER_FLOORS,
   placeRegistries,
 } from '../src/infrastructure/fakeHa/placeholderRegistries.ts'
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { expect, liveTest, test } from './fixtures.ts'
 
 const light = (id: string, name: string, attributes: Record<string, unknown> = {}) =>
@@ -326,3 +326,123 @@ liveTest(
     expect(pageErrors).toEqual([])
   },
 )
+
+test.describe('slider and sheet feel', () => {
+  async function lampTile(page: Page) {
+    const card = await openLivingRoom(page)
+    const lamp = card.getByRole('button', { name: /Lamp/ })
+    await lamp.scrollIntoViewIfNeeded()
+    const box = (await lamp.boundingBox())!
+    return {
+      card,
+      lamp,
+      // The tile is the button's list item.
+      tile: lamp.locator('xpath=..'),
+      slider: card.getByRole('slider', { name: 'Lamp brightness' }),
+      at: (fraction: number) => [box.x + box.width * fraction, box.y + box.height / 2] as const,
+    }
+  }
+
+  test('the brightness fill keeps up with the finger while dragging', async ({ page }) => {
+    const { slider, at } = await lampTile(page)
+    await page.mouse.move(...at(0.5))
+    await page.mouse.down()
+    await page.mouse.move(...at(0.6))
+    await page.mouse.move(...at(0.9))
+    // Read at once: a fill easing after the finger would still be on its way.
+    const share = await slider.evaluate((el) => {
+      const fill = el.querySelector('.slider-fill')!.getBoundingClientRect().width
+      return fill / el.getBoundingClientRect().width
+    })
+    expect(share).toBeCloseTo(0.9, 1)
+    await page.mouse.up()
+  })
+
+  test('a light tile stretches with resistance past full and settles back on release', async ({
+    page,
+  }) => {
+    const { tile, slider, at } = await lampTile(page)
+    const resting = (await tile.boundingBox())!.width
+    await page.mouse.move(...at(0.5))
+    await page.mouse.down()
+    for (const fraction of [0.8, 1.1, 1.5]) await page.mouse.move(...at(fraction))
+    const stretched = (await tile.boundingBox())!.width
+    await page.screenshot({ path: `e2e/screenshots/room-stretch-${test.info().project.name}.png` })
+    expect(stretched).toBeGreaterThan(resting + 2)
+    // Resistance: half a tile past the end stretches it only a little.
+    expect(stretched).toBeLessThan(resting * 1.1)
+    await expect(slider).toHaveAttribute('aria-valuenow', '100')
+    await page.mouse.up()
+    await expect
+      .poll(async () => Math.round((await tile.boundingBox())!.width))
+      .toBe(Math.round(resting))
+  })
+
+  test('a dimmable light tile looks pressed the moment a finger lands', async ({ page }) => {
+    const { lamp, at } = await lampTile(page)
+    await page.mouse.move(...at(0.5))
+    const background = () =>
+      lamp.evaluate((el) => el.ownerDocument.defaultView!.getComputedStyle(el).backgroundColor)
+    const resting = await background()
+    await page.mouse.down()
+    expect(await background()).not.toBe(resting)
+    await page.screenshot({ path: `e2e/screenshots/room-press-${test.info().project.name}.png` })
+    await page.mouse.up()
+  })
+
+  test("draws a keyboard focus ring inside a light tile's brightness slider", async ({ page }) => {
+    const { lamp, slider } = await lampTile(page)
+    await lamp.focus()
+    // The slider sits just before the tile's button.
+    await page.keyboard.press('Shift+Tab')
+    expect(await slider.evaluate((el) => el.matches(':focus-visible'))).toBe(true)
+    expect(
+      await slider.evaluate((el) =>
+        parseFloat(el.ownerDocument.defaultView!.getComputedStyle(el).outlineOffset),
+      ),
+    ).toBeLessThan(0)
+  })
+
+  test('with reduced motion the room sheet fades in and out instead of sliding', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/')
+    // In place from the first frame (no slide), with an opacity animation running.
+    const fadingInPlace = (sheet: Locator) =>
+      sheet.evaluate((el) => {
+        const view = el.ownerDocument.defaultView!
+        const inPlace = new view.DOMMatrix(view.getComputedStyle(el).transform).f === 0
+        return (
+          inPlace &&
+          el
+            .getAnimations()
+            .some((a: { effect: unknown }) =>
+              (a.effect as unknown as { getKeyframes(): object[] })
+                .getKeyframes()
+                .some((k) => 'opacity' in k),
+            )
+        )
+      })
+    await page.getByRole('button', { name: /^Room: Auto/ }).click()
+    const sheet = page.getByRole('dialog', { name: 'Room' })
+    expect(await fadingInPlace(sheet)).toBe(true)
+    await page.keyboard.press('Escape')
+    expect(await fadingInPlace(sheet)).toBe(true)
+    await expect(sheet).toBeHidden()
+  })
+
+  test('a room picker row looks pressed while a finger is on it', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: /^Room: Auto/ }).click()
+    const row = page.locator('.room-option', { hasText: 'Kitchen' })
+    const background = () =>
+      row.evaluate((el) => el.ownerDocument.defaultView!.getComputedStyle(el).backgroundColor)
+    // Waits for the rising sheet to come to rest under the pointer.
+    await row.hover()
+    const resting = await background()
+    await page.mouse.down()
+    expect(await background()).not.toBe(resting)
+    await page.mouse.up()
+  })
+})

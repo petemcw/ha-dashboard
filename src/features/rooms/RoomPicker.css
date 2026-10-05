@@ -32,6 +32,13 @@
   font-weight: 600;
 }
 
+/* Pressed shows the instant a finger lands, before the pick lets go and closes the sheet;
+   on the current room too, so every row answers the same way. */
+.room-option:active,
+.room-option:has(input:checked):active {
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+}
+
 .room-option:has(input:focus-visible) {
   outline: 2px solid currentColor;
   outline-offset: 2px;

@@ -57,6 +57,9 @@
 
 .favorite-tile--control {
   position: relative;
+  /* The button fills the tile; a gap would leave a strip under it that its pressed shade
+     can't reach. An error line brings its own spacing. */
+  gap: 0;
   padding: 0;
 }
 
@@ -142,11 +145,45 @@
 }
 
 /* The shared button hover/press look paints an opaque background and shrinks the button,
-   which would hide the fill beneath it and shift under the finger mid-drag. */
-.favorite-tile[data-draggable] .favorite-button:hover:not(:disabled),
-.favorite-tile[data-draggable] .favorite-button:active:not(:disabled) {
-  background: transparent;
+   which would hide the fill beneath it and shift under the finger mid-drag. A translucent
+   shade instead: the press still shows the instant a finger lands, over the fill. */
+.favorite-tile[data-draggable] .favorite-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--text) 4%, transparent);
   transform: none;
+}
+
+.favorite-tile[data-draggable] .favorite-button:active:not(:disabled) {
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+  transform: none;
+  /* On at once; letting go fades it with the button's own transition. */
+  transition: none;
+}
+
+/* Once the press is a drag, the fill is the feedback; the shade would only muddy it. */
+.favorite-tile[data-dragging] .favorite-button:is(:hover, :active):not(:disabled) {
+  background: transparent;
+}
+
+/* Dragged past an end, the tile stretches toward the finger (useSliderGesture's `frame`),
+   and springs back with a little overshoot when let go. Its colours keep their own easing. */
+.favorite-tile[data-slider-frame] {
+  transform: scaleX(var(--slider-stretch, 1));
+  transform-origin: var(--slider-anchor, left) center;
+  transition:
+    background-color 0.2s ease-out,
+    border-color 0.2s ease-out,
+    transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.favorite-tile[data-slider-frame][data-dragging] {
+  transition:
+    background-color 0.2s ease-out,
+    border-color 0.2s ease-out;
+}
+
+/* The tile clips its fill, so the slider's focus ring goes inside the edge to stay visible. */
+.favorite-tile .slider:focus-visible {
+  outline-offset: -2px;
 }
 
 /* A compact icon button, but a full 44 px touch target. */

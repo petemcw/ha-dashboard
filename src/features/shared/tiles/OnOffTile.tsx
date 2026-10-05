@@ -11,7 +11,7 @@ export function OnOffTile({
   onText = 'On',
   ...control
 }: TileLabel & { entity: OnOffViewModel; onText?: string } & TileControl &
-  Pick<ComponentProps<typeof ControlTile>, 'surface' | 'slider' | 'trailing'>) {
+  Pick<ComponentProps<typeof ControlTile>, 'surface' | 'slider' | 'frame' | 'trailing'>) {
   const text = entity.status !== 'ok' ? STATUS_TEXT[entity.status] : entity.isOn ? onText : 'Off'
   return (
     // isOn is only ever true for an available entity, so it is also the lit-up state.

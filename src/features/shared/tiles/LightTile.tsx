@@ -47,6 +47,7 @@ function DimmableLightTile({
         if (!gesture.consumeClick()) onPress()
       }}
       surface={gesture.surface}
+      frame={gesture.frame}
       slider={<Slider gesture={gesture} label={`${props.name} brightness`} disabled={disabled} />}
       {...props}
     />

@@ -37,9 +37,10 @@ export function Slider({ gesture, label, disabled, scale, restingValue, valueTex
       aria-valuetext={valueText ?? (scale ? `${now}${scale.unit}` : `${shown}%`)}
       aria-disabled={disabled || undefined}
       tabIndex={disabled ? -1 : 0}
+      data-dragging={gesture.dragging ? '' : undefined}
       {...keyboard}
     >
-      <div className="slider-fill" style={{ width: `${shown}%` }} />
+      <div className="slider-fill" style={{ transform: `scaleX(${shown / 100})` }} />
     </div>
   )
 }
@@ -47,7 +48,7 @@ export function Slider({ gesture, label, disabled, scale, restingValue, valueTex
 // The slider as a bar of its own to drag across (on a tile, the tile itself is the surface).
 export function SliderTrack(slider: SliderProps) {
   return (
-    <div className="slider-track" {...slider.gesture.surface}>
+    <div className="slider-track" {...slider.gesture.frame} {...slider.gesture.surface}>
       <Slider {...slider} />
     </div>
   )

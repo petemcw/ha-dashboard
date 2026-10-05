@@ -3,6 +3,7 @@ import { ActionButton } from '../ActionButton'
 import { ActionError } from '../ActionError'
 import { ConfirmAnnouncement } from '../ConfirmAnnouncement'
 import { useConfirmArm } from '../useConfirmArm'
+import type { SliderGesture } from '../useSliderGesture'
 import { TileBody, type TileControl, type TileFrame, type TileLabel } from './Tile'
 
 // A tile that is one big button: a toggle with `pressed`, a run button without.
@@ -18,6 +19,7 @@ export function ControlTile({
   confirm,
   surface,
   slider,
+  frame,
   trailing,
   ...label
 }: TileLabel &
@@ -32,6 +34,8 @@ export function ControlTile({
     // A slider laid over the tile, as a sibling of the button (nothing interactive can sit
     // inside it).
     slider?: ReactNode
+    // The slider's frame props: the tile is what stretches when dragged past an end.
+    frame?: SliderGesture['frame']
     // A control at the tile's top right, beside the button (the light's details button).
     trailing?: ReactNode
   }) {
@@ -50,6 +54,7 @@ export function ControlTile({
   const confirmName = confirm ? `Confirm: ${confirm.action} ${label.name}` : undefined
   return (
     <li
+      {...frame}
       className="favorite-tile favorite-tile--control"
       data-status={status}
       data-active={active ? '' : undefined}

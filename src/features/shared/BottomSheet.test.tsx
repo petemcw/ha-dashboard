@@ -35,9 +35,10 @@ describe('BottomSheet', () => {
   })
 
   // Drags the sheet's header through `moves` ([clientY, timeStamp] pairs) and lets go.
+  // Returns how many times the sheet's height was read along the way.
   function dragHeader(moves: [number, number][]) {
     // jsdom has no layout; give the sheet a height so the dismiss threshold means something.
-    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(400)
+    const height = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(400)
     const header = screen.getByRole('banner')
     header.setPointerCapture = vi.fn()
     // jsdom ignores `timeStamp` in the event init and stamps the real clock, which made the
@@ -53,7 +54,9 @@ describe('BottomSheet', () => {
     for (const [y, t] of rest) pointer('pointerMove', y, t)
     const [endY, endT] = moves[moves.length - 1]
     pointer('pointerUp', endY, endT + 30)
+    const reads = height.mock.calls.length
     vi.restoreAllMocks()
+    return reads
   }
 
   it('dismisses the bottom sheet on a downward flick of its header', () => {
@@ -97,5 +100,20 @@ describe('BottomSheet', () => {
     const dialog = screen.getByRole('dialog', { name: 'Portal' })
     expect(container).not.toContainElement(dialog)
     expect(dialog.closest('.sheet-layer')?.parentElement).toBe(document.body)
+  })
+
+  // Reading the height after moving the sheet makes the browser lay out again before it can
+  // paint, on every pointer move. The sheet doesn't change size mid-drag, so once is enough.
+  it('measures the bottom sheet once per drag, not on every move', () => {
+    render(<BottomSheet open onClose={() => {}} title="Measure" />)
+    const reads = dragHeader([
+      [0, 1000],
+      [10, 1100],
+      [20, 1200],
+      [30, 1300],
+      [40, 1400],
+      [50, 1500],
+    ])
+    expect(reads).toBe(1)
   })
 })

@@ -62,14 +62,18 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
     undefined,
   )
 
-  const height = () => sheetRef.current?.offsetHeight ?? 0
+  // The sheet's height, measured when a drag or an animation starts. Reading offsetHeight
+  // right after moving the sheet would make the browser lay out again before every frame;
+  // its size doesn't change while it moves.
+  const sheetHeight = useRef(0)
+  const measure = () => (sheetHeight.current = sheetRef.current?.offsetHeight ?? 0)
 
   const place = (value: number) => {
     offset.current = value
     const sheet = sheetRef.current
     const backdrop = backdropRef.current
     if (sheet) sheet.style.transform = `translateY(${value}px)`
-    const h = height()
+    const h = sheetHeight.current
     // The scrim dims with how open the sheet is, so a drag shows what letting go will do.
     if (backdrop) backdrop.style.opacity = h ? String(Math.min(1, Math.max(0, 1 - value / h))) : ''
   }
@@ -127,6 +131,7 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
 
   useLayoutEffect(() => {
     if (!shown) return
+    measure()
     if (open) {
       if (reduceMotion()) {
         animation.current?.stop()
@@ -136,12 +141,12 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
         return
       }
       // Fresh open: start just below the screen edge, then rise.
-      if (!animation.current) place(height())
+      if (!animation.current) place(sheetHeight.current)
       moveTo(0, SETTLE)
     } else if (reduceMotion()) {
       crossFade(0, () => setShown(false))
     } else {
-      moveTo(height(), SETTLE, () => {
+      moveTo(sheetHeight.current, SETTLE, () => {
         animation.current = undefined
         setShown(false)
       })
@@ -194,6 +199,7 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
     // Grab the sheet where it is, mid-animation included.
     animation.current?.stop()
     animation.current = undefined
+    measure()
     drag.current = {
       startOffset: offset.current,
       startY: e.clientY,
@@ -206,7 +212,7 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
     if (!d) return
     const raw = d.startOffset + (e.clientY - d.startY)
     // Above the open position there's nothing more: resist instead of stopping dead.
-    const next = raw < 0 ? rubberband(raw, height()) : raw
+    const next = raw < 0 ? rubberband(raw, sheetHeight.current) : raw
     place(next)
     d.samples.push({ t: e.timeStamp, y: next })
     while (d.samples.length > 2 && e.timeStamp - d.samples[0].t > VELOCITY_WINDOW_MS) {
@@ -224,7 +230,7 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
     const velocity = elapsed > 0 ? (last.y - first.y) / elapsed : 0
     releaseVelocity.current = velocity
     // Decide by where the flick is heading, not where the finger let go.
-    if (offset.current + projectMomentum(velocity) > height() * DISMISS_AT) onClose()
+    if (offset.current + projectMomentum(velocity) > sheetHeight.current * DISMISS_AT) onClose()
     else moveTo(0, SPRING_BACK)
   }
 

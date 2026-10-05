@@ -1,9 +1,9 @@
 import { mdiDotsHorizontal } from '@mdi/js'
 import { useState } from 'react'
 import { setBrightness, setColor, setColorTemp } from '../../domains/light/actions'
-import { lightViewModel } from '../../domains/light/viewModel'
+import { lightViewModel, type LightViewModel } from '../../domains/light/viewModel'
 import { useEntity } from '../../infrastructure/entities/useEntity'
-import { useAction } from '../../infrastructure/serviceGateway/useAction'
+import { useAction, type ActionState } from '../../infrastructure/serviceGateway/useAction'
 import { ActionError } from '../shared/ActionError'
 import { BottomSheet } from '../shared/BottomSheet'
 import { Icon } from '../shared/icons/Icon'
@@ -58,47 +58,60 @@ const nearestSwatch = ([hue]: [number, number]) =>
     hueDistance(swatch.hs[0], hue) < hueDistance(best.hs[0], hue) ? swatch : best,
   )
 
-function LightDetailControls({ entityId, name }: { entityId: string; name: string }) {
-  const entity = useEntity(entityId)
-  const light = lightViewModel(entityId, entity)
-  const { enabled, pending, failure, run } = useAction({ clearKey: entity?.state })
-  const disabled = !enabled || light.status !== 'ok'
+type ControlProps = {
+  entityId: string
+  name: string
+  light: LightViewModel
+  disabled: boolean
+  pending: boolean
+  run: ActionState['run']
+}
+
+// Each slider owns its gesture, so a drag re-renders that slider alone, not the whole sheet.
+function BrightnessControl({ entityId, name, light, disabled, pending, run }: ControlProps) {
+  const gesture = useSliderGesture({
+    value: light.brightnessPercent ?? 0,
+    disabled,
+    pending,
+    onCommit: (percent) => run((gateway) => setBrightness(gateway, entityId, percent)),
+  })
+  return <SliderTrack gesture={gesture} label={`${name} brightness`} disabled={disabled} />
+}
+
+function ColorTempControl({ entityId, name, light, disabled, pending, run }: ControlProps) {
   const scale: SliderScale = { ...light.kelvinRange, unit: 'K' }
-  const colorTemp = useSliderGesture({
+  const gesture = useSliderGesture({
     value: toPercent(scale, light.colorTempKelvin ?? Math.round((scale.min + scale.max) / 2)),
     disabled,
     pending,
     onCommit: (percent) =>
       run((gateway) => setColorTemp(gateway, entityId, fromPercent(scale, percent))),
   })
-  const brightness = useSliderGesture({
-    value: light.brightnessPercent ?? 0,
-    disabled,
-    pending,
-    onCommit: (percent) => run((gateway) => setBrightness(gateway, entityId, percent)),
-  })
+  return (
+    <SliderTrack
+      gesture={gesture}
+      label={`${name} color temperature`}
+      disabled={disabled}
+      scale={scale}
+      restingValue={light.colorTempKelvin}
+      valueText={
+        light.colorTempKelvin === undefined ? (light.isOn ? 'Not set' : 'Light is off') : undefined
+      }
+    />
+  )
+}
+
+function LightDetailControls({ entityId, name }: { entityId: string; name: string }) {
+  const entity = useEntity(entityId)
+  const light = lightViewModel(entityId, entity)
+  const { enabled, pending, failure, run } = useAction({ clearKey: entity?.state })
+  const disabled = !enabled || light.status !== 'ok'
+  const control = { entityId, name, light, disabled, pending, run }
   const activeSwatch = light.hsColor && nearestSwatch(light.hsColor)
   return (
     <div className="light-detail">
-      {light.canDim && (
-        <SliderTrack gesture={brightness} label={`${name} brightness`} disabled={disabled} />
-      )}
-      {light.supportsColorTemp && (
-        <SliderTrack
-          gesture={colorTemp}
-          label={`${name} color temperature`}
-          disabled={disabled}
-          scale={scale}
-          restingValue={light.colorTempKelvin}
-          valueText={
-            light.colorTempKelvin === undefined
-              ? light.isOn
-                ? 'Not set'
-                : 'Light is off'
-              : undefined
-          }
-        />
-      )}
+      {light.canDim && <BrightnessControl {...control} />}
+      {light.supportsColorTemp && <ColorTempControl {...control} />}
       {light.supportsColor && (
         <div className="swatches" role="group" aria-label={`${name} color`}>
           {SWATCHES.map((swatch) => (

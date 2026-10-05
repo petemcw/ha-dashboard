@@ -71,6 +71,15 @@ describe('useSelectedRoom', () => {
     expect(localStorage.getItem(ROOM_SELECTION_KEY)).toBeNull()
   })
 
+  // Building rooms walks every area, device, and entity; the selector and the card must not
+  // each pay for it.
+  it('hands every caller the same rooms, built once for all of them', () => {
+    const selector = renderHook(() => useSelectedRoom(), { wrapper })
+    const card = renderHook(() => useSelectedRoom(), { wrapper })
+    expect(selector.result.current.rooms).toBeDefined()
+    expect(card.result.current.rooms).toBe(selector.result.current.rooms)
+  })
+
   it('shows a pick made through one useSelectedRoom caller to every other caller', () => {
     const selector = renderHook(() => useSelectedRoom(), { wrapper })
     const card = renderHook(() => useSelectedRoom(), { wrapper })

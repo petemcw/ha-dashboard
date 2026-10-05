@@ -3,6 +3,7 @@ export const favoriteDomains = [
   'light',
   'switch',
   'fan',
+  'input_boolean',
   'media_player',
   'cover',
   'climate',

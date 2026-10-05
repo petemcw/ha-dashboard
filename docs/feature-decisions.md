@@ -6,7 +6,7 @@ What carries over from the Lovelace dashboard (`dashboard-home`), and how. Decid
 
 1. **v1: read-only home.** Attention, suggestions (shown, not tappable), presence, favorites (state only), crypto. No HA actions. **Shipped:** all five regions, snoozes shared via HA system data, per-user favorites with an editor, kiosk token entry, and reconnect handling.
 2. **Demo mode** (`?demo`, real gateway over a shared fake HA) so controls can be tested without touching the house. **Shipped.**
-3. **Controls**: tap actions on home, then rooms, then a media viewer with controls. **Shipped (home):** favorites, suggestions, and attention actions are live. Rooms and media controls are still to come.
+3. **Controls**: tap actions on home, then rooms, then a media viewer with controls. **Shipped (home):** favorites, suggestions, and attention actions are live. **Shipped (rooms):** the room selector, Auto with the away source, the room card with light, switch, fan, input_boolean, scene, script, and media controls, and the `confirm` list. A media viewer is still to come.
 4. **Home redesign**: slim sticky header, card grid, one-line attention rows with icon actions, light/dark toggle, and display-only Today, Systems, and Media cards. **Shipped.**
 5. **Favorites editor**: improve the user interface and experience for managing personal favorites, including adding, removing, and reordering items.
 6. **Dynamic suggestions**: provide context-aware recommendations based on current home state, such as adjusting lights or climate settings.
@@ -88,11 +88,12 @@ Filter days-left list, sunrise badge.
 - **Media**: now playing, transport, and volume for the speaker and TV media players.
 - **No hidden gestures.** A bedroom fan that is a double-tap on a switch today gets its own visible control.
 - The Lovelace Garage view becomes the Garage area.
+- **Shipped.** Out for now: cover, climate, and lock controls (display-only, no devices to verify against), automatic sources beyond the away rule (occupancy, UniFi AP, BLE), buttons and remotes in rooms, brightness drag on favorites, fan speed, and an interactive Home Media card.
 
 ## Visual style
 
-Light and dark modes, built on design tokens, in the Maple Frontier timber palette with Zilla Slab headings. Icons come from Lucide, imported by name.
+Light and dark modes, built on design tokens, in the Maple Frontier timber palette with Zilla Slab headings. Icons are Material Design Icons (`@mdi/js`), imported by name into a curated map in `src/features/shared/icons/`; HA's `mdi:` icon names resolve through it, with a per-domain fallback.
 
 ## Open questions
 
-- Can we use MDI home automation icons instead of or in addition to Lucide? Lucide has no garage glyph (a warehouse stands in), and HA entities already carry `mdi:` icon names.
+- (Answered) MDI replaced Lucide: it has a garage glyph and matches the `mdi:` names HA entities already carry. `lucide-react` is removed, and `iconImports.test.ts` keeps it and whole-module MDI imports out.

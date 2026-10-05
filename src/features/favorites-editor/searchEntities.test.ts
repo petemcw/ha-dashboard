@@ -32,3 +32,13 @@ describe('favorites search', () => {
     expect(entitySearch('kitchen', ['light.kitchen_main'])?.(kitchen)).toBe(false)
   })
 })
+
+describe('favorites search for helpers', () => {
+  it('lets the favorites editor add an input_boolean', () => {
+    const helper = entityState({
+      entity_id: 'input_boolean.guest_mode',
+      attributes: { friendly_name: 'Guest mode' },
+    })
+    expect(entitySearch('guest', [])?.(helper)).toBe(true)
+  })
+})

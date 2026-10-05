@@ -5,6 +5,12 @@ import { personViewModel } from './viewModel'
 const HA = 'https://ha.example.test'
 
 describe('personViewModel', () => {
+  it('carries the id of the HA user the person belongs to', () => {
+    const vm = personViewModel(personState({ user_id: 'u1' }), 'person.alex_rivera', HA)
+    expect(vm.userId).toBe('u1')
+    expect(personViewModel(personState(), 'person.alex_rivera', HA).userId).toBeUndefined()
+  })
+
   it('shows a person at home as home', () => {
     const vm = personViewModel(personState({ state: 'home' }), 'person.alex_rivera', HA)
     expect(vm.presence).toBe('home')

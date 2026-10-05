@@ -1,3 +1,11 @@
+import {
+  mdiAlarm,
+  mdiArrowUpCircleOutline,
+  mdiBatteryLow,
+  mdiCart,
+  mdiPower,
+  mdiRadiator,
+} from '@mdi/js'
 import type { HassEntity } from 'home-assistant-js-websocket'
 import type { Connection } from 'home-assistant-js-websocket'
 import { act, fireEvent, screen, within } from '@testing-library/react'
@@ -63,7 +71,10 @@ describe('attention rows', () => {
     seed(doorOpen())
     render(<AttentionHarness />, { gateway: fake.gateway })
     const garage = row('Garage door')
-    expect(garage.querySelector('svg.lucide-warehouse')).toHaveAttribute('aria-hidden', 'true')
+    expect(garage.querySelector('.attention-item__badge svg')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    )
     expect(within(garage).getByText('Garage door')).toBeInTheDocument()
     expect(within(garage).getByText(/^Open for 2 h/)).toBeInTheDocument()
     expect(within(garage).getByRole('button', { name: 'Close garage door' })).toBeInTheDocument()
@@ -73,7 +84,7 @@ describe('attention rows', () => {
     seed(heaterOn())
     render(<AttentionHarness />, { gateway: fake.gateway })
     const turnOff = screen.getByRole('button', { name: 'Turn off' })
-    expect(turnOff.querySelector('svg.lucide-power')).not.toBeNull()
+    expect(turnOff.querySelector('svg path')).toHaveAttribute('d', mdiPower)
     expect(turnOff).toHaveTextContent('')
     fireEvent.click(turnOff)
     expect(screen.getByRole('button', { name: 'Turning off…' })).toBeInTheDocument()
@@ -84,7 +95,7 @@ describe('attention rows', () => {
     render(<AttentionHarness />, { gateway: fake.gateway })
     const link = screen.getByRole('link', { name: 'Reorder toner' })
     expect(link).toHaveAttribute('href', testHomeConfig.tonerRule.reorderUrl)
-    expect(link.querySelector('svg.lucide-shopping-cart')).not.toBeNull()
+    expect(link.querySelector('svg path')).toHaveAttribute('d', mdiCart)
     expect(link).toHaveTextContent('')
   })
 
@@ -93,7 +104,7 @@ describe('attention rows', () => {
     render(<AttentionHarness connect={snoozableConnection} />, { gateway: fake.gateway })
     await settle()
     const snooze = screen.getByRole('button', { name: 'Snooze Space heater' })
-    expect(snooze.querySelector('svg.lucide-alarm-clock')).not.toBeNull()
+    expect(snooze.querySelector('svg path')).toHaveAttribute('d', mdiAlarm)
     fireEvent.click(snooze)
     const group = screen.getByRole('group', { name: 'Snooze Space heater' })
     expect(within(group).getByRole('button', { name: '1 day' })).toBeInTheDocument()
@@ -139,9 +150,11 @@ describe('attention rows', () => {
       </ul>,
       { gateway: fake.gateway },
     )
-    const badges = [...document.querySelectorAll('.attention-item__badge svg')]
-    expect(badges[0]).toHaveClass('lucide-battery-low')
-    expect(badges[1]).toHaveClass('lucide-circle-arrow-up')
-    expect(badges[2]).toHaveClass('lucide-heater')
+    const badges = [...document.querySelectorAll('.attention-item__badge svg path')]
+    expect(badges.map((b) => b.getAttribute('d'))).toEqual([
+      mdiBatteryLow,
+      mdiArrowUpCircleOutline,
+      mdiRadiator,
+    ])
   })
 })

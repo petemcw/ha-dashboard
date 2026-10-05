@@ -7,6 +7,8 @@ import { FavoritesSection } from './favorites/FavoritesSection'
 import { MediaCard } from './media/MediaCard'
 import { PresenceRow } from './presence/PresenceRow'
 import { HeaderBar } from './header/HeaderBar'
+import { RoomCard } from '../rooms/RoomCard'
+import { RoomSelector } from '../rooms/RoomSelector'
 import { SuggestionsStrip } from './suggestions/SuggestionsStrip'
 import { TodaySection } from './today/TodaySection'
 import { SystemsCard } from './systems/SystemsCard'
@@ -41,11 +43,17 @@ export function HomeScreen({ onOpenSettings, onEditFavorites, tools }: HomeScree
           // wrapper carries its phone order, since the stacks dissolve below 740 px.
           <div className="home__grid">
             <div className="home__col home__col--1">
+              <div className="home__order--room-selector">
+                <RoomSelector />
+              </div>
               <div className="home__order--attention">
                 <AttentionSection attention={attention} />
               </div>
               <div className="home__order--suggested">
                 <SuggestionsStrip />
+              </div>
+              <div className="home__order--room">
+                <RoomCard />
               </div>
               <div className="home__order--crypto">
                 <CryptoRow />

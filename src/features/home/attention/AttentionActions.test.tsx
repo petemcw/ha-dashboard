@@ -9,7 +9,7 @@ import { AttentionHarness } from '../../../test/AttentionHarness'
 import { resetConnectionStatus, setConnected } from '../../../test/connectionStatus'
 import { createFakeServiceGateway } from '../../../test/fakeServiceGateway'
 import { renderWithHome as render } from '../../../test/renderWithHome'
-import { CONFIRM_GUARD_MS } from '../../shared/ConfirmButton'
+import { CONFIRM_GUARD_MS } from '../../shared/useConfirmArm'
 import { calmHouse } from './factories'
 
 const NOW = new Date('2026-10-03T12:00:00Z')

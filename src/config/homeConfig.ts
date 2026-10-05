@@ -74,6 +74,28 @@ export type SystemsConfig = {
 
 export type MediaConfig = { players: string[] }
 
+// HA domains a room can hold. Buttons and remotes never become tiles; export so the room
+// model filters by the same list the parser enforces on `add`.
+export const ROOM_DOMAINS = [
+  'light',
+  'switch',
+  'fan',
+  'input_boolean',
+  'scene',
+  'script',
+  'media_player',
+  'cover',
+  'climate',
+  'lock',
+] as const
+
+export type RoomsConfig = {
+  hidden: string[]
+  // The area Auto shows when the signed-in person is away.
+  awayRoom?: string
+  areas: Record<string, { add: string[]; remove: string[] }>
+}
+
 export type HomeConfig = {
   leftOnRules: LeftOnRule[]
   batteryRule: BatteryRule
@@ -87,6 +109,9 @@ export type HomeConfig = {
   weather?: WeatherConfig
   systems?: SystemsConfig
   media?: MediaConfig
+  rooms: RoomsConfig
+  // Entities that always need a second tap, wherever they appear.
+  confirm: string[]
 }
 
 type Obj = Record<string, unknown>
@@ -152,6 +177,43 @@ const strings = (o: Obj, key: string, path: string): string[] => {
     if (typeof v !== 'string') fail(`${at(path, key)}[${i}]`, 'a string')
   })
   return raw as string[]
+}
+
+const ENTITY_ID = /^[a-z_]+\.[a-z0-9_]+$/
+
+const entityIds = (o: Obj, key: string, path: string): string[] => {
+  const ids = o[key] === undefined ? [] : strings(o, key, path)
+  ids.forEach((id, i) => {
+    if (!ENTITY_ID.test(id)) fail(`${at(path, key)}[${i}]`, 'an entity id like domain.object_id')
+  })
+  return ids
+}
+
+// Unlike the older sections, rooms rejects keys it doesn't know, so a typo is reported.
+const knownKeys = (o: Obj, allowed: string[], path: string) => {
+  for (const key of Object.keys(o)) {
+    if (!allowed.includes(key)) fail(at(path, key), `one of ${allowed.join(', ')}`)
+  }
+}
+
+const rooms = (r: Obj, p: string): RoomsConfig => {
+  knownKeys(r, ['hidden', 'awayRoom', 'areas'], p)
+  const hidden = r.hidden === undefined ? [] : strings(r, 'hidden', p)
+  const areas: RoomsConfig['areas'] = {}
+  const rawAreas = r.areas === undefined ? {} : section(r, 'areas', p)
+  for (const [areaId, value] of Object.entries(rawAreas)) {
+    const ap = `${p}.areas.${areaId}`
+    if (!areaId) fail(`${p}.areas`, 'keyed by non-empty area ids')
+    const a = object(value, ap)
+    knownKeys(a, ['add', 'remove'], ap)
+    const add = entityIds(a, 'add', ap)
+    add.forEach((id, i) => {
+      if (!(ROOM_DOMAINS as readonly string[]).includes(id.split('.')[0]))
+        fail(`${ap}.add[${i}]`, `an entity in ${ROOM_DOMAINS.join(', ')}`)
+    })
+    areas[areaId] = { add, remove: entityIds(a, 'remove', ap) }
+  }
+  return { hidden, awayRoom: optional(r, 'awayRoom', p, string), areas }
 }
 
 const action = (o: Obj, path: string): HaAction => ({
@@ -255,5 +317,7 @@ export function parseHomeConfig(raw: unknown): HomeConfig {
     weather: optionalSection(root, 'weather', '', weather),
     systems: optionalSection(root, 'systems', '', systems),
     media: optionalSection(root, 'media', '', media),
+    rooms: optionalSection(root, 'rooms', '', rooms) ?? { hidden: [], areas: {} },
+    confirm: entityIds(root, 'confirm', ''),
   }
 }

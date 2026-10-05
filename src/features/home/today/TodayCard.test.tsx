@@ -1,4 +1,5 @@
-import { render, screen, within } from '@testing-library/react'
+import { mdiWeatherCloudy, mdiWeatherSunny } from '@mdi/js'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { sunState } from '../../../domains/sun/factories'
 import { sunViewModel } from '../../../domains/sun/viewModel'
@@ -28,6 +29,19 @@ function card(over: Parameters<typeof todayViewModel>[0] extends infer T ? Parti
 }
 
 describe('TodayCard', () => {
+  it('colors the sun and cloud weather icons without Lucide stroke rules', () => {
+    const sunny = card({ weather: weatherViewModel(weatherState('sunny')) })
+    const sun = sunny.querySelector('svg.wx-icon--sun')!
+    expect(sun.querySelector('path')?.getAttribute('d')).toBe(mdiWeatherSunny)
+    expect(sun).toHaveAttribute('fill', 'currentColor')
+    expect(sun).not.toHaveAttribute('stroke')
+    cleanup()
+    const cloudy = card({ weather: weatherViewModel(weatherState('cloudy')) })
+    const cloud = cloudy.querySelector('svg.wx-icon--cloud')!
+    expect(cloud.querySelector('path')?.getAttribute('d')).toBe(mdiWeatherCloudy)
+    expect(cloud).toHaveAttribute('fill', 'currentColor')
+  })
+
   it('shows the current temperature and condition on the Today card', () => {
     const region = card({})
     expect(within(region).getByText('54°')).toBeInTheDocument()

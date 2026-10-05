@@ -33,7 +33,9 @@ export const test = base.extend<{
   ],
 })
 
-const FORBIDDEN = /^(call_service|frontend\/set_.*)$/
+// Registry reads (`config/<registry>/list`) pass through; creating, updating, or deleting an
+// area, floor, device, or entity never does.
+const FORBIDDEN = /^(call_service|frontend\/set_.*|config\/.+\/(create|update|delete|remove).*)$/
 
 export type LiveSocket = {
   drop(): Promise<void>
@@ -106,9 +108,7 @@ export const liveTest = base.extend<{ pageErrors: Error[]; liveSocket: LiveSocke
       for (const m of systemWrites) {
         testInfo.annotations.push({ type: 'blocked', description: `${m.type} ${String(m.key)}` })
       }
-      const unexpected = blocked.filter(
-        (m) => m.type === 'call_service' || m.type === 'frontend/set_user_data',
-      )
+      const unexpected = blocked.filter((m) => m.type !== 'frontend/set_system_data')
       expect(
         unexpected.map((m) => m.type),
         '@live tests must be read-only',

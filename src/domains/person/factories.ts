@@ -6,6 +6,7 @@ type PersonInput = {
   state?: string
   friendly_name?: string
   entity_picture?: string
+  user_id?: string
 }
 
 export function personState(input: PersonInput = {}): HassEntity {
@@ -16,6 +17,7 @@ export function personState(input: PersonInput = {}): HassEntity {
     attributes: {
       friendly_name: rest.friendly_name ?? 'Alex Rivera',
       ...(rest.entity_picture ? { entity_picture: rest.entity_picture } : {}),
+      ...(rest.user_id ? { user_id: rest.user_id } : {}),
     },
   })
 }

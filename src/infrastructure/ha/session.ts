@@ -1,5 +1,6 @@
 import { ERR_INVALID_AUTH, subscribeEntities, type Connection } from 'home-assistant-js-websocket'
 import { entityStore } from '../entities/entityStore'
+import { startRegistries } from '../registries/startRegistries'
 import { startHeartbeat } from './heartbeat'
 import { connectionStatus } from './connectionStatus'
 import {
@@ -44,9 +45,11 @@ export function startSession(connect: () => Promise<Connection> = getConnection)
         // only notifies (and re-renders the app) when the status really changes.
         connectionStatus.set(CONNECTED)
       })
+      const stopRegistries = startRegistries(conn)
       const stopHeartbeat = startHeartbeat(conn)
       cleanup = () => {
         stopHeartbeat()
+        stopRegistries()
         unsubscribe()
         conn.removeEventListener('disconnected', onDisconnected)
         conn.removeEventListener('reconnect-error', onAuthLost)

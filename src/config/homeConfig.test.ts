@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import exampleJson from '../../home.example.json?raw'
 import { parseHomeConfig } from './homeConfig'
+import { ROOM_DOMAINS } from './homeConfig'
 
 // A fresh copy per call, so a test can break one field without touching the next.
 // oxlint-disable-next-line typescript/no-explicit-any
@@ -185,5 +186,64 @@ describe('the shared test house', () => {
   it('is a valid home config', async () => {
     const { testHomeConfig } = await import('./testHomeConfig')
     expect(parseHomeConfig(JSON.parse(JSON.stringify(testHomeConfig)))).toEqual(testHomeConfig)
+  })
+})
+
+describe('the rooms and confirm sections', () => {
+  it('parses hidden areas, per-area add and remove lists, and the away room', () => {
+    const parsed = parseHomeConfig({
+      ...example(),
+      rooms: {
+        hidden: ['placeholder_area'],
+        awayRoom: 'garage',
+        areas: { living_room: { add: ['light.entry_lamp'], remove: ['switch.unused_plug'] } },
+      },
+    })
+    expect(parsed.rooms).toEqual({
+      hidden: ['placeholder_area'],
+      awayRoom: 'garage',
+      areas: { living_room: { add: ['light.entry_lamp'], remove: ['switch.unused_plug'] } },
+    })
+  })
+
+  it('defaults rooms to no hidden areas, no tweaks, and no away room when the section is absent', () => {
+    const raw = example()
+    delete raw.rooms
+    expect(parseHomeConfig(raw).rooms).toEqual({ hidden: [], areas: {} })
+    expect(parseHomeConfig(raw).rooms.awayRoom).toBeUndefined()
+  })
+
+  it('parses the confirm list of entity ids and defaults it to empty', () => {
+    const raw = example()
+    expect(parseHomeConfig({ ...raw, confirm: ['switch.garage_door_opener'] }).confirm).toEqual([
+      'switch.garage_door_opener',
+    ])
+    delete raw.confirm
+    expect(parseHomeConfig(raw).confirm).toEqual([])
+    expect(() => parseHomeConfig({ ...raw, confirm: ['garage'] })).toThrow('confirm[0]')
+  })
+
+  it("rejects a malformed entity id in a room's add list with the path in the message", () => {
+    const rooms = { areas: { living_room: { add: ['not an id'] } } }
+    expect(() => parseHomeConfig({ ...example(), rooms })).toThrow('rooms.areas.living_room.add[0]')
+  })
+
+  it('rejects an unknown key in the rooms section', () => {
+    expect(() => parseHomeConfig({ ...example(), rooms: { hidded: [] } })).toThrow('rooms.hidded')
+    const rooms = { areas: { living_room: { ad: [] } } }
+    expect(() => parseHomeConfig({ ...example(), rooms })).toThrow('rooms.areas.living_room.ad')
+  })
+
+  it("rejects a room add entry whose HA domain rooms don't use", () => {
+    const rooms = { areas: { living_room: { add: ['button.restart'] } } }
+    expect(() => parseHomeConfig({ ...example(), rooms })).toThrow('rooms.areas.living_room.add[0]')
+    expect(ROOM_DOMAINS).toContain('light')
+    expect(ROOM_DOMAINS).not.toContain('button')
+  })
+
+  it('parses home.example.json without errors', () => {
+    const parsed = parseHomeConfig(example())
+    expect(parsed.confirm).toEqual(['switch.garage_door_opener'])
+    expect(parsed.rooms.awayRoom).toBe('garage')
   })
 })

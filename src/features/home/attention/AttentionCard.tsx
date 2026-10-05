@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Chip } from '../../shared/Chip'
 import { useFoldAway } from '../../shared/useFoldAway'
 import type { Shown } from '../../shared/useLeavingItems'
-import { SectionCard } from '../SectionCard'
+import { SectionCard } from '../../shared/SectionCard'
 import { AttentionRow, type SnoozeControls } from './AttentionRow'
 import type { AttentionItem } from './types'
 

@@ -1,0 +1,32 @@
+/* The slider's visible part: a fill under the content it is laid over. Pointer input goes to
+   the surface beneath (a tile's button), so the slider only handles focus and keys. */
+.slider {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.slider:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--leaf));
+  outline-offset: 2px;
+}
+
+.slider-fill {
+  height: 100%;
+  background: color-mix(in srgb, var(--leaf) 22%, transparent);
+  /* Following the finger needs no easing; HA's value arriving does. */
+  transition: width 0.2s ease-out;
+}
+
+/* A bar to drag across: a full 44 px target, with the fill laid over it. A vertical swipe
+   still scrolls the page or sheet around it. */
+.slider-track {
+  position: relative;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--surface-sunken);
+  touch-action: pan-y;
+}

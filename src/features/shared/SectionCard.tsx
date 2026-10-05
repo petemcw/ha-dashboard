@@ -1,9 +1,10 @@
-import type { LucideIcon } from 'lucide-react'
 import { useId, type ReactNode, type Ref } from 'react'
+import { Icon } from './icons/Icon'
 
 type SectionCardProps = {
   title: string
-  icon?: LucideIcon
+  // An MDI path.
+  icon?: string
   // Right-aligned header slot: a status chip or a link.
   chip?: ReactNode
   className?: string
@@ -17,7 +18,7 @@ type SectionCardProps = {
 // screen reader lands on and the heading a person reads are the same words.
 export function SectionCard({
   title,
-  icon: Icon,
+  icon,
   chip,
   className,
   children,
@@ -34,7 +35,7 @@ export function SectionCard({
     >
       <header className="card__header">
         <h2 id={headingId} className="card__title">
-          {Icon && <Icon className="card__icon" size={14} aria-hidden="true" />}
+          {icon && <Icon path={icon} className="card__icon" size={14} />}
           {title}
         </h2>
         {chip && <div className="card__chip">{chip}</div>}

@@ -1,0 +1,107 @@
+/* A room's media players: full rows for what is playing, small chips for the rest. */
+
+.media-players-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.room-card__tiles + .media-players-list {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.media-row {
+  flex: 1 1 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Rows come before chips however the room orders its players. */
+.media-chip {
+  order: 1;
+  gap: 8px;
+  padding-block: 0;
+  padding-inline: 12px 4px;
+  min-height: 44px;
+}
+
+.media-chip__status {
+  font-weight: 600;
+}
+
+.media-chip:not(:has(.media-button)) {
+  padding-inline-end: 12px;
+}
+
+.media-row__text {
+  min-width: 0;
+}
+
+.media-row__title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.media-row__artist {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.media-row__buttons {
+  display: flex;
+}
+
+.media-button {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.media-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.media-button:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--leaf));
+  outline-offset: 2px;
+}
+
+/* An armed button shows what a second tap does. */
+.media-button[aria-label^='Confirm'] {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.media-row > .action-error {
+  grid-column: 1 / -1;
+}
+
+/* Volume sits on its own line under the text and transport. The track is the drag surface:
+   pan-y keeps a vertical swipe scrolling the page, a horizontal one sets the level. */
+.media-row__volume {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.media-row__volume .slider-track {
+  flex: 1;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  cursor: pointer;
+}

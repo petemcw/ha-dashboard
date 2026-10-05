@@ -1,6 +1,6 @@
 import type { ComponentPropsWithRef, ReactNode } from 'react'
 import { useAttentionAction } from './AttentionAction'
-import { ActionGlyph, BadgeGlyph } from './attentionIcons'
+import { ActionGlyph, BadgeGlyph } from './AttentionGlyphs'
 import { SnoozeMenu } from './SnoozeMenu'
 import type { ActionIcon, AttentionItem, RunnableAction } from './types'
 import type { SnoozeDuration } from './useSnoozes'

@@ -6,12 +6,14 @@ import { ERR_KIOSK_TOKEN_REQUIRED } from './connection'
 import { createFakeConnection } from '../../test/fakeConnection'
 import { entityStore } from '../entities/entityStore'
 import { connectionStatus } from './connectionStatus'
+import { registryStore, resetRegistryStore } from '../registries/registryStore'
 import { startSession } from './session'
 import { useConnectionStatus } from './useConnectionStatus'
 
 afterEach(() => {
   localStorage.clear()
   entityStore.reset()
+  resetRegistryStore()
   connectionStatus.set({ kind: 'connecting' })
 })
 
@@ -71,6 +73,40 @@ describe('session heartbeat', () => {
     stop()
     window.dispatchEvent(new Event('online'))
     expect(fake.heartbeat.pings).toBe(1)
+  })
+})
+
+describe('session registries', () => {
+  const emptyAnswers = [
+    ['config/area_registry/list', []],
+    ['config/floor_registry/list', []],
+    ['config/device_registry/list', []],
+    ['config/entity_registry/list_for_display', { entities: [] }],
+  ] as const
+
+  it('starts the registry subscription with the session and stops it on cleanup', async () => {
+    const fake = createFakeConnection()
+    const stop = startSession(() => Promise.resolve(fake.conn))
+    await act(async () => {})
+    expect(fake.countSent('config/area_registry/list')).toBe(1)
+    expect(fake.eventSubscribeCalls).toContain('area_registry_updated')
+    for (const [type, result] of emptyAnswers) fake.resolveType(type, result)
+    await act(async () => {})
+    expect(registryStore.get().kind).toBe('ready')
+    stop()
+    await act(async () => {})
+    expect(fake.unsubscribed).toHaveLength(4)
+    fake.dispatch('ready')
+    expect(fake.countSent('config/area_registry/list')).toBe(1)
+  })
+
+  it('keeps delivering entity updates while registry events are subscribed', async () => {
+    const fake = createFakeConnection()
+    startSession(() => Promise.resolve(fake.conn))
+    await act(async () => {})
+    act(() => fake.emit([{ entity_id: 'light.kitchen', state: 'on' }]))
+    act(() => fake.change('light.kitchen', 'off'))
+    expect(entityStore.get().entities['light.kitchen'].state).toBe('off')
   })
 })
 

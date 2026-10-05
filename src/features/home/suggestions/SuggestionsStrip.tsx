@@ -1,11 +1,11 @@
-import { Sparkles } from 'lucide-react'
+import { mdiCreation } from '@mdi/js'
 import { memo, type ReactNode } from 'react'
 import { useHomeConfig } from '../../../config/useHomeConfig'
 import type { MediaPlayerPlayback } from '../../../domains/media_player/types'
 import { mediaPlayerViewModel } from '../../../domains/media_player/viewModel'
 import { useEntity } from '../../../infrastructure/entities/useEntity'
 import { Chip } from '../../shared/Chip'
-import { SectionCard } from '../SectionCard'
+import { SectionCard } from '../../shared/SectionCard'
 import { SuggestionButton } from './SuggestionButton'
 import { suggestionsFor } from './suggestionRules'
 import './SuggestionsStrip.css'
@@ -31,7 +31,7 @@ function SuggestionsStripContent() {
   return (
     <SectionCard
       title="Suggested"
-      icon={Sparkles}
+      icon={mdiCreation}
       className="suggestions"
       chip={PLAYER_CHIP[playback]}
     >

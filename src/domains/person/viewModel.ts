@@ -55,5 +55,6 @@ export function personViewModel(
     presence,
     zoneName: presence === 'zone' ? entity.state : undefined,
     pictureUrl: resolveEntityPicture(entity.attributes.entity_picture, haUrl),
+    userId: typeof entity.attributes.user_id === 'string' ? entity.attributes.user_id : undefined,
   }
 }

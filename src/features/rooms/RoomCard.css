@@ -1,0 +1,21 @@
+/* The room card: header readings and the tile grid. */
+
+.card__chip:has(.room-card__reading) {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.room-card__reading {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.room-card__tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

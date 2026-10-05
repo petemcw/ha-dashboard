@@ -3,6 +3,7 @@ import { testHomeConfig } from '../../config/testHomeConfig'
 import { binarySensorState } from '../../domains/binary_sensor/factories'
 import { fanState } from '../../domains/fan/factories'
 import { lightState } from '../../domains/light/factories'
+import { inputBooleanState } from '../../domains/input_boolean/factories'
 import { mediaPlayer } from '../../domains/media_player/factories'
 import { personState } from '../../domains/person/factories'
 import { sunState } from '../../domains/sun/factories'
@@ -14,6 +15,11 @@ import { batterySensorState, sensorState } from '../../domains/sensor/factories'
 import { switchState } from '../../domains/switch/factories'
 import { calmHouse } from '../../features/home/attention/factories'
 import { FAVORITES_KEY, serializeFavorites } from '../../features/home/favorites/favoritesValue'
+import {
+  PLACEHOLDER_AREAS,
+  PLACEHOLDER_FLOORS,
+  placeRegistries,
+} from '../../infrastructure/fakeHa/placeholderRegistries'
 import type {
   FakeHaOptions,
   FakeHouse,
@@ -95,6 +101,10 @@ function demoSystems(now: number): HassEntity[] {
 
 // The configured players in order: the first plays, the rest show as chips. No
 // entity_picture anywhere, so the Media card shows its placeholder and requests nothing.
+// Media player feature bits: pause 1, volume set 4, previous 16, next 32, turn on 128,
+// turn off 256, play 16384.
+const FULL_PLAYER = 1 + 4 + 16 + 32 + 128 + 256 + 16384
+
 const DEMO_PLAYERS: { state: string; attributes: Record<string, unknown> }[] = [
   {
     state: 'playing',
@@ -103,11 +113,15 @@ const DEMO_PLAYERS: { state: string; attributes: Record<string, unknown> }[] = [
       media_title: 'Demo Song',
       media_artist: 'Demo Band',
       volume_level: 0.3,
+      supported_features: FULL_PLAYER,
     },
   },
-  { state: 'off', attributes: { friendly_name: 'Kitchen speaker' } },
+  {
+    state: 'off',
+    attributes: { friendly_name: 'Kitchen speaker', supported_features: FULL_PLAYER },
+  },
   { state: 'off', attributes: { friendly_name: 'Family room TV' } },
-  { state: 'idle', attributes: { friendly_name: 'Receiver' } },
+  { state: 'idle', attributes: { friendly_name: 'Receiver', supported_features: FULL_PLAYER } },
 ]
 
 function demoMediaPlayers(): HassEntity[] {
@@ -115,6 +129,96 @@ function demoMediaPlayers(): HassEntity[] {
     const { state, attributes } = DEMO_PLAYERS[i] ?? { state: 'idle', attributes: {} }
     return mediaPlayer(state, { entity_id: id, attributes })
   })
+}
+
+// Entities that exist for the demo's rooms: the living room's header readings and one of
+// each control kind, so the room card has something to dim, toggle, and play. Placed in
+// areas by DEMO_PLACEMENT.
+function demoRoomEntities(): HassEntity[] {
+  const { rooms } = testHomeConfig
+  const living = PLACEHOLDER_AREAS.find((a) => a.area_id === 'living_room')
+  return [
+    sensorState({
+      entity_id: living?.temperature_entity_id ?? 'sensor.living_room_temperature',
+      state: '71.5',
+      attributes: { device_class: 'temperature', unit_of_measurement: '°F' },
+    }),
+    sensorState({
+      entity_id: living?.humidity_entity_id ?? 'sensor.living_room_humidity',
+      state: '42',
+      attributes: { device_class: 'humidity', unit_of_measurement: '%' },
+    }),
+    // Dims and does color temperature and color.
+    lightState({
+      entity_id: 'light.living_room_strip',
+      state: 'on',
+      attributes: {
+        friendly_name: 'Living room strip',
+        supported_color_modes: ['color_temp', 'hs'],
+        color_mode: 'color_temp',
+        color_temp_kelvin: 3000,
+        min_color_temp_kelvin: 2000,
+        max_color_temp_kelvin: 6500,
+        brightness: 200,
+      },
+    }),
+    // Temperature only.
+    lightState({
+      entity_id: 'light.living_room_floor',
+      attributes: {
+        friendly_name: 'Living room floor lamp',
+        supported_color_modes: ['color_temp'],
+        color_mode: 'color_temp',
+        color_temp_kelvin: 3500,
+        min_color_temp_kelvin: 2200,
+        max_color_temp_kelvin: 5000,
+        brightness: 150,
+      },
+    }),
+    // On and off only.
+    lightState({
+      entity_id: 'light.living_room_accent',
+      attributes: { friendly_name: 'Living room accent', supported_color_modes: ['onoff'] },
+    }),
+    lightState({
+      entity_id: 'light.kitchen_pendant',
+      attributes: { friendly_name: 'Kitchen pendant', supported_color_modes: ['onoff'] },
+    }),
+    switchState({
+      entity_id: 'switch.living_room_fountain',
+      attributes: { friendly_name: 'Living room fountain' },
+    }),
+    inputBooleanState({
+      entity_id: 'input_boolean.movie_night',
+      attributes: { friendly_name: 'Movie night' },
+    }),
+    // Configured to be left out of the living room, so it never shows there.
+    ...(rooms?.areas?.living_room?.remove ?? []).map((id) =>
+      switchState({ entity_id: id, attributes: { friendly_name: 'Unused plug' } }),
+    ),
+  ]
+}
+
+// Which demo entities sit in which area. The suggestion scenes and the speakers are the
+// ones the rest of the demo already seeds.
+const DEMO_PLACEMENT: Record<string, string[]> = {
+  living_room: [
+    'light.living_room_lamp',
+    'light.living_room_strip',
+    'light.living_room_floor',
+    'light.living_room_accent',
+    'switch.living_room_fountain',
+    'input_boolean.movie_night',
+    'scene.living_room_movie',
+    'scene.living_room_bright',
+    'media_player.living_room_speaker',
+    'media_player.receiver',
+  ],
+  kitchen: ['media_player.kitchen_speaker'],
+  bedroom: ['fan.bedroom_fan'],
+  garage: ['switch.garage_door_opener'],
+  porch: ['switch.porch_plug'],
+  storage: ['switch.unused_plug'],
 }
 
 export function demoEntities(now: number = Date.now()): HassEntity[] {
@@ -130,7 +234,10 @@ export function demoEntities(now: number = Date.now()): HassEntity[] {
       state: 'on',
       last_changed: since(25 * MINUTE),
     }),
-    switchState({ entity_id: 'switch.garage_door_opener' }),
+    switchState({
+      entity_id: 'switch.garage_door_opener',
+      attributes: { friendly_name: 'Garage opener' },
+    }),
     switchState({
       entity_id: 'switch.space_heater',
       state: 'on',
@@ -150,6 +257,7 @@ export function demoEntities(now: number = Date.now()): HassEntity[] {
     ...demoMediaPlayers(),
     ...demoToday(now),
     ...demoSystems(now),
+    ...demoRoomEntities(),
     lightState({
       entity_id: 'light.living_room_lamp',
       state: 'off',
@@ -240,6 +348,8 @@ function demoForecasts(now: number): Record<string, Forecasts> {
   return { [weather.entity_id]: { hourly, daily } }
 }
 
+const { devices, entityRegistry } = placeRegistries(DEMO_PLACEMENT)
+
 export function demoHouse(now: number = Date.now()): FakeHaOptions {
   return {
     entities: demoEntities(now),
@@ -247,6 +357,10 @@ export function demoHouse(now: number = Date.now()): FakeHaOptions {
     responseDelayMs: DEMO_RESPONSE_DELAY_MS,
     onServiceCall: demoServiceEffects,
     forecasts: demoForecasts(now),
+    areas: PLACEHOLDER_AREAS,
+    floors: PLACEHOLDER_FLOORS,
+    devices,
+    entityRegistry,
     userData: { [FAVORITES_KEY]: serializeFavorites(FAVORITE_IDS) },
   }
 }

@@ -9,7 +9,7 @@ import { useAction } from '../../../infrastructure/serviceGateway/useAction'
 import { ActionButton } from '../../shared/ActionButton'
 import { ActionError } from '../../shared/ActionError'
 import { ConfirmButton } from '../../shared/ConfirmButton'
-import { ActionGlyph } from './attentionIcons'
+import { ActionGlyph } from './AttentionGlyphs'
 import type { RunnableAction } from './types'
 
 // The item stays until HA reports the sensor change, so there is nothing to hide here:

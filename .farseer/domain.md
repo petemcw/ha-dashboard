@@ -38,6 +38,9 @@ If the concept you need isn't in the glossary yet, that's a signal: either you'r
 - **Entity store**: the infrastructure store holding the live entity map from `subscribeEntities`. Read through selector hooks.
 - **Unavailable / unknown**: HA's special states when an integration can't reach a device (`unavailable`) or has no value yet (`unknown`). Every view model handles both.
 - **Missing entity**: an `entity_id` in our config that doesn't exist in HA. Shown as missing, never guessed at.
+- **Room**: an HA area that has something to control, plus the `home.json` `rooms` tweaks (hidden areas, entities added to or removed from an area). Rooms are not HA zones; avoid "zone", which in HA is a location used for presence.
+- **Room source**: a rule Auto uses to pick a room (`RoomSource`). The only one now: the signed-in person is away, so show the `rooms.awayRoom` area. It never fires on a kiosk.
+- **Room selection**: the per-device choice of Auto or one room, kept in localStorage. A pick whose area is no longer a room falls back to Auto.
 - **Feature**: a user-facing area of the app (home overview, climate, security). Lives in `src/features/`.
 - **Tile**: the compact, tappable representation of one entity on a screen.
 - **Kiosk**: the wall tablet running the app full-screen for long periods, authenticated with a long-lived token.

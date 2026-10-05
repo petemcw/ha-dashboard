@@ -1,0 +1,45 @@
+.room-picker {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.room-picker__floor {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.room-picker__floor h3 {
+  margin: var(--space-3) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* The whole row is the radio's label, so the touch target is the row, not the dot. */
+.room-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 48px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.room-option:has(input:checked) {
+  background: var(--surface-sunken);
+  font-weight: 600;
+}
+
+.room-option:has(input:focus-visible) {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* The row carries the selected look; the native dot stays for assistive tech and keys. */
+.room-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}

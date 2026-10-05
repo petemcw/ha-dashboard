@@ -1,9 +1,9 @@
-import { Coins } from 'lucide-react'
+import { mdiCurrencyBtc } from '@mdi/js'
 import { memo, useMemo } from 'react'
 import { useHomeConfig } from '../../../config/useHomeConfig'
 import { useEntity } from '../../../infrastructure/entities/useEntity'
 import { useHourlyMeans } from '../../../infrastructure/ha/useHourlyMeans'
-import { SectionCard } from '../SectionCard'
+import { SectionCard } from '../../shared/SectionCard'
 import { cryptoViewModel } from './cryptoViewModel'
 import { Sparkline } from './Sparkline'
 import './CryptoRow.css'
@@ -36,7 +36,7 @@ function CryptoRowContent() {
   return (
     <SectionCard
       title="Crypto"
-      icon={Coins}
+      icon={mdiCurrencyBtc}
       className="crypto"
       // The period the change and the sparkline cover.
       chip={<span className="crypto__period">{HISTORY_HOURS} h</span>}

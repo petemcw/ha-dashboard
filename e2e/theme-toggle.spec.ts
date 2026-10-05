@@ -1,3 +1,4 @@
+import { mdiWeatherNight, mdiWeatherSunny } from '@mdi/js'
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
@@ -17,11 +18,11 @@ const themeColors = (page: Page) =>
 
 async function expectShowsTarget(page: Page, target: 'light' | 'dark') {
   // A moon offers dark; a sun offers light.
-  const icon = target === 'dark' ? 'moon' : 'sun'
-  const other = target === 'dark' ? 'sun' : 'moon'
+  const icon = target === 'dark' ? mdiWeatherNight : mdiWeatherSunny
+  const other = target === 'dark' ? mdiWeatherSunny : mdiWeatherNight
   await expect(toggle(page)).toHaveAccessibleName(`Switch to ${target} mode`)
-  await expect(toggle(page).locator(`svg.lucide-${icon}`)).toBeVisible()
-  await expect(toggle(page).locator(`svg.lucide-${other}`)).toHaveCount(0)
+  await expect(toggle(page).locator(`svg path[d="${icon}"]`)).toBeVisible()
+  await expect(toggle(page).locator(`svg path[d="${other}"]`)).toHaveCount(0)
 }
 
 test('names the toggle and picks its icon from the device theme while on system', async ({

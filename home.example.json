@@ -117,5 +117,13 @@
       "media_player.family_room_tv",
       "media_player.receiver"
     ]
-  }
+  },
+  "rooms": {
+    "hidden": ["placeholder_area"],
+    "awayRoom": "garage",
+    "areas": {
+      "living_room": { "add": ["light.entry_lamp"], "remove": ["switch.unused_plug"] }
+    }
+  },
+  "confirm": ["switch.garage_door_opener"]
 }

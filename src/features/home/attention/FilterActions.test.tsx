@@ -8,7 +8,7 @@ import { AttentionHarness } from '../../../test/AttentionHarness'
 import { resetConnectionStatus, setConnected } from '../../../test/connectionStatus'
 import { createFakeServiceGateway } from '../../../test/fakeServiceGateway'
 import { renderWithHome as render } from '../../../test/renderWithHome'
-import { CONFIRM_GUARD_MS } from '../../shared/ConfirmButton'
+import { CONFIRM_GUARD_MS } from '../../shared/useConfirmArm'
 import { calmHouse } from './factories'
 
 const FURNACE_DAYS = 'sensor.furnace_filter_days_remaining'

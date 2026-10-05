@@ -1,0 +1,24 @@
+/* A full-width button at the top of column 1 that says what Home is showing. */
+.room-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+}
+
+.room-selector span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

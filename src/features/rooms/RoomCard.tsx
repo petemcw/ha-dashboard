@@ -4,8 +4,8 @@ import { useEntity } from '../../infrastructure/entities/useEntity'
 import { SectionCard } from '../shared/SectionCard'
 import { iconForHa } from '../shared/icons/haIcons'
 import { STATUS_TEXT } from '../shared/statusText'
-import { EntityTile } from '../shared/tiles/EntityTile'
 import { MediaPlayers } from './MediaPlayers'
+import { RoomTile } from './RoomTile'
 import { useSelectedRoom } from './useSelectedRoom'
 import './RoomCard.css'
 
@@ -51,7 +51,7 @@ export function RoomCard() {
       {tileIds.length > 0 && (
         <ul className="room-card__tiles">
           {tileIds.map((id) => (
-            <EntityTile key={id} entityId={id} variant="room" />
+            <RoomTile key={id} entityId={id} />
           ))}
         </ul>
       )}

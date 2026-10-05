@@ -1,12 +1,13 @@
 import { act, createEvent, fireEvent, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { lightState } from '../../../domains/light/factories'
-import { entityStore } from '../../../infrastructure/entities/entityStore'
-import { resetConnectionStatus, setConnected } from '../../../test/connectionStatus'
-import { createFakeServiceGateway } from '../../../test/fakeServiceGateway'
-import { testHomeConfig } from '../../../config/testHomeConfig'
-import { renderWithHome } from '../../../test/renderWithHome'
-import { EntityTile } from './EntityTile'
+import { lightState } from '../../domains/light/factories'
+import { entityStore } from '../../infrastructure/entities/entityStore'
+import { resetConnectionStatus, setConnected } from '../../test/connectionStatus'
+import { createFakeServiceGateway } from '../../test/fakeServiceGateway'
+import { testHomeConfig } from '../../config/testHomeConfig'
+import { renderWithHome } from '../../test/renderWithHome'
+import { EntityTile } from '../shared/tiles/EntityTile'
+import { RoomTile } from './RoomTile'
 
 const LAMP = 'light.lamp'
 const TILE_WIDTH = 200
@@ -37,7 +38,7 @@ function seedLamp(state: 'on' | 'off', attributes: Record<string, unknown> = {})
 function renderLamp(options: Parameters<typeof renderWithHome>[1] = {}) {
   const fake = createFakeServiceGateway()
   setConnected()
-  renderWithHome(<EntityTile entityId={LAMP} variant="room" />, {
+  renderWithHome(<RoomTile entityId={LAMP} />, {
     gateway: fake.gateway,
     ...options,
   })
@@ -257,7 +258,7 @@ describe('light brightness drag', () => {
   it('disables the drag while HA is disconnected', () => {
     seedLamp('on')
     const fake = createFakeServiceGateway()
-    renderWithHome(<EntityTile entityId={LAMP} variant="room" />, { gateway: fake.gateway })
+    renderWithHome(<RoomTile entityId={LAMP} />, { gateway: fake.gateway })
     drag([100, 30], [[160, 30]])
     expect(fake.calls).toEqual([])
     expect(screen.getByRole('slider')).toHaveAttribute('aria-disabled', 'true')

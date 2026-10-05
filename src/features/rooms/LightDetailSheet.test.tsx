@@ -1,14 +1,15 @@
 import { act, createEvent, fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { testHomeConfig } from '../../../config/testHomeConfig'
-import { lightState } from '../../../domains/light/factories'
-import { entityStore } from '../../../infrastructure/entities/entityStore'
-import { resetConnectionStatus, setConnected } from '../../../test/connectionStatus'
-import { createFakeServiceGateway } from '../../../test/fakeServiceGateway'
-import { ServiceCallError } from '../../../infrastructure/serviceGateway/serviceGateway'
-import { renderWithHome } from '../../../test/renderWithHome'
-import { EntityTile } from './EntityTile'
+import { testHomeConfig } from '../../config/testHomeConfig'
+import { lightState } from '../../domains/light/factories'
+import { entityStore } from '../../infrastructure/entities/entityStore'
+import { resetConnectionStatus, setConnected } from '../../test/connectionStatus'
+import { createFakeServiceGateway } from '../../test/fakeServiceGateway'
+import { ServiceCallError } from '../../infrastructure/serviceGateway/serviceGateway'
+import { renderWithHome } from '../../test/renderWithHome'
+import { EntityTile } from '../shared/tiles/EntityTile'
+import { RoomTile } from './RoomTile'
 
 const LAMP = 'light.lamp'
 
@@ -33,7 +34,7 @@ function seedLamp(state: 'on' | 'off', attributes: Record<string, unknown> = {})
 function renderLamp(options: Parameters<typeof renderWithHome>[1] = {}) {
   const fake = createFakeServiceGateway()
   setConnected()
-  renderWithHome(<EntityTile entityId={LAMP} variant="room" />, {
+  renderWithHome(<RoomTile entityId={LAMP} />, {
     gateway: fake.gateway,
     ...options,
   })
@@ -45,17 +46,17 @@ const moreControls = () => screen.queryByRole('button', { name: 'More controls f
 describe('light detail sheet', () => {
   it('shows a more-controls button only on lights that support color temperature or color', () => {
     seedLamp('on', { supported_color_modes: ['brightness'] })
-    const { unmount } = renderWithHome(<EntityTile entityId={LAMP} variant="room" />)
+    const { unmount } = renderWithHome(<RoomTile entityId={LAMP} />)
     expect(moreControls()).not.toBeInTheDocument()
     unmount()
 
     seedLamp('on', { supported_color_modes: ['color_temp'] })
-    const second = renderWithHome(<EntityTile entityId={LAMP} variant="room" />)
+    const second = renderWithHome(<RoomTile entityId={LAMP} />)
     expect(moreControls()).toBeInTheDocument()
     second.unmount()
 
     seedLamp('on', { supported_color_modes: ['xy'] })
-    renderWithHome(<EntityTile entityId={LAMP} variant="room" />)
+    renderWithHome(<RoomTile entityId={LAMP} />)
     expect(moreControls()).toBeInTheDocument()
   })
 
@@ -257,7 +258,7 @@ describe('light detail sheet controls', () => {
   it('disables the sheet controls while HA is disconnected', async () => {
     seedLamp('on', { supported_color_modes: ['xy', 'color_temp'] })
     const fake = createFakeServiceGateway()
-    renderWithHome(<EntityTile entityId={LAMP} variant="room" />, { gateway: fake.gateway })
+    renderWithHome(<RoomTile entityId={LAMP} />, { gateway: fake.gateway })
     await userEvent.click(moreControls()!)
 
     expect(screen.getByRole('button', { name: 'Blue' })).toBeDisabled()

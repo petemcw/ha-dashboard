@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Icon } from '../icons/Icon'
 import type { ActionFailure } from '../../../infrastructure/serviceGateway/useAction'
+import type { Confirm } from '../useConfirmArm'
 
 // What every tile shows, control or not.
 export type TileLabel = {
@@ -18,9 +19,8 @@ export type TileControl = {
   pending?: boolean
   failure?: ActionFailure | null
   disabled?: boolean
-  // Set for a confirm-listed entity: the verb phrase ("turn off", "run") the armed tile
-  // names, so the first tap arms and only the second sends.
-  confirm?: { action: string }
+  // Set for a confirm-listed entity, so the first tap arms and only the second sends.
+  confirm?: Confirm
 }
 
 // The list item's look, shared by both kinds of tile.

@@ -7,6 +7,10 @@ export const CONFIRM_WINDOW_MS = 4_000
 // in one gesture.
 export const CONFIRM_GUARD_MS = 500
 
+// What an armed control says a second tap will do, the whole phrase ("turn off Garage
+// opener", "pause Kitchen speaker"): an armed control is named "Confirm: <action>".
+export type Confirm = { action: string }
+
 // The tap-twice behavior behind every confirm control: the first press arms, a second
 // press after the guard confirms, and a tap elsewhere, focus leaving, the window running
 // out, or the control going disabled disarms. The caller renders the button, wires its press

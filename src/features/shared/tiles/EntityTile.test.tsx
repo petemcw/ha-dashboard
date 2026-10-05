@@ -68,7 +68,7 @@ describe('entity tile', () => {
     renderWithHome(
       <ul>
         {ids.map((id) => (
-          <EntityTile key={id} entityId={id} variant="room" />
+          <EntityTile key={id} entityId={id} />
         ))}
       </ul>,
       { gateway: createFakeServiceGateway().gateway },
@@ -93,14 +93,14 @@ describe('entity tile', () => {
           attributes: { friendly_name: 'Lamp' },
         }),
       )
-    const setup = (variant: 'favorite' | 'room' = 'room') => {
+    const setup = () => {
       garage()
       const fake = createFakeServiceGateway()
       setConnected()
       renderWithHome(
         <ul>
-          <EntityTile entityId="switch.garage_door_opener" variant={variant} />
-          <EntityTile entityId="switch.lamp" variant={variant} />
+          <EntityTile entityId="switch.garage_door_opener" />
+          <EntityTile entityId="switch.lamp" />
         </ul>,
         { gateway: fake.gateway },
       )
@@ -146,13 +146,6 @@ describe('entity tile', () => {
       } finally {
         vi.useRealTimers()
       }
-    })
-
-    it('applies the confirm list to favorites tiles too', () => {
-      const { calls } = setup('favorite')
-      tap(/Garage opener/)
-      expect(calls).toEqual([])
-      expect(screen.getByRole('button', { name: /^Confirm:/ })).toBeInTheDocument()
     })
 
     it('sends on one tap for a tile that is not in the confirm list', () => {

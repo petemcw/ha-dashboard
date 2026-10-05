@@ -29,6 +29,19 @@ function presenceOf(state: string): Presence {
   return 'zone'
 }
 
+const userIdOf = (entity: HassEntity) =>
+  typeof entity.attributes.user_id === 'string' ? entity.attributes.user_id : undefined
+
+// Where a person is and which HA user they are: the parts that need no HA URL (unlike their
+// picture), for code that only asks who is home.
+export function personWhereabouts(
+  entity: HassEntity | undefined,
+): Pick<PersonViewModel, 'presence' | 'userId'> {
+  return entity
+    ? { presence: presenceOf(entity.state), userId: userIdOf(entity) }
+    : { presence: 'missing', userId: undefined }
+}
+
 export function personViewModel(
   entity: HassEntity | undefined,
   entityId: string,
@@ -55,6 +68,6 @@ export function personViewModel(
     presence,
     zoneName: presence === 'zone' ? entity.state : undefined,
     pictureUrl: resolveEntityPicture(entity.attributes.entity_picture, haUrl),
-    userId: typeof entity.attributes.user_id === 'string' ? entity.attributes.user_id : undefined,
+    userId: userIdOf(entity),
   }
 }

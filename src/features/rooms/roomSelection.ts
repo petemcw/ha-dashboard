@@ -2,12 +2,14 @@ import type { PersonViewModel } from '../../domains/person/types'
 import type { Room, RoomsModel } from './roomModel'
 
 export type RoomSelection = { kind: 'auto' } | { kind: 'room'; areaId: string }
+// What room sources know about a person: their HA user and where they are.
+export type PersonPresence = Pick<PersonViewModel, 'userId' | 'presence'>
 export type RoomPick = { areaId: string; reason: string }
 export type RoomSourceContext = {
   rooms: RoomsModel
   awayRoom?: string
   currentUserId?: string
-  persons: PersonViewModel[]
+  persons: PersonPresence[]
   kiosk: boolean
 }
 export type RoomSource = { id: string; resolve(ctx: RoomSourceContext): RoomPick | undefined }

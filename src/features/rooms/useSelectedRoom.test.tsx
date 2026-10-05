@@ -71,6 +71,40 @@ describe('useSelectedRoom', () => {
     expect(localStorage.getItem(ROOM_SELECTION_KEY)).toBeNull()
   })
 
+  // HA rewrites a person's GPS attributes on every location report, home or not; the selector
+  // and the room card only care whether the signed-in person is away.
+  it("doesn't re-render for a person's location report, only for a presence change", () => {
+    const me = (state: string, latitude: number) =>
+      entityState({
+        entity_id: 'person.me',
+        state,
+        attributes: { user_id: 'u1', latitude, entity_picture: '/api/image/serve/me/512x512' },
+      })
+    const withMe = (state: string, latitude: number) =>
+      act(() =>
+        entityStore.setEntities({
+          ...entityStore.get().entities,
+          'person.me': me(state, latitude),
+        }),
+      )
+    withMe('home', 1)
+    let renders = 0
+    renderHook(
+      () => {
+        renders++
+        return useSelectedRoom()
+      },
+      { wrapper },
+    )
+    const settled = renders
+
+    withMe('home', 2)
+    expect(renders).toBe(settled)
+
+    withMe('not_home', 2)
+    expect(renders).toBeGreaterThan(settled)
+  })
+
   // Building rooms walks every area, device, and entity; the selector and the card must not
   // each pay for it.
   it('hands every caller the same rooms, built once for all of them', () => {

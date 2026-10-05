@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { personState } from './factories'
-import { personViewModel } from './viewModel'
+import { personViewModel, personWhereabouts } from './viewModel'
 
 const HA = 'https://ha.example.test'
 
@@ -71,5 +71,20 @@ describe('personViewModel', () => {
     expect(vm.initials).toBe('AS')
     const single = personViewModel(personState({ friendly_name: 'Madonna' }), 'person.m', HA)
     expect(single.initials).toBe('M')
+  })
+})
+
+describe('personWhereabouts', () => {
+  it("reports a person's presence and HA user without needing HA's URL for their picture", () => {
+    const entity = personState({
+      state: 'not_home',
+      user_id: 'u1',
+      entity_picture: '/api/image/serve/me/512x512',
+    })
+    expect(personWhereabouts(entity)).toEqual({ presence: 'away', userId: 'u1' })
+  })
+
+  it('reports a person HA no longer has as missing', () => {
+    expect(personWhereabouts(undefined)).toEqual({ presence: 'missing', userId: undefined })
   })
 })

@@ -79,7 +79,7 @@ Skills:
 
 ## Open questions
 
-- Which wall tablet/screen hardware, and in which browser/kiosk app. (It will need Tailscale to reach the dashboard.)
+- None open. A wall tablet/screen is future work with no hardware planned, so don't plan around a specific device or kiosk app; just keep layouts kiosk-friendly (see Stack). When it happens, it will need Tailscale to reach the dashboard.
 
 ## Agent Skills
 
